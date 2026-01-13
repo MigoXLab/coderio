@@ -11,7 +11,6 @@ import { registerCommands } from './commands';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { logger } from './tools/logger.js';
 import { CLI_NAME } from './constants';
 
 /**
@@ -56,10 +55,6 @@ async function main(argv: string[]): Promise<void> {
 main(process.argv).catch(err => {
     const error = err as Error;
     // TODO: Handle error
-    logger.error(error.message || String(error));
-    // logger.printErrorLog(error.message || String(error));
-    // if (error.stack) {
-    //     logger.printTestLog(error.stack);
-    // }
+    console.error(error.message || String(error));
     process.exit(1);
 });
