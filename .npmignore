@@ -1,0 +1,34 @@
+# Source files
+src/
+scripts/
+
+# Configuration files
+tsconfig.json
+tsup.config.ts
+eslint.config.js
+.prettierrc.json
+.prettierignore
+
+# Development files
+.vscode/
+.idea/
+*.log
+.DS_Store
+
+# Test files
+tests/
+*.test.ts
+*.spec.ts
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation source (keep compiled docs)
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
