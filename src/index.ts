@@ -1,29 +1,12 @@
-#!/usr/bin/env node
+/**
+ * Coderio Library Entry Point.
+ * This file exports the core functionality of Coderio for use as an npm package.
+ */
 
-// Save the user's current working directory before any operations
-process.env.CODERIO_CLI_USER_CWD = process.cwd();
+export { design2code } from './graph';
+export { ProjectWorkspace, createDefaultWorkspace, workspace } from './utils/workspace';
 
-import { Command } from 'commander';
-import { registerCommands } from './commands';
-
-async function main(argv: string[]): Promise<void> {
-    const program = new Command();
-
-    // Register all commands
-    registerCommands(program);
-
-    if (argv.length <= 2) {
-        program.help({ error: false });
-        return;
-    }
-
-    // Parse arguments
-    await program.parseAsync(argv);
-}
-
-main(process.argv).catch(err => {
-    const error = err as Error;
-    // TODO: Handle error
-    console.error(error.message || String(error));
-    process.exit(1);
-});
+// Export types
+export * from './types/workspace-types';
+export * from './state';
+export { GraphNode } from './types/graph-types';

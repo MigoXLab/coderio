@@ -4,8 +4,11 @@
     "description": "A modern CLI development tool built with TypeScript",
     "type": "module",
     "bin": {
-        "coderio": "./dist/index.js"
+        "coderio": "./dist/cli.js"
     },
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "files": [
         "dist",
         "README.md",
@@ -31,7 +34,10 @@
     "license": "MIT",
     "dependencies": {
         "commander": "^12.1.0",
-        "chalk": "^5.4.1"
+        "@langchain/langgraph": "^0.2.45",
+        "@langchain/core": "^0.3.30",
+        "@langchain/openai": "^0.3.17",
+        "evoltagent": "^1.1.1"
     },
     "devDependencies": {
         "@types/node": "^22.10.2",
