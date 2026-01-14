@@ -5,3 +5,4 @@
 
 export * from './workspace-types';
 export * from './graph-types';
+export * from './figma-types';
