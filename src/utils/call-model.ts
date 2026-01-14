@@ -38,8 +38,22 @@ function validateModelConfig(config: ModelConfig | null | undefined): asserts co
 export async function callModel(options: CallModelOptions): Promise<string> {
     const { question, imageUrls, streaming = false, responseFormat, maxTokens } = options;
 
-    const config = getModelConfig();
-    validateModelConfig(config);
+    // Validate input
+    if (!question || !question.trim()) {
+        throw new Error('Question must be a non-empty string');
+    }
+
+    // Get and validate config separately
+    let config: ModelConfig;
+    try {
+        config = getModelConfig();
+        validateModelConfig(config);
+    } catch (error) {
+        if (error instanceof Error) {
+            logger.printErrorLog(`❌ Configuration error: ${error.message}`);
+        }
+        throw error;
+    }
 
     try {
         const agentModel = new ChatOpenAI({
@@ -48,41 +62,43 @@ export async function callModel(options: CallModelOptions): Promise<string> {
             configuration: {
                 baseURL: config.url,
             },
-            maxTokens: maxTokens,
+            ...(maxTokens && { maxTokens }),
             temperature: 0.1,
-            streaming: streaming,
-            // For streaming mode: enable usage in streaming options
+            streaming,
             ...(streaming && {
                 streamingOptions: {
                     includeUsage: true,
                 },
             }),
-            // For non-streaming mode: enable streamUsage
             ...(!streaming && { streamUsage: true }),
             ...(responseFormat && { modelKwargs: { response_format: responseFormat } }),
         });
 
         // Build multimodal content parts: text + image_url
         const contentParts: ContentPart[] = [];
+        contentParts.push({ type: 'text', text: question });
 
-        if (question) {
-            contentParts.push({ type: 'text', text: question });
-        }
-
+        // Add images if provided
         if (imageUrls) {
             const urls = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
             for (const url of urls) {
-                if (url) {
-                    contentParts.push({ type: 'image_url', image_url: { url } });
+                if (url && typeof url === 'string' && url.trim()) {
+                    contentParts.push({ type: 'image_url', image_url: { url: url.trim() } });
                 }
             }
         }
 
-        // Create user message
+        // Create user message - use array if multimodal, string if text-only
         const userMessage = new HumanMessage({
-            content: contentParts.length > 0 ? contentParts : question,
+            content: contentParts.length > 1 ? contentParts : question,
         });
+
         const message = await agentModel.invoke([userMessage]);
+
+        if (!message.text) {
+            throw new Error('Model returned empty response');
+        }
+
         return message.text;
     } catch (error) {
         if (error instanceof Error) {
