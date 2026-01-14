@@ -8,21 +8,21 @@ export const logger = {
      * Print info log in blue
      */
     printInfoLog(message: string): void {
-        console.log(chalk.blue(message));
+        console.log(chalk.blue(`ℹ️  [INFO] ${message}`));
     },
 
     /**
      * Print warning log in yellow
      */
     printWarnLog(message: string): void {
-        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow(`⚠️  [WARNING] ${message}`));
     },
 
     /**
      * Print error log in red
      */
     printErrorLog(message: string): void {
-        console.error(chalk.red(message));
+        console.error(chalk.red(`❌ [ERROR] ${message}`));
     },
 
     /**
@@ -31,7 +31,7 @@ export const logger = {
      */
     printTestLog(message: string): void {
         if (process.env.NODE_ENV === 'development') {
-            console.log(chalk.gray(message));
+            console.log(chalk.gray(`🔍 [DEBUG] ${message}`));
         }
     },
 
@@ -39,6 +39,6 @@ export const logger = {
      * Print success log in green
      */
     printSuccessLog(message: string): void {
-        console.log(chalk.green(message));
+        console.log(chalk.green(`✅ [SUCCESS] ${message}`));
     },
 };

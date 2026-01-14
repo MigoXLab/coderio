@@ -50,7 +50,7 @@ export async function callModel(options: CallModelOptions): Promise<string> {
         validateModelConfig(config);
     } catch (error) {
         if (error instanceof Error) {
-            logger.printErrorLog(`❌ Configuration error: ${error.message}`);
+            logger.printErrorLog(`Configuration error: ${error.message}`);
         }
         throw error;
     }
@@ -102,9 +102,9 @@ export async function callModel(options: CallModelOptions): Promise<string> {
         return message.text;
     } catch (error) {
         if (error instanceof Error) {
-            logger.printErrorLog(`❌ [${config.name}] Error details: ${error.message}`);
+            logger.printErrorLog(`[${config.name}] Error details: ${error.message}`);
             if (error.stack) {
-                logger.printTestLog(`❌ [${config.name}] Stack trace: ${error.stack}`);
+                logger.printTestLog(`[${config.name}] Stack trace: ${error.stack}`);
             }
         }
         throw new Error(`${config.name} model request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
