@@ -33,9 +33,9 @@
     "author": "",
     "license": "Apache-2.0",
     "dependencies": {
-        "@langchain/core": "^1.1.12",
+        "@langchain/core": "^0.3.30",
         "@langchain/langgraph": "^0.2.45",
-        "@langchain/openai": "^1.2.1",
+        "@langchain/openai": "^0.3.17",
         "chalk": "^5.4.1",
         "commander": "^12.1.0",
         "evoltagent": "^1.1.1",
