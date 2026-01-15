@@ -21,8 +21,12 @@ export const initialAgentPrompt = (options: { appPath: string }) => {
 
     <file_specs>
       - \`package.json\`: Basic scripts and dependencies. MUST include \`tailwindcss\` (v4) and \`@tailwindcss/vite\`.
-      - \`vite.config.ts\`: Configure React and TailwindCSS V4 plugins.
-      - \`tsconfig.json\`: Standard React-Vite TS config.
+      - \`vite.config.ts\`: Configure React and TailwindCSS V4 plugins. MUST include path alias configuration:
+        * Add \`resolve.alias\` with \`@\` pointing to \`path.resolve(__dirname, './src')\`
+        * Import \`path\` from 'node:path'
+      - \`tsconfig.json\`: Standard React-Vite TS config. MUST include path alias configuration:
+        * Add \`compilerOptions.baseUrl\` set to "."
+        * Add \`compilerOptions.paths\` with \`"@/*": ["src/*"]\`
       - \`index.html\`: Basic template with #root and entry script.
       - \`src/main.tsx\`: Entry point rendering App.
       - \`src/vite-env.d.ts\`: MUST include \`/// <reference types="vite/client" />\` to support CSS/Less module imports.
