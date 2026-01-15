@@ -25,8 +25,8 @@ export interface CallModelOptions {
  * @throws Error if required fields are missing
  */
 function validateModelConfig(config: ModelConfig | null | undefined): asserts config is ModelConfig {
-    if (!config || !config.name || !config.url || !config.apiKey) {
-        throw new Error(`Invalid model configuration. Required fields: name, url, apiKey. Please check your config.yaml file.`);
+    if (!config || !config.provider || !config.model || !config.baseUrl || !config.apiKey) {
+        throw new Error(`Invalid model configuration. Required fields: provider, model, baseUrl, apiKey. Please check your config.yaml file.`);
     }
 }
 
@@ -57,10 +57,10 @@ export async function callModel(options: CallModelOptions): Promise<string> {
 
     try {
         const agentModel = new ChatOpenAI({
-            modelName: config.name,
+            modelName: config.model,
             apiKey: config.apiKey,
             configuration: {
-                baseURL: config.url,
+                baseURL: config.baseUrl,
             },
             ...(maxTokens && { maxTokens }),
             temperature: 0.1,
@@ -102,11 +102,11 @@ export async function callModel(options: CallModelOptions): Promise<string> {
         return message.text;
     } catch (error) {
         if (error instanceof Error) {
-            logger.printErrorLog(`[${config.name}] Error details: ${error.message}`);
+            logger.printErrorLog(`[${config.model}] Error details: ${error.message}`);
             if (error.stack) {
-                logger.printTestLog(`[${config.name}] Stack trace: ${error.stack}`);
+                logger.printTestLog(`[${config.model}] Stack trace: ${error.stack}`);
             }
         }
-        throw new Error(`${config.name} model request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(`${config.model} model request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }

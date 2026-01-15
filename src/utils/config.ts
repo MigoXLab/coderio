@@ -11,9 +11,17 @@ const CONFIG_FILE = resolve(CONFIG_DIR, 'config.yaml');
  * Model configuration interface
  */
 export interface ModelConfig {
-    name: string;
-    url: string;
+    provider: string;
+    model: string;
+    baseUrl: string;
     apiKey: string;
+}
+
+/**
+ * Figma configuration interface
+ */
+export interface FigmaConfig {
+    token: string;
 }
 
 /**
@@ -21,6 +29,7 @@ export interface ModelConfig {
  */
 interface Config {
     model: ModelConfig;
+    figma: FigmaConfig;
 }
 
 // Cache for loaded configuration
@@ -29,6 +38,7 @@ let cachedConfig: Config | null = null;
 /**
  * Load configuration from user's config directory
  * The configuration is cached after first load
+ * @returns Full configuration object
  */
 export function loadConfig(): Config {
     if (cachedConfig) {
@@ -43,8 +53,8 @@ export function loadConfig(): Config {
         const fileContent = readFileSync(CONFIG_FILE, 'utf8');
         const rawConfig = yaml.load(fileContent) as Config;
 
-        if (!rawConfig || !rawConfig.model) {
-            throw new Error('Invalid config.yaml structure: missing "model" configuration');
+        if (!rawConfig) {
+            throw new Error('Invalid config.yaml structure: configuration is empty');
         }
 
         cachedConfig = rawConfig;
@@ -64,7 +74,23 @@ export function loadConfig(): Config {
  */
 export function getModelConfig(): ModelConfig {
     const config = loadConfig();
+    if (!config.model) {
+        throw new Error('Model configuration not found in config.yaml');
+    }
     return config.model;
+}
+
+/**
+ * Get Figma configuration from config.yaml
+ * @returns Figma configuration
+ * @throws Error if configuration is invalid
+ */
+export function getFigmaConfig(): FigmaConfig {
+    const config = loadConfig();
+    if (!config.figma) {
+        throw new Error('Figma configuration not found in config.yaml');
+    }
+    return config.figma;
 }
 
 /**
