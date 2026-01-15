@@ -5,4 +5,5 @@ export enum GraphNode {
     INITIAL = 'initial',
     PROTOCOL = 'protocol',
     DATA = 'data',
+    CODE = 'code',
 }
