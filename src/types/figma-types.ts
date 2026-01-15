@@ -133,7 +133,8 @@ export type LayoutDirection = 'VERTICAL' | 'HORIZONTAL' | 'NONE';
 export interface FrameData {
     name: string;
     purpose: string;
-    elements: any[]; // Complete Figma node data with hierarchy
+    elementIds?: string[]; // Temporary IDs from AI response (removed after processing)
+    elements: any[]; // Complete Figma node data with hierarchy (simplified)
     kebabName?: string; // Normalized identifier for filesystem-friendly names
     /**
      * Optional reusable component identifier.

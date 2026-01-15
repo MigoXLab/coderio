@@ -1,5 +1,6 @@
 import { Annotation, MessagesAnnotation } from '@langchain/langgraph';
 import { WorkspaceStructure } from './types/workspace-types';
+import type { FigmaFrameInfo, FrameStructNode } from './types';
 
 /**
  * The root state annotation for the LangGraph.
@@ -8,6 +9,11 @@ import { WorkspaceStructure } from './types/workspace-types';
 export const GraphStateAnnotation = Annotation.Root({
     ...MessagesAnnotation.spec,
     workspace: Annotation<WorkspaceStructure>(),
+    // Figma data
+    figmaUrl: Annotation<string | undefined>(),
+    processedFigma: Annotation<FigmaFrameInfo | undefined>(),
+    // Structure output
+    pageStructure: Annotation<FrameStructNode | undefined>(),
 });
 
 /**
