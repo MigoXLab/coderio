@@ -26,7 +26,7 @@ Create `~/.coderio/config.yaml` with the following content:
 
 ```yaml
 model:
-    provider: openai
+    provider: anthropic
     model: gemini-3-pro-preview
     baseUrl: your-api-endpoint-url
     apiKey: your-google-api-key-here
@@ -46,7 +46,7 @@ figma:
 # Create config directory and file in one command
 cat > ~/.coderio/config.yaml << 'EOF'
 model:
-    provider: openai
+    provider: anthropic
     model: gemini-3-pro-preview
     baseUrl: your-api-endpoint-url
     apiKey: your-google-api-key-here
@@ -78,7 +78,7 @@ coderio --version
 
 | Field            | Required | Description                                                      |
 | ---------------- | -------- | ---------------------------------------------------------------- |
-| `model.provider` | ✅       | Provider name (e.g., openai)                                     |
+| `model.provider` | ✅       | Provider name (e.g., anthropic)                                  |
 | `model.model`    | ✅       | Model name (e.g., gemini-3-pro-preview)                          |
 | `model.baseUrl`  | ✅       | API endpoint URL                                                 |
 | `model.apiKey`   | ✅       | Your API key for authentication                                  |
