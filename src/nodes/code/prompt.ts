@@ -1,3 +1,73 @@
+// ============================================
+// Common Prompt Sections
+// ============================================
+
+const STYLING_GUIDELINES = `
+      - **Style Consistency**: Implement styles using the technical stack and libraries listed in <styling>.
+      - **Strict Restriction**: Absolutely ONLY use the technical stack and libraries listed in <styling>. Do NOT use any other styling methods, libraries, or frameworks (e.g., if clsx is not listed, do not use clsx).
+      - **Default Styling**: If <styling> is empty or does not contain specific libraries, DEFAULT to standard vanilla CSS.
+      
+      - **Tailwind CSS + CSS Modules (CRITICAL)**:
+        - If the stack includes BOTH Tailwind and CSS Modules (Less/SCSS), use them correctly:
+          1. **Tailwind utilities**: Use DIRECTLY in JSX className (e.g., \`className="flex items-center gap-4"\`)
+          2. **CSS Modules**: Use ONLY for complex styles that can't be expressed with Tailwind utilities (e.g., gradients, animations, pseudo-elements)
+          3. **NEVER use \`@apply\` in CSS Module files** - it's a Tailwind-specific directive that doesn't work in Less/SCSS
+          4. Example correct usage:
+             TSX: \`<div className={\`flex \${styles.customGradient}\`}>\`
+             Less: \`.customGradient { background: linear-gradient(...); }\`
+      
+      - **CSS Modules Only**: If the tech stack specifies CSS Modules without Tailwind:
+        1. Create a corresponding style file (e.g., \`index.module.less\`, \`index.module.scss\`, or \`index.module.css\`)
+        2. Import it as \`import styles from './index.module.[ext]';\` in the TSX
+        3. Define all styles in the style file using standard CSS/Less/SCSS syntax
+        4. Use \`styles.className\` in JSX`;
+
+const ASSETS_HANDLING = `
+      - **CRITICAL**: For any image URL starting with \`@/assets\`, you MUST import it at the top of the file.
+      - **Asset Name Matching**: 
+        - Check the \`<available_assets>\` list for actual filenames in the project.
+        - Asset filenames follow the pattern: \`kebab-case-name-id1-id2.ext\` (e.g., "Star 2.svg" → "star-2-1-2861.svg")
+        - Match the base name (ignoring spaces, case, and ID suffix): "@/assets/arXiv.svg" → look for "arxiv-*.svg" in the list
+        - Use the EXACT filename from the available assets list in your import.
+      - Example: If available_assets contains "arxiv-1-2956.svg", use:
+        \`import ArXivIcon from '@/assets/arxiv-1-2956.svg';\`
+      - **Usage**: \`<img src={ArXivIcon} />\`, do not use backgroundImage property.
+      - **NEVER** use the string path directly in JSX or styles.`;
+
+const DOM_IDS_REQUIREMENT = `
+      - Assign \`id\` attributes to the main container and any internal elements, matching \`figma_data\`.`;
+
+const REACT_IMPORT_RULE = `
+      - Do **NOT** include \`import React from 'react';\` at the top of the file.`;
+
+const FILE_NAMING_CONVENTION = `
+      - ALWAYS name the main component file \`index.tsx\`.
+      - ALWAYS name the style file (if applicable) \`index.module.[css|less|scss]\`.
+      - NEVER use PascalCase or other names for filenames (e.g., DO NOT use \`MainFrame.tsx\` or \`Button.tsx\`).`;
+
+const OUTPUT_FORMAT = `
+  <output_format>
+    If only one file (TSX) is needed:
+    \`\`\`tsx
+    // code...
+    \`\`\`
+
+    If multiple files are needed (e.g., TSX + Styles):
+    ## index.tsx
+    \`\`\`tsx
+    // code...
+    \`\`\`
+
+    ## index.module.[css|less|scss]
+    \`\`\`[css|less|scss]
+    // styles...
+    \`\`\`
+  </output_format>`;
+
+// ============================================
+// Prompt Functions
+// ============================================
+
 export const generateFramePrompt = ({
     childrenImports,
     layoutData,
@@ -72,67 +142,39 @@ export const generateFramePrompt = ({
           - CORRECT: \`import TaskGrid from "@/components/tasks-section/task-grid";\`
           - WRONG: \`import TaskGrid from "@/components/task-grid";\` (Do NOT do this!)
     </req_1>
+    
     <req_2>
       **Layout & Styling**:
       - Use \`layout_data\` for dimensions, spacing, and flow (flex/grid).
-      - **Style Consistency**: Implement styles using the technical stack and libraries listed in <styling>.
-      - **Strict Restriction**: Absolutely ONLY use the technical stack and libraries listed in <styling>. Do NOT use any other styling methods, libraries, or frameworks (e.g., if clsx is not listed, do not use clsx).
-      - **Default Styling**: If <styling> is empty or does not contain specific libraries, DEFAULT to standard vanilla CSS.
-      - **CSS Modules**: If the tech stack specifies CSS Modules (e.g., with Less, SCSS, or plain CSS), you MUST:
-        1. Create a corresponding style file (e.g., \`index.module.less\`, \`index.module.scss\`, or \`index.module.css\`) alongside the component, using the extension appropriate for the stack.
-        2. Import it as \`import styles from './index.module.[ext]';\` in the TSX.
-        3. Define all styles in the style file and use \`styles.className\` in JSX.
+${STYLING_GUIDELINES}
       - Use responsive utilities provided by the chosen libraries to ensure the component is adaptive.
       - Use \`css_context\` for exact background styles, gradients, and shadows.
       - Use \`relative\` positioning for the container.
       - Use \`spacing\` field in <figma_data> to set the spacing between elements
     </req_2>
+    
     <req_3>
       **Images & Assets**:
-      - **CRITICAL**: For any image URL starting with \`@/assets\`, you MUST import it at the top of the file.
-      - **Asset Name Matching**: 
-        - Check the \`<available_assets>\` list for actual filenames in the project.
-        - Asset filenames follow the pattern: \`kebab-case-name-id1-id2.ext\` (e.g., "Star 2.svg" → "star-2-1-2861.svg")
-        - Match the base name (ignoring spaces, case, and ID suffix): "@/assets/arXiv.svg" → look for "arxiv-*.svg" in the list
-        - Use the EXACT filename from the available assets list in your import.
-      - Example: If available_assets contains "arxiv-1-2956.svg", use:
-        \`import ArXivIcon from '@/assets/arxiv-1-2956.svg';\`
-      - **Usage**: \`<img src={ArXivIcon} />\`, do not use backgroundImage property.
-      - **NEVER** use the string path directly in JSX or styles.
+${ASSETS_HANDLING}
     </req_3>
+    
     <req_4>
       **DOM IDs**:
-      - Assign \`id\` attributes to the main container and any internal elements, matching \`figma_data\`.
+${DOM_IDS_REQUIREMENT}
     </req_4>
+    
     <req_5>
       **React Import**:
-      - Do **NOT** include \`import React from 'react';\` at the top of the file.
+${REACT_IMPORT_RULE}
     </req_5>
+    
     <req_6>
       **File Naming**:
-      - ALWAYS name the main frame component file \`index.tsx\`.
-      - ALWAYS name the style file (if applicable) \`index.module.[css|less|scss]\`.
-      - NEVER use PascalCase or other names for filenames (e.g., DO NOT use \`MainFrame.tsx\`).
+${FILE_NAMING_CONVENTION}
     </req_6>
   </requirements>
 
-  <output_format>
-    If only one file (TSX) is needed:
-    \`\`\`tsx
-    // code...
-    \`\`\`
-
-    If multiple files are needed (e.g., TSX + Styles):
-    ## index.tsx
-    \`\`\`tsx
-    // code...
-    \`\`\`
-
-    ## index.module.[css|less|scss]
-    \`\`\`[css|less|scss]
-    // styles...
-    \`\`\`
-  </output_format>
+${OUTPUT_FORMAT}
 </system_instructions>
 `.trim();
 };
@@ -197,16 +239,10 @@ export const generateComponentPrompt = ({
   <requirements>
     <req_1>
       **High Fidelity & Responsive**:
-      - **Style Consistency**: Implement styles using the technical stack and libraries listed in <styling>.
-      - **Strict Restriction**: Absolutely ONLY use the technical stack and libraries listed in <styling>. Do NOT use any other styling methods, libraries, or frameworks (e.g., if clsx is not listed, do not use clsx).
-      - **Default Styling**: If <styling> is empty or does not contain specific libraries, DEFAULT to standard vanilla CSS.
+${STYLING_GUIDELINES}
       - **CRITICAL**: Check <css_context> for exact design values (colors, spacing, font sizes, transitions, etc.).
       - Use responsive utilities provided by the chosen libraries to ensure the component is adaptive.
       - **Complex Styles**: For gradients or specific shadows not easily mapped to standard utility classes, use the values from \`css_context\` directly in the most appropriate way for the chosen stack (e.g. JIT classes, or CSS-in-JS/Modules).
-      - **CSS Modules**: If the tech stack specifies CSS Modules (e.g., with Less, SCSS, or plain CSS), you MUST:
-        1. Create a corresponding style file (e.g., \`index.module.less\`, \`index.module.scss\`, or \`index.module.css\`) alongside the component, using the extension appropriate for the stack.
-        2. Import it as \`import styles from './index.module.[ext]';\` in the TSX.
-        3. Define all styles in the style file and use \`styles.className\` in JSX.
       - **Gradient Rounded Borders**: If you see a gradient round border in the design, CHECK \`global_styles\` for a mixin (e.g. \`.gradientBorder\`) and apply it if available.
     </req_1>
 
@@ -308,15 +344,15 @@ export const generateComponentPrompt = ({
         };
         \`\`\`
     </req_8>
+    
     <req_9>
       **React Import**:
-      - Do **NOT** include \`import React from 'react';\` at the top of the file.
+${REACT_IMPORT_RULE}
     </req_9>
+    
     <req_10>
       **File Naming**:
-      - ALWAYS name the main component file \`index.tsx\`.
-      - ALWAYS name the style file (if applicable) \`index.module.[css|less|scss]\`.
-      - NEVER use PascalCase or other names for filenames (e.g., DO NOT use \`Button.tsx\`).
+${FILE_NAMING_CONVENTION}
     </req_10>
   </requirements>
 
@@ -324,23 +360,7 @@ export const generateComponentPrompt = ({
     - **Dynamic Collections**: If the design suggests repeated items (e.g., "Card", "ListItem"), use array data + \`array.map\` to render them **inside the parent Frame**, while keeping this component focused on a single item with props.
   </reuse_strategy>
 
-  <output_format>
-    If only one file (TSX) is needed:
-    \`\`\`tsx
-    // code...
-    \`\`\`
-
-    If multiple files are needed (e.g., TSX + Styles):
-    ## index.tsx
-    \`\`\`tsx
-    // code...
-    \`\`\`
-
-    ## index.module.[css|less|scss]
-    \`\`\`[css|less|scss]
-    // styles...
-    \`\`\`
-  </output_format>
+${OUTPUT_FORMAT}
 </system_instructions>
 `.trim();
 };
@@ -404,7 +424,7 @@ ${appContent}
 
     <req_5>
       **React Import**:
-      - Do **NOT** include \`import React from 'react';\` at the top of the file unless it already exists.
+${REACT_IMPORT_RULE}
     </req_5>
   </requirements>
 
