@@ -4,7 +4,7 @@
  * Type definitions for Figma file, node, and design data structures.
  * Based on Figma REST API specification.
  *
- * @see Figma
+ * @see {@link https://developers.figma.com/docs/rest-api/ Figma REST API}
  */
 export interface FigmaColor {
     r: number;
@@ -146,7 +146,7 @@ export interface FrameData {
      * Optional props object for this reusable component instance.
      * This will be generated at Code node time and consumed by frame generation.
      */
-    componentProperties?: Record<string, unknown>;
+    componentProperties?: Record<string, any>;
     /**
      * Props schema definition for reusable component template.
      * Defines the formal parameters (key, type, description) for the component.
@@ -157,31 +157,42 @@ export interface FrameData {
      * Each entry contains: state array (actual parameter values), componentName, and componentPath.
      */
     states?: Array<{
-        state: unknown[];
+        state: Array<Record<string, any>>;
         componentName: string;
         componentPath: string;
     }>;
-    state?: unknown[]; // @deprecated Legacy data list, use states instead
+    state?: any[]; // @deprecated Legacy data list, use states instead
     path?: string; // Derived slug for file system paths
 }
 
-export type BasicTreeNode<T> = T & {
-    children?: BasicTreeNode<T>[] | null;
-};
-
-export type frameStructureData<T> = {
+/**
+ * Component Structure Node
+ * 
+ * Represents a single component in the UI hierarchy, including its layout,
+ * Figma elements, and nested child components.
+ * 
+ * @example
+ * ```typescript
+ * const header: FrameStructNode = {
+ *   id: "Header",
+ *   data: {
+ *     name: "Header",
+ *     layout: { ... },
+ *     elements: [ ... ]
+ *   },
+ *   children: [
+ *     { id: "Logo", data: { ... }, children: [] }
+ *   ]
+ * }
+ * ```
+ */
+export interface FrameStructNode {
+    /** Unique component identifier (e.g., "Header", "ProductCard") */
     id: string;
-    data: T;
-    status: 'pre' | 'post';
-};
-
-export type TreeNode<T> = BasicTreeNode<frameStructureData<T>>;
-
-export type TreeNodeWithParent<T> = BasicTreeNode<frameStructureData<T> & { parent: TreeNodeWithParent<T> | null }>;
-
-export interface ChildOutput<T, U> {
-    node: TreeNode<T>;
-    output: U;
+    
+    /** Component business data (layout, elements, paths, etc.) */
+    data: FrameData;
+    
+    /** Nested child components */
+    children?: FrameStructNode[] | null;
 }
-
-export type FrameStructNode = TreeNode<FrameData>;
