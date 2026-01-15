@@ -26,12 +26,19 @@ Create `~/.coderio/config.yaml` with the following content:
 
 ```yaml
 model:
-    name: gemini-3-pro-preview
-    url: your-api-endpoint-url
+    provider: openai
+    model: gemini-3-pro-preview
+    baseUrl: your-api-endpoint-url
     apiKey: your-google-api-key-here
+
+figma:
+    token: your-figma-token-here
 ```
 
-> Replace `your-google-api-key-here` with your actual Google API key from [Google AI Studio](https://aistudio.google.com/apikey).
+> Replace the following:
+>
+> - `your-google-api-key-here` with your actual Google API key from [Google AI Studio](https://aistudio.google.com/apikey)
+> - `your-figma-token-here` with your Figma personal access token from [Figma Account Settings](https://www.figma.com/developers/api#access-tokens)
 
 ### 3. Quick Setup Command
 
@@ -39,13 +46,17 @@ model:
 # Create config directory and file in one command
 cat > ~/.coderio/config.yaml << 'EOF'
 model:
-    name: gemini-3-pro-preview
-    url: your-api-endpoint-url
+    provider: openai
+    model: gemini-3-pro-preview
+    baseUrl: your-api-endpoint-url
     apiKey: your-google-api-key-here
+
+figma:
+    token: your-figma-token-here
 EOF
 ```
 
-**Remember to replace `your-google-api-key-here` with your actual Google API key!**
+**Remember to replace the placeholders with your actual credentials!**
 
 ### 4. Verify Configuration
 
@@ -65,11 +76,13 @@ coderio --version
 
 ## Configuration Fields
 
-| Field          | Required | Description                             |
-| -------------- | -------- | --------------------------------------- |
-| `model.name`   | ✅       | Model name (e.g., gemini-3-pro-preview) |
-| `model.url`    | ✅       | API endpoint URL                        |
-| `model.apiKey` | ✅       | Your API key for authentication         |
+| Field            | Required | Description                                                      |
+| ---------------- | -------- | ---------------------------------------------------------------- |
+| `model.provider` | ✅       | Provider name (e.g., openai)                                     |
+| `model.model`    | ✅       | Model name (e.g., gemini-3-pro-preview)                          |
+| `model.baseUrl`  | ✅       | API endpoint URL                                                 |
+| `model.apiKey`   | ✅       | Your API key for authentication                                  |
+| `figma.token`    | ✅       | Your Figma personal access token for accessing Figma design data |
 
 ## Troubleshooting
 
