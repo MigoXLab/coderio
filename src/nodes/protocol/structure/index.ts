@@ -6,9 +6,7 @@ import { generateStructurePrompt } from './prompt';
 import {
     extractJSONFromMarkdown,
     extractNodePositionsHierarchical,
-    normalizeStructureComponentNames,
-    populateElementsData,
-    annotateStructureWithPath,
+    postProcessStructure,
     populateComponentProps,
 } from './utils';
 
@@ -22,7 +20,7 @@ import {
  * 4. Populates component props and states for code generation
  * 
  * @param state - Current graph state containing processedFigma
- * @returns Updated state with pageStructure
+ * @returns Updated state with protocol
  */
 export const structureNode = async (state: GraphState): Promise<Partial<GraphState>> => {
     const frames = state.processedFigma?.frames as FigmaFrameInfo[] | undefined;
@@ -58,24 +56,22 @@ export const structureNode = async (state: GraphState): Promise<Partial<GraphSta
         const jsonContent = extractJSONFromMarkdown(structureResult);
         const parsedStructure = JSON.parse(jsonContent) as FrameStructNode | FrameStructNode[];
 
-        // Post-process structure
+        // Post-process structure: normalize names, populate elements, annotate paths
         logger.printInfoLog('Processing structure tree...');
-        normalizeStructureComponentNames(parsedStructure);
-        populateElementsData(parsedStructure, frames);
-        annotateStructureWithPath(parsedStructure);
+        postProcessStructure(parsedStructure, frames);
 
-        const pageStructure = (Array.isArray(parsedStructure) ? parsedStructure[0] : parsedStructure) as FrameStructNode;
+        const protocol = (Array.isArray(parsedStructure) ? parsedStructure[0] : parsedStructure) as FrameStructNode;
 
         // Extract component props and states for reusable components
-        if (frames && pageStructure) {
+        if (frames && protocol) {
             logger.printInfoLog('Extracting component properties and states...');
-            await populateComponentProps(pageStructure, frames, state.processedFigma?.thumbnailUrl);
+            await populateComponentProps(protocol, frames, state.processedFigma?.thumbnailUrl);
         }
 
         logger.printSuccessLog('Component structure generated successfully');
 
         return {
-            pageStructure,
+            protocol,
         };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

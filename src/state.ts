@@ -1,7 +1,7 @@
 import { Annotation, MessagesAnnotation } from '@langchain/langgraph';
 import { WorkspaceStructure } from './types/workspace-types';
-import type { FigmaFrameInfo, FrameStructNode } from './types';
-
+import type { FrameStructNode } from './types';
+import type { FigmaFrameInfo } from './types/figma-types';
 /**
  * The root state annotation for the LangGraph.
  * This defines the shape and reducer logic for the graph state.
@@ -9,11 +9,8 @@ import type { FigmaFrameInfo, FrameStructNode } from './types';
 export const GraphStateAnnotation = Annotation.Root({
     ...MessagesAnnotation.spec,
     workspace: Annotation<WorkspaceStructure>(),
-    // Figma data
-    figmaUrl: Annotation<string | undefined>(),
-    processedFigma: Annotation<FigmaFrameInfo | undefined>(),
-    // Structure output
-    pageStructure: Annotation<FrameStructNode | undefined>(),
+    processedFigma: Annotation<FigmaFrameInfo>(),
+    protocol: Annotation<FrameStructNode | undefined>(),
 });
 
 /**

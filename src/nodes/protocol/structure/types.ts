@@ -34,7 +34,3 @@ export interface ParsedDataListResponse {
     props?: Array<{ key: string; type: string; description: string }>;
 }
 
-export interface AnnotateStructureOptions {
-    injectMode?: boolean;
-}
-

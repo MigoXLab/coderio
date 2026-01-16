@@ -133,7 +133,6 @@ export type LayoutDirection = 'VERTICAL' | 'HORIZONTAL' | 'NONE';
 export interface FrameData {
     name: string;
     purpose: string;
-    elementIds?: string[]; // Temporary IDs from AI response (removed after processing)
     elements: any[]; // Complete Figma node data with hierarchy (simplified)
     kebabName?: string; // Normalized identifier for filesystem-friendly names
     /**
@@ -161,7 +160,6 @@ export interface FrameData {
         componentName: string;
         componentPath: string;
     }>;
-    state?: any[]; // @deprecated Legacy data list, use states instead
     path?: string; // Derived slug for file system paths
 }
 

@@ -1,5 +1,5 @@
 import type { FigmaFrameInfo, FrameStructNode } from '../../../types';
-import type { SimplifiedFigmaNode, ExtendedFrameStructNode, AnnotateStructureOptions, ParsedDataListResponse } from './types';
+import type { SimplifiedFigmaNode, ExtendedFrameStructNode, ParsedDataListResponse } from './types';
 import { toKebabCase } from '../../../utils/naming';
 import { extractJSONFromMarkdown } from '../../../utils/parser';
 import { callModel } from '../../../utils/call-model';
@@ -13,6 +13,9 @@ export { extractJSONFromMarkdown };
 /**
  * Simplifies Figma nodes for content extraction, retaining essential fields for AI processing
  * Removes heavy vector data while keeping text content, images, and layout information
+ * 
+ * @param node - The Figma frame node to simplify
+ * @returns Simplified node with only essential fields
  */
 export function simplifyFigmaNodeForContent(node: FigmaFrameInfo): SimplifiedFigmaNode {
     const simple: SimplifiedFigmaNode = {
@@ -59,6 +62,9 @@ export function simplifyFigmaNodeForContent(node: FigmaFrameInfo): SimplifiedFig
 /**
  * Extract node positions with hierarchical structure preserved
  * Returns nested position data maintaining parent-child relationships
+ * 
+ * @param data - Figma frame data (single frame or array of frames)
+ * @returns Hierarchical position data with node information
  */
 export function extractNodePositionsHierarchical(data: FigmaFrameInfo[] | FigmaFrameInfo | undefined): Record<string, any> {
     const result: Record<string, any> = {};
@@ -123,6 +129,12 @@ function extractNodesWithSubtreeByIds(tree: FigmaFrameInfo | FigmaFrameInfo[], i
 /**
  * Extract nodes by IDs while preserving hierarchical structure
  * Nodes in idList are kept; if a deep child is in idList but parent isn't, the child is still extracted
+ * 
+ * @param tree - The Figma frame tree to search
+ * @param idList - Array of node IDs to extract
+ * @param options - Optional settings
+ * @param options.includeSubtree - If true, includes all descendants of matched nodes
+ * @returns Array of extracted nodes with hierarchy preserved
  */
 export function extractHierarchicalNodesByIds(
     tree: FigmaFrameInfo | FigmaFrameInfo[],
@@ -213,94 +225,18 @@ export function extractHierarchicalNodesByIds(
 // ============= Structure Processing Utilities =============
 
 /**
- * Normalizes structure data by moving componentName from top level to data field
- * Handles non-standard format returned by AI model
- */
-export function normalizeStructureComponentNames(structure?: FrameStructNode | FrameStructNode[] | null): void {
-    if (!structure) {
-        return;
-    }
-
-    const nodes = Array.isArray(structure) ? structure : [structure];
-
-    const traverse = (node?: FrameStructNode | null): void => {
-        if (!node || !node.data) {
-            return;
-        }
-
-        const extendedNode = node as ExtendedFrameStructNode;
-        const topLevelComponentName = extendedNode.componentName;
-        if (topLevelComponentName && !node.data.componentName) {
-            node.data.componentName = topLevelComponentName;
-            delete extendedNode.componentName;
-        }
-
-        if (Array.isArray(node.children) && node.children.length > 0) {
-            node.children.forEach(child => traverse(child as FrameStructNode));
-        }
-    };
-
-    nodes.forEach(traverse);
-}
-
-/**
- * Populate elements field with full Figma data based on elementIds from AI model
- * This converts the lightweight elementIds array into complete Figma node data
- *
- * @param structure - The parsed structure from AI model (contains elementIds)
- * @param frames - The Figma frames tree to extract nodes from
- */
-export function populateElementsData(structure?: FrameStructNode | FrameStructNode[] | null, frames?: any[]): void {
-    if (!structure || !frames) {
-        return;
-    }
-
-    const nodes = Array.isArray(structure) ? structure : [structure];
-
-    const traverse = (node?: FrameStructNode | null): void => {
-        if (!node || !node.data) {
-            return;
-        }
-
-        const elementIds = (node.data as any).elementIds;
-        if (elementIds && Array.isArray(elementIds)) {
-            if (elementIds.length > 0) {
-                const detailedNodes = extractHierarchicalNodesByIds(
-                    frames,
-                    elementIds,
-                    { includeSubtree: true }
-                );
-                node.data.elements = detailedNodes.map(simplifyFigmaNodeForContent);
-            } else {
-                node.data.elements = [];
-            }
-
-            delete (node.data as any).elementIds;
-        } else {
-            node.data.elements = node.data.elements || [];
-        }
-
-        if (Array.isArray(node.children) && node.children.length > 0) {
-            node.children.forEach(child => traverse(child as FrameStructNode));
-        }
-    };
-
-    nodes.forEach(traverse);
-}
-
-/**
- * Annotates structure tree with file system paths for code generation
- * Generates:
- * - path: Full file path for each component (e.g., "@/components/header/nav-menu")
- * - componentPath: Path for reusable component instances (e.g., "@/components/card")
- * - kebabName: Kebab-case name for file naming
+ * Post-processes the structure tree in a single traversal
+ * Performs three operations simultaneously:
+ * 1. Normalizes componentName (moves from top-level to data field)
+ * 2. Populates elements data from elementIds
+ * 3. Annotates with file system paths (path, componentPath, kebabName)
  * 
- * @param structure - The component structure tree
- * @param options - Configuration options (injectMode, etc.)
+ * @param structure - The parsed structure from AI model
+ * @param frames - The Figma frames tree for element extraction
  */
-export function annotateStructureWithPath(
+export function postProcessStructure(
     structure?: FrameStructNode | FrameStructNode[] | null,
-    options: AnnotateStructureOptions = {}
+    frames?: any[]
 ): void {
     if (!structure) {
         return;
@@ -314,7 +250,6 @@ export function annotateStructureWithPath(
             .replace(/\/{2,}/g, '/');
 
     const nodes = Array.isArray(structure) ? structure : [structure];
-    const injectMode = Boolean(options.injectMode);
     let rootPath = '@/components';
 
     // Convert component name to kebab-case for file naming
@@ -332,11 +267,41 @@ export function annotateStructureWithPath(
             return;
         }
 
+        // 1. Normalize componentName (from top-level to data field)
+        const extendedNode = node as ExtendedFrameStructNode;
+        const topLevelComponentName = extendedNode.componentName;
+        if (topLevelComponentName && !node.data.componentName) {
+            node.data.componentName = topLevelComponentName;
+            delete extendedNode.componentName;
+        }
+
+        // 2. Populate elements data from elementIds
+        if (frames) {
+            const elementIds = (node.data as any).elementIds;
+            if (elementIds && Array.isArray(elementIds)) {
+                if (elementIds.length > 0) {
+                    const detailedNodes = extractHierarchicalNodesByIds(
+                        frames,
+                        elementIds,
+                        { includeSubtree: true }
+                    );
+                    node.data.elements = detailedNodes.map(simplifyFigmaNodeForContent);
+                } else {
+                    node.data.elements = [];
+                }
+                delete (node.data as any).elementIds;
+            } else {
+                node.data.elements = node.data.elements || [];
+            }
+        }
+
+        // 3. Annotate with file system paths
         const segment = toKebabName(node);
         let currentPath: string;
 
         if (level === 0) {
-            currentPath = injectMode ? joinSegments(rootPath, segment) : rootPath;
+            // Root node always uses base path
+            currentPath = rootPath;
             rootPath = currentPath;
         } else {
             const ancestorPath = parentPath || rootPath;
@@ -351,6 +316,7 @@ export function annotateStructureWithPath(
 
         node.data.path = currentPath;
 
+        // Recursively process children
         if (Array.isArray(node.children) && node.children.length > 0) {
             node.children.forEach(child => traverse(child as FrameStructNode, node.data.path, level + 1));
         }
@@ -360,7 +326,6 @@ export function annotateStructureWithPath(
         if (!node || !node.data) {
             return;
         }
-
         traverse(node, undefined, 0);
     });
 }
