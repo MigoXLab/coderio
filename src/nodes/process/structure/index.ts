@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 import type { FigmaFrameInfo } from '../../../types/figma-types';
 import type { FrameStructNode } from '../../../types';
-=======
-import type { FigmaFrameInfo, FrameStructNode } from '../../../types';
->>>>>>> gm/dev
 import { callModel } from '../../../utils/call-model';
 import { logger } from '../../../utils/logger';
 import { generateStructurePrompt } from './prompt';
@@ -22,20 +18,12 @@ import { extractJSONFromMarkdown, extractNodePositionsHierarchical, postProcessS
  * @returns Updated state with protocol
  */
 export const generateStructure = async (figma: FigmaFrameInfo) => {
-<<<<<<< HEAD
     // Support both frames (from processedFigma) and children (from raw Figma data)
     const frames = figma.frames || figma.children;
     const imageWidth = figma.absoluteBoundingBox?.width;
     const thumbnailUrl = figma.thumbnailUrl;
 
     if (!frames || frames.length === 0) {
-=======
-    const frames = figma.children;
-    const imageWidth = figma.absoluteBoundingBox?.width;
-    const thumbnailUrl = figma.thumbnailUrl;
-
-    if (!frames) {
->>>>>>> gm/dev
         logger.printErrorLog('No processed frames found in state');
         throw new Error('No processed frames found');
     }

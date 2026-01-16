@@ -280,12 +280,7 @@ export function postProcessStructure(structure?: FrameStructNode | FrameStructNo
             const elementIds = nodeData.elementIds;
             if (elementIds && Array.isArray(elementIds)) {
                 if (elementIds.length > 0) {
-<<<<<<< HEAD
                     node.data.elements = extractHierarchicalNodesByIds(frames, elementIds, { includeSubtree: true });
-=======
-                    const detailedNodes = extractHierarchicalNodesByIds(frames, elementIds, { includeSubtree: true });
-                    node.data.elements = detailedNodes.map(simplifyFigmaNodeForContent);
->>>>>>> gm/dev
                 } else {
                     node.data.elements = [];
                 }

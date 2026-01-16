@@ -12,13 +12,8 @@ export async function generateCode(state: GraphState) {
 
         // Validate required state fields
         if (!state.protocol) {
-            logger.printErrorLog('No page structure found in state');
-            return { success: false, error: 'No page structure found' };
-        }
-
-        if (!state.processedFigma?.frames?.length) {
-            logger.printErrorLog('No Figma frames found in state');
-            return { success: false, error: 'No Figma frames found' };
+            logger.printErrorLog('No protoca data found in state');
+            return { success: false, error: 'No protocol data found' };
         }
 
         // Process the entire node tree

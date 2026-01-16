@@ -141,17 +141,17 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
     // Call AI model
     const code = await callModel({
         question: prompt,
-        imageUrls: state.processedFigma?.thumbnailUrl,
+        imageUrls: state.figmaInfo.thumbnail,
     });
 
     // Save generated files
     const componentPath = node.data.path || '';
-    const filePath = path.join(state.workspace.app, 'src', getComponentPathFromPath(componentPath));
+    const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
 
     saveGeneratedCode(code, filePath);
 
     //TODO: debug
-    const processFilePath = path.join(state.workspace.process, `${frameName}.json`);
+    const processFilePath = path.join(state.workspace.paths.process, `${frameName}.json`);
     saveContentToFile(code, processFilePath);
 }
 
@@ -191,14 +191,14 @@ export async function generateComponent(node: FrameStructNode, state: GraphState
     // Call AI model
     const code = await callModel({
         question: prompt,
-        imageUrls: state.processedFigma?.thumbnailUrl,
+        imageUrls: state.figmaInfo.thumbnail,
     });
 
     // Save generated files
-    const filePath = path.join(state.workspace.app, 'src', getComponentPathFromPath(componentPath));
+    const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
 
     //TODO: debug
-    const processFilePath = path.join(state.workspace.process, `${componentName}.json`);
+    const processFilePath = path.join(state.workspace.paths.process, `${componentName}.json`);
     saveContentToFile(code, processFilePath);
 
     saveGeneratedCode(code, filePath);
@@ -226,7 +226,7 @@ function saveGeneratedCode(code: string, filePath: string): void {
  */
 function getAssetFilesList(state: GraphState) {
     try {
-        const assetsDir = path.join(state.workspace.app, 'src', 'assets');
+        const assetsDir = state.workspace.resolveAppSrc('assets');
 
         if (!fs.existsSync(assetsDir)) {
             return '';
@@ -248,7 +248,7 @@ export async function injectRootComponentToApp(rootNode: FrameStructNode, state:
         logger.printInfoLog('💉 Injecting root component into App.tsx...');
 
         // Construct App.tsx path
-        const appTsxPath = path.join(state.workspace.app, 'src/App.tsx');
+        const appTsxPath = state.workspace.resolveAppSrc('App.tsx');
 
         // Read existing App.tsx or use default template
         let appContent: string;
