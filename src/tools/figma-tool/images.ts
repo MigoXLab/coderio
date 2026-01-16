@@ -61,12 +61,12 @@ export const executeDownloadImages = async (
     images: ImageNode[],
     imageDir?: string,
     concurrency: number = DEFAULT_DOWNLOAD_CONCURRENCY
-): Promise<{ successCount: number; failCount: number; results: ImageNode[] }> => {
+): Promise<{ successCount: number; failCount: number; imageNodesMap: Map<string, ImageNode> }> => {
     if (!images || !images.length || !imageDir) {
         return {
             successCount: 0,
             failCount: 0,
-            results: [],
+            imageNodesMap: new Map(),
         };
     }
 
@@ -77,10 +77,13 @@ export const executeDownloadImages = async (
     const successCount = results.filter(r => r.success).length;
     const failCount = results.length - successCount;
 
+    // Convert results array to Map with id as key
+    const imageNodesMap = new Map<string, ImageNode>(results.map(img => [img.id, img]));
+
     return {
         successCount,
         failCount,
-        results,
+        imageNodesMap,
     };
 };
 

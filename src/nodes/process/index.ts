@@ -1,10 +1,11 @@
 import { GraphState } from '../../state';
 import { figmaTool } from '../../tools/figma-tool';
-import { FigmaUrlInfo } from '../../types/figma-types';
+import { FigmaFrameInfo, FigmaUrlInfo } from '../../types/figma-types';
 import { getFigmaConfig } from '../../utils/config';
 import { writeFile } from '../../utils/file';
 import { logger } from '../../utils/logger';
 import { generateStructure } from './structure';
+import { ImageNode } from '../../tools/figma-tool/types';
 
 /**
  * 'process' node, responsible for generating the protocol for frontend code generation.
@@ -27,10 +28,10 @@ import { generateStructure } from './structure';
 export const generateProtocol = async (state: GraphState) => {
     const assetsDir = state.workspace.resolveAppSrc('assets');
     const processDir = state.workspace.paths.process;
-    const { document, results } = await executeFigmaAndImagesActions(state.urlInfo, assetsDir, processDir);
+    const { document, imageNodesMap } = await executeFigmaAndImagesActions(state.urlInfo, assetsDir, processDir);
 
     /* Simplify image nodes in Figma document by replacing redundant properties with url */
-    const simplifiedDocument = figmaTool.simplifyImageNodes(document, results);
+    const simplifiedDocument = figmaTool.simplifyImageNodes(document, imageNodesMap);
     /* Process styles (convert Figma styles to CSS) */
     const processedStyleDocument = figmaTool.processedStyle(simplifiedDocument);
     /* Generate structure */
@@ -50,9 +51,13 @@ export const generateProtocol = async (state: GraphState) => {
 /**
  * Executes the Figma and images actions.
  * @param state - The state of the graph.
- * @returns The state of the graph.
+ * @returns The state of the graph with imageNodesMap as Map<string, ImageNode>.
  */
-export const executeFigmaAndImagesActions = async (urlInfo: FigmaUrlInfo, assetsDir: string, processDir: string) => {
+export const executeFigmaAndImagesActions = async (
+    urlInfo: FigmaUrlInfo,
+    assetsDir: string,
+    processDir: string
+): Promise<{ document: FigmaFrameInfo; imageNodesMap: Map<string, ImageNode> }> => {
     const { fileId, nodeId } = urlInfo;
     if (!fileId || !nodeId) {
         throw new Error('Invalid Figma URL');
@@ -71,17 +76,23 @@ export const executeFigmaAndImagesActions = async (urlInfo: FigmaUrlInfo, assets
     logger.printSuccessLog(`Figma document fetched and cleaned successfully: ${document.name}`);
 
     /* Detect and download images from Figma document */
-    const { successCount, failCount, results } = await figmaTool.downloadImages(fileId, token, assetsDir, document);
+    const downloadResult: { successCount: number; failCount: number; imageNodesMap: Map<string, ImageNode> } =
+        await figmaTool.downloadImages(fileId, token, assetsDir, document);
+    const { successCount, failCount, imageNodesMap } = downloadResult;
+
     if (successCount) {
         logger.printSuccessLog(`Downloaded ${successCount} images`);
     }
     if (failCount) {
         logger.printWarnLog(`Failed to download ${failCount} images`);
     }
-    writeFile(processDir, 'images.json', JSON.stringify(results, null, 2));
+
+    /* Write images.json with array format for JSON compatibility */
+    const resultsArray = Array.from(imageNodesMap.values());
+    writeFile(processDir, 'images.json', JSON.stringify(resultsArray, null, 2));
 
     return {
         document,
-        results,
+        imageNodesMap,
     };
 };
