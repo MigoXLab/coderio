@@ -133,7 +133,7 @@ export type LayoutDirection = 'VERTICAL' | 'HORIZONTAL' | 'NONE';
 export interface FrameData {
     name: string;
     purpose: string;
-    elements: any[]; // Complete Figma node data with hierarchy (simplified)
+    elements: unknown[]; // Complete Figma node data with hierarchy (simplified)
     kebabName?: string; // Normalized identifier for filesystem-friendly names
     /**
      * Optional reusable component identifier.
@@ -145,7 +145,7 @@ export interface FrameData {
      * Optional props object for this reusable component instance.
      * This will be generated at Code node time and consumed by frame generation.
      */
-    componentProperties?: Record<string, any>;
+    componentProperties?: Record<string, unknown>;
     /**
      * Props schema definition for reusable component template.
      * Defines the formal parameters (key, type, description) for the component.
@@ -156,7 +156,7 @@ export interface FrameData {
      * Each entry contains: state array (actual parameter values), componentName, and componentPath.
      */
     states?: Array<{
-        state: Array<Record<string, any>>;
+        state: Array<Record<string, unknown>>;
         componentName: string;
         componentPath: string;
     }>;
