@@ -26,7 +26,9 @@ export interface CallModelOptions {
  */
 function validateModelConfig(config: ModelConfig | null | undefined): asserts config is ModelConfig {
     if (!config || !config.provider || !config.model || !config.baseUrl || !config.apiKey) {
-        throw new Error(`Invalid model configuration. Required fields: provider, model, baseUrl, apiKey. Please check your config.yaml file.`);
+        throw new Error(
+            `Invalid model configuration. Required fields: provider, model, baseUrl, apiKey. Please check your config.yaml file.`
+        );
     }
 }
 
