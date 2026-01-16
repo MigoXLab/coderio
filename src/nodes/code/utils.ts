@@ -1,32 +1,19 @@
-import path from 'path';
 import fs from 'fs';
 import { GraphState } from '../../state';
 import { logger } from '../../utils/logger';
 import { callModel } from '../../utils/call-model';
-import { saveContentToFile, createFilesFromParsedData } from '../../utils/file-operator';
 import { extractCode, extractFilesFromContent } from '../../utils/response-parser';
 import { promisePool } from '../../utils/promise-pool';
 import { generateFramePrompt, generateComponentPrompt, injectRootComponentPrompt } from './prompt';
 import { FrameStructNode } from '../../types';
+import { createFilesFromParsedData, writeFile } from '../../utils/file';
+import { DEFAULT_APP_CONTENT, DEFAULT_STYLING } from './constants';
+import path from 'path';
 
 /**
  * Track generated reusable components to avoid duplicates
  */
 const generatedComponentNames = new Set<string>();
-
-const DEFAULT_STYLING = {
-    approach: 'Tailwind V4 and Less',
-    libraries: [
-        {
-            name: 'Tailwind V4',
-            role: 'utility_first',
-        },
-        {
-            name: 'Less',
-            role: 'css_preprocessor',
-        },
-    ],
-};
 
 /**
  * Convert a component path to the actual file system path
@@ -34,14 +21,7 @@ const DEFAULT_STYLING = {
  */
 function getComponentPathFromPath(componentPath: string): string {
     // Remove @/ alias if present
-    let normalizedPath = componentPath.replace(/^@\//, '');
-
-    // If path doesn't end with .tsx or .ts, assume it's a directory and add index.tsx
-    if (!normalizedPath.endsWith('.tsx') && !normalizedPath.endsWith('.ts')) {
-        normalizedPath = path.join(normalizedPath, 'index.tsx');
-    }
-
-    return normalizedPath;
+    return componentPath.replace(/^@\//, '');
 }
 
 /**
@@ -149,10 +129,6 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
     const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
 
     saveGeneratedCode(code, filePath);
-
-    //TODO: debug
-    const processFilePath = path.join(state.workspace.paths.process, `${frameName}.json`);
-    saveContentToFile(code, processFilePath);
 }
 
 /**
@@ -196,11 +172,6 @@ export async function generateComponent(node: FrameStructNode, state: GraphState
 
     // Save generated files
     const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
-
-    //TODO: debug
-    const processFilePath = path.join(state.workspace.paths.process, `${componentName}.json`);
-    saveContentToFile(code, processFilePath);
-
     saveGeneratedCode(code, filePath);
 }
 
@@ -212,12 +183,12 @@ function saveGeneratedCode(code: string, filePath: string): void {
 
     if (files.length > 0) {
         // Multi-file output (e.g., index.tsx + index.module.less)
-        const dirPath = path.dirname(filePath);
-        createFilesFromParsedData({ files, dirPath });
+        createFilesFromParsedData({ files, filePath });
     } else {
-        // Single file output
         const extractedCode = extractCode(code);
-        saveContentToFile(extractedCode, filePath);
+        const folderPath = path.dirname(filePath);
+        const fileName = path.basename(filePath);
+        writeFile(folderPath, fileName, extractedCode);
     }
 }
 
@@ -257,15 +228,7 @@ export async function injectRootComponentToApp(rootNode: FrameStructNode, state:
         } catch {
             // Use default template if App.tsx doesn't exist
             logger.printWarnLog('App.tsx not found, using default template');
-            appContent = `function App() {
-    return (
-        <div>
-            {/* Component will be injected here */}
-        </div>
-    );
-}
-
-export default App;`;
+            appContent = DEFAULT_APP_CONTENT;
         }
 
         // Get root component information
@@ -288,7 +251,7 @@ export default App;`;
         const finalCode = updatedCode.includes('```') ? extractCode(updatedCode) : updatedCode.trim();
 
         // Write updated App.tsx
-        saveContentToFile(finalCode, appTsxPath);
+        writeFile(state.workspace.paths.app, 'App.tsx', finalCode);
 
         logger.printSuccessLog(`✅ Successfully injected ${componentName} into App.tsx`);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { FileInfo } from './file-operator';
+import { FileInfo } from './file';
 
 /**
  * Extract code from markdown code blocks
