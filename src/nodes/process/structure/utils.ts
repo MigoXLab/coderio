@@ -13,7 +13,7 @@ export { extractJSONFromMarkdown };
 /**
  * Simplifies Figma nodes for content extraction, retaining essential fields for AI processing
  * Removes heavy vector data while keeping text content, images, and layout information
- * 
+ *
  * @param node - The Figma frame node to simplify
  * @returns Simplified node with only essential fields
  */
@@ -24,8 +24,10 @@ export function simplifyFigmaNodeForContent(node: FigmaFrameInfo): SimplifiedFig
         type: node.type,
     };
 
-    if (node.thumbnailUrl) {
-        simple.url = node.thumbnailUrl;
+    // Check both url (set by Asset node) and thumbnailUrl (original Figma field)
+    const imageUrl = (node as FigmaFrameInfo & { url?: string }).url || node.thumbnailUrl;
+    if (imageUrl) {
+        simple.url = imageUrl;
     }
 
     if (node.cornerRadius !== undefined) {
@@ -62,7 +64,7 @@ export function simplifyFigmaNodeForContent(node: FigmaFrameInfo): SimplifiedFig
 /**
  * Extract node positions with hierarchical structure preserved
  * Returns nested position data maintaining parent-child relationships
- * 
+ *
  * @param data - Figma frame data (single frame or array of frames)
  * @returns Hierarchical position data with node information
  */
@@ -129,7 +131,7 @@ function extractNodesWithSubtreeByIds(tree: FigmaFrameInfo | FigmaFrameInfo[], i
 /**
  * Extract nodes by IDs while preserving hierarchical structure
  * Nodes in idList are kept; if a deep child is in idList but parent isn't, the child is still extracted
- * 
+ *
  * @param tree - The Figma frame tree to search
  * @param idList - Array of node IDs to extract
  * @param options - Optional settings
@@ -230,14 +232,11 @@ export function extractHierarchicalNodesByIds(
  * 1. Normalizes componentName (moves from top-level to data field)
  * 2. Populates elements data from elementIds
  * 3. Annotates with file system paths (path, componentPath, kebabName)
- * 
+ *
  * @param structure - The parsed structure from AI model
  * @param frames - The Figma frames tree for element extraction
  */
-export function postProcessStructure(
-    structure?: FrameStructNode | FrameStructNode[] | null,
-    frames?: FigmaFrameInfo[]
-): void {
+export function postProcessStructure(structure?: FrameStructNode | FrameStructNode[] | null, frames?: FigmaFrameInfo[]): void {
     if (!structure) {
         return;
     }
@@ -281,12 +280,7 @@ export function postProcessStructure(
             const elementIds = nodeData.elementIds;
             if (elementIds && Array.isArray(elementIds)) {
                 if (elementIds.length > 0) {
-                    const detailedNodes = extractHierarchicalNodesByIds(
-                        frames,
-                        elementIds,
-                        { includeSubtree: true }
-                    );
-                    node.data.elements = detailedNodes.map(simplifyFigmaNodeForContent);
+                    node.data.elements = extractHierarchicalNodesByIds(frames, elementIds, { includeSubtree: true });
                 } else {
                     node.data.elements = [];
                 }
@@ -338,16 +332,12 @@ export function postProcessStructure(
  * 2. Uses AI to extract data variations (text, images, etc.)
  * 3. Generates props schema for the component
  * 4. Collapses duplicate instances into a single template + state array
- * 
+ *
  * @param node - Current structure node to process
  * @param frames - Figma frames for reference
  * @param thumbnailUrl - Design thumbnail URL for AI visual context
  */
-export async function populateComponentProps(
-    node: FrameStructNode,
-    frames: FigmaFrameInfo[],
-    thumbnailUrl?: string
-): Promise<void> {
+export async function populateComponentProps(node: FrameStructNode, frames: FigmaFrameInfo[], thumbnailUrl?: string): Promise<void> {
     if (!node || !node.children || node.children.length === 0) return;
 
     const componentGroups = new Map<string, FrameStructNode[]>();
@@ -451,4 +441,3 @@ export async function populateComponentProps(
         await populateComponentProps(child, frames, thumbnailUrl);
     }
 }
-
