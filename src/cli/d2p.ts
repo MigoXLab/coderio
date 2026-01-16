@@ -20,7 +20,7 @@ export const registerD2PCommand = (program: Command) => {
                 await generateProtocol({
                     urlInfo,
                     workspace,
-                    thumbnail: '',
+                    figmaInfo: { thumbnail: '' },
                     protocol: undefined,
                     messages: [],
                 });

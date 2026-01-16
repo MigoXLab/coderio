@@ -39,7 +39,12 @@ export const generateProtocol = async (state: GraphState) => {
     writeFile(state.workspace.paths.process, 'protocol.json', JSON.stringify(protocol, null, 2));
     logger.printInfoLog(`Please check the output in the workspace: ${state.workspace.paths.process}`);
 
-    return {};
+    return {
+        protocol,
+        figmaInfo: {
+            thumbnail: document?.thumbnailUrl || '',
+        },
+    };
 };
 
 /**
