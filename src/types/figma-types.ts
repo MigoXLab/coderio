@@ -130,7 +130,7 @@ export interface FigmaFrameInfo {
 
 export type LayoutDirection = 'VERTICAL' | 'HORIZONTAL' | 'NONE';
 
-export interface FrameData {
+export interface FrameData<TProps = Record<string, unknown>> {
     name: string;
     purpose: string;
     elements: unknown[]; // Complete Figma node data with hierarchy (simplified)
@@ -145,7 +145,7 @@ export interface FrameData {
      * Optional props object for this reusable component instance.
      * This will be generated at Code node time and consumed by frame generation.
      */
-    componentProperties?: Record<string, unknown>;
+    componentProperties?: TProps;
     /**
      * Props schema definition for reusable component template.
      * Defines the formal parameters (key, type, description) for the component.
@@ -184,13 +184,13 @@ export interface FrameData {
  * }
  * ```
  */
-export interface FrameStructNode {
+export interface FrameStructNode<TProps = Record<string, unknown>> {
     /** Unique component identifier (e.g., "Header", "ProductCard") */
     id: string;
     
     /** Component business data (layout, elements, paths, etc.) */
-    data: FrameData;
+    data: FrameData<TProps>;
     
     /** Nested child components */
-    children?: FrameStructNode[] | null;
+    children?: FrameStructNode<TProps>[] | null;
 }
