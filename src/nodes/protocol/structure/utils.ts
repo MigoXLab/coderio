@@ -1,4 +1,4 @@
-import type { FigmaFrameInfo, FrameStructNode } from '../../../types';
+import type { FigmaFrameInfo, FrameStructNode, FrameData } from '../../../types';
 import type { SimplifiedFigmaNode, ExtendedFrameStructNode, ParsedDataListResponse } from './types';
 import { toKebabCase } from '../../../utils/naming';
 import { extractJSONFromMarkdown } from '../../../utils/parser';
@@ -66,8 +66,8 @@ export function simplifyFigmaNodeForContent(node: FigmaFrameInfo): SimplifiedFig
  * @param data - Figma frame data (single frame or array of frames)
  * @returns Hierarchical position data with node information
  */
-export function extractNodePositionsHierarchical(data: FigmaFrameInfo[] | FigmaFrameInfo | undefined): Record<string, any> {
-    const result: Record<string, any> = {};
+export function extractNodePositionsHierarchical(data: FigmaFrameInfo[] | FigmaFrameInfo | undefined): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
 
     if (!data) {
         return result;
@@ -77,7 +77,7 @@ export function extractNodePositionsHierarchical(data: FigmaFrameInfo[] | FigmaF
 
     for (const item of list) {
         if (item && typeof item === 'object' && item.id) {
-            const nodeData: Record<string, any> = {};
+            const nodeData: Record<string, unknown> = {};
 
             // Extract position information
             const bounds = item.absoluteBoundingBox || item.absoluteRenderBounds;
@@ -236,7 +236,7 @@ export function extractHierarchicalNodesByIds(
  */
 export function postProcessStructure(
     structure?: FrameStructNode | FrameStructNode[] | null,
-    frames?: any[]
+    frames?: FigmaFrameInfo[]
 ): void {
     if (!structure) {
         return;
@@ -277,7 +277,8 @@ export function postProcessStructure(
 
         // 2. Populate elements data from elementIds
         if (frames) {
-            const elementIds = (node.data as any).elementIds;
+            const nodeData = node.data as FrameData & { elementIds?: string[] };
+            const elementIds = nodeData.elementIds;
             if (elementIds && Array.isArray(elementIds)) {
                 if (elementIds.length > 0) {
                     const detailedNodes = extractHierarchicalNodesByIds(
@@ -289,7 +290,7 @@ export function postProcessStructure(
                 } else {
                     node.data.elements = [];
                 }
-                delete (node.data as any).elementIds;
+                delete nodeData.elementIds;
             } else {
                 node.data.elements = node.data.elements || [];
             }
@@ -318,7 +319,7 @@ export function postProcessStructure(
 
         // Recursively process children
         if (Array.isArray(node.children) && node.children.length > 0) {
-            node.children.forEach(child => traverse(child as FrameStructNode, node.data.path, level + 1));
+            node.children.forEach(child => traverse(child, node.data.path, level + 1));
         }
     };
 
@@ -368,7 +369,9 @@ export async function populateComponentProps(
 
         const isList = group.length > 1;
         const allElements = group.flatMap(g => g.data.elements || []);
-        const simplifiedNodes = allElements.map(n => simplifyFigmaNodeForContent(n as any));
+        const simplifiedNodes = allElements
+            .filter((n): n is FigmaFrameInfo => typeof n === 'object' && n !== null)
+            .map(n => simplifyFigmaNodeForContent(n));
         const figmaDataJson = JSON.stringify(simplifiedNodes);
         const containerName = node.data.name || 'Container';
 
@@ -445,7 +448,7 @@ export async function populateComponentProps(
 
     // Recursively process children
     for (const child of node.children) {
-        await populateComponentProps(child as FrameStructNode, frames, thumbnailUrl);
+        await populateComponentProps(child, frames, thumbnailUrl);
     }
 }
 

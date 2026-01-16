@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Figma API Types
  *
@@ -131,10 +130,10 @@ export interface FigmaFrameInfo {
 
 export type LayoutDirection = 'VERTICAL' | 'HORIZONTAL' | 'NONE';
 
-export interface FrameData {
+export interface FrameData<TProps = Record<string, unknown>> {
     name: string;
     purpose: string;
-    elements: any[]; // Complete Figma node data with hierarchy (simplified)
+    elements: unknown[]; // Complete Figma node data with hierarchy (simplified)
     kebabName?: string; // Normalized identifier for filesystem-friendly names
     /**
      * Optional reusable component identifier.
@@ -146,7 +145,7 @@ export interface FrameData {
      * Optional props object for this reusable component instance.
      * This will be generated at Code node time and consumed by frame generation.
      */
-    componentProperties?: Record<string, any>;
+    componentProperties?: TProps;
     /**
      * Props schema definition for reusable component template.
      * Defines the formal parameters (key, type, description) for the component.
@@ -157,7 +156,7 @@ export interface FrameData {
      * Each entry contains: state array (actual parameter values), componentName, and componentPath.
      */
     states?: Array<{
-        state: Array<Record<string, any>>;
+        state: Array<Record<string, unknown>>;
         componentName: string;
         componentPath: string;
     }>;
@@ -186,15 +185,56 @@ export interface FrameData {
  * }
  * ```
  */
-export interface FrameStructNode {
+export interface FrameStructNode<TProps = Record<string, unknown>> {
     /** Unique component identifier (e.g., "Header", "ProductCard") */
     id: string;
 
     /** Component business data (layout, elements, paths, etc.) */
-    data: FrameData;
+    data: FrameData<TProps>;
 
     /** Nested child components */
-    children?: FrameStructNode[] | null;
+    children?: FrameStructNode<TProps>[] | null;
+}
+
+/**
+ * Embedded layout information
+ * Direct layout data attached to each node in structure tree
+ * Eliminates need for separate LayoutMeasurementProvider lookups
+ */
+interface EmbeddedLayoutInfo {
+    /** Position and size in CSS coordinates */
+    boundingBox: CssBoundingBox;
+    /** Position and size relative to parent component */
+    relativeBoundingBox?: CssBoundingBox;
+    /** Computed layout direction based on children positions */
+    layoutDirection: LayoutDirection;
+    /** Gap to previous and next siblings */
+    spacing: {
+        previous?: number;
+        next?: number;
+    };
+    /** Pre-computed offset from parent's bounding box */
+    parentRelativeOffset: ParentRelativeOffset;
+}
+
+/**
+ * Bounding box with position and size using CSS coordinate naming (top, left)
+ */
+interface CssBoundingBox {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+}
+
+/**
+ * Parent-relative offset
+ * Pre-computed offset from parent's bounding box origin
+ * Replaces need for AI to subtract rootBoundingBox - parentRootBoundingBox
+ */
+interface ParentRelativeOffset {
+    x: number;
+    y: number;
 }
 
 /**
