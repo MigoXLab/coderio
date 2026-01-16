@@ -1,5 +1,5 @@
 import type { GraphState } from '../../../state';
-import type { FigmaFrameInfo, FrameStructNode } from '../../../types';
+import type { FrameStructNode } from '../../../types';
 import { callModel } from '../../../utils/call-model';
 import { logger } from '../../../utils/logger';
 import { generateStructurePrompt } from './prompt';
@@ -23,7 +23,7 @@ import {
  * @returns Updated state with protocol
  */
 export const structureNode = async (state: GraphState): Promise<Partial<GraphState>> => {
-    const frames = state.processedFigma?.frames as FigmaFrameInfo[] | undefined;
+    const frames = state.processedFigma?.frames;
     
     if (!frames) {
         logger.printErrorLog('No processed frames found in state');
