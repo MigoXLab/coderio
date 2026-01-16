@@ -10,12 +10,19 @@ process.env.CODERIO_CLI_USER_CWD = process.cwd();
 
 import { Command } from 'commander';
 import { registerCommands } from './init';
+import { logger } from '../utils/logger';
+import { registerD2PCommand } from './d2p';
+import { registerD2CCommand } from './d2c';
+import { registerImagesCommand } from './images';
 
 async function main(argv: string[]): Promise<void> {
     const program = new Command();
 
     // Register all commands
     registerCommands(program);
+    registerD2CCommand(program);
+    registerD2PCommand(program);
+    registerImagesCommand(program);
 
     if (argv.length <= 2) {
         program.help({ error: false });
@@ -28,7 +35,6 @@ async function main(argv: string[]): Promise<void> {
 
 main(process.argv).catch(err => {
     const error = err as Error;
-    // TODO: Replace with a proper logger in the future
-    console.error(error.message || String(error));
+    logger.printErrorLog(`${error.message || String(error)}`);
     process.exit(1);
 });
