@@ -5,8 +5,11 @@ import { readFileSync } from 'fs';
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8')) as { version: string };
 
 export default defineConfig({
-    entry: ['src/index.ts', 'src/cli/index.ts'],
-    format: ['esm'],
+    entry: {
+        index: 'src/index.ts',
+        cli: 'src/cli/index.ts',
+    },
+    format: ['esm', 'cjs'],
     dts: true,
     splitting: false,
     sourcemap: true,
@@ -15,6 +18,11 @@ export default defineConfig({
     minify: false,
     target: 'node18',
     outDir: 'dist',
+    outExtension({ format }) {
+        return {
+            js: format === 'cjs' ? '.cjs' : '.js',
+        };
+    },
     // Inject version at build time
     define: {
         __VERSION__: JSON.stringify(pkg.version),

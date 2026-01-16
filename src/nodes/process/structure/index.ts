@@ -1,30 +1,26 @@
-import type { GraphState } from '../../../state';
-import type { FrameStructNode } from '../../../types';
+import type { FigmaFrameInfo, FrameStructNode } from '../../../types';
 import { callModel } from '../../../utils/call-model';
 import { logger } from '../../../utils/logger';
 import { generateStructurePrompt } from './prompt';
-import {
-    extractJSONFromMarkdown,
-    extractNodePositionsHierarchical,
-    postProcessStructure,
-    populateComponentProps,
-} from './utils';
+import { extractJSONFromMarkdown, extractNodePositionsHierarchical, postProcessStructure, populateComponentProps } from './utils';
 
 /**
  * Structure node - generates component hierarchy from Figma design
- * 
+ *
  * Responsibilities:
  * 1. Analyzes Figma frame structure using AI model
  * 2. Extracts component relationships and data
  * 3. Generates file paths and naming conventions
  * 4. Populates component props and states for code generation
- * 
+ *
  * @param state - Current graph state containing processedFigma
  * @returns Updated state with protocol
  */
-export const structureNode = async (state: GraphState): Promise<Partial<GraphState>> => {
-    const frames = state.processedFigma?.frames;
-    
+export const generateStructure = async (figma: FigmaFrameInfo) => {
+    const frames = figma.children;
+    const imageWidth = figma.absoluteBoundingBox?.width;
+    const thumbnailUrl = figma.thumbnailUrl;
+
     if (!frames) {
         logger.printErrorLog('No processed frames found in state');
         throw new Error('No processed frames found');
@@ -36,7 +32,6 @@ export const structureNode = async (state: GraphState): Promise<Partial<GraphSta
         // Extract hierarchical position data from Figma frames
         const positions = extractNodePositionsHierarchical(frames);
         const positionsJson = JSON.stringify(positions);
-        const imageWidth = state.processedFigma?.absoluteBoundingBox?.width;
 
         // Generate structure using AI
         const prompt = generateStructurePrompt({
@@ -45,10 +40,10 @@ export const structureNode = async (state: GraphState): Promise<Partial<GraphSta
         });
 
         logger.printInfoLog('Calling AI model to generate component structure...');
-        
+
         const structureResult = await callModel({
             question: prompt,
-            imageUrls: state.processedFigma?.thumbnailUrl,
+            imageUrls: thumbnailUrl,
             responseFormat: { type: 'json_object' },
         });
 
@@ -65,7 +60,7 @@ export const structureNode = async (state: GraphState): Promise<Partial<GraphSta
         // Extract component props and states for reusable components
         if (frames && protocol) {
             logger.printInfoLog('Extracting component properties and states...');
-            await populateComponentProps(protocol, frames, state.processedFigma?.thumbnailUrl);
+            await populateComponentProps(protocol, frames, thumbnailUrl);
         }
 
         logger.printSuccessLog('Component structure generated successfully');
@@ -79,4 +74,3 @@ export const structureNode = async (state: GraphState): Promise<Partial<GraphSta
         throw new Error(`Failed to parse component structure: ${errorMessage}`);
     }
 };
-

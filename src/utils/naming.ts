@@ -30,4 +30,3 @@ export function toKebabCase(str: string): string {
         .toLowerCase()
         .replace(/^-+|-+$/g, ''); // Trim leading/trailing hyphens
 }
-
