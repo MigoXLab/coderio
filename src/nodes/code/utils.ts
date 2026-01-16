@@ -1,14 +1,13 @@
 import path from 'path';
 import fs from 'fs';
 import { GraphState } from '../../state';
-import { FrameStructNodeV2 } from '../../types/code-types';
 import { logger } from '../../utils/logger';
 import { callModel } from '../../utils/call-model';
-import { FigmaNodeService } from '../../utils/figma-service';
 import { saveContentToFile, createFilesFromParsedData } from '../../utils/file-operator';
 import { extractCode, extractFilesFromContent } from '../../utils/response-parser';
 import { promisePool } from '../../utils/promise-pool';
 import { generateFramePrompt, generateComponentPrompt, injectRootComponentPrompt } from './prompt';
+import { FrameStructNode } from '../../types';
 
 /**
  * Track generated reusable components to avoid duplicates
@@ -49,7 +48,7 @@ function getComponentPathFromPath(componentPath: string): string {
  * Process a node tree and generate code for all nodes
  * Uses post-order traversal (children first, then parent)
  */
-export async function processNode(node: FrameStructNodeV2, state: GraphState): Promise<number> {
+export async function processNode(node: FrameStructNode, state: GraphState): Promise<number> {
     // Reset component cache for new generation run
     generatedComponentNames.clear();
 
@@ -67,10 +66,9 @@ export async function processNode(node: FrameStructNodeV2, state: GraphState): P
 
     logger.printInfoLog(`Processing ${total} nodes...`);
 
-    // const rootId = node.id;
     let processedCount = 0;
 
-    const processSingleNode = async (currentNode: FrameStructNodeV2) => {
+    const processSingleNode = async (currentNode: FrameStructNode) => {
         const progressInfo = `[${++processedCount}/${total}]`;
 
         const reusableName = currentNode.data.componentName;
@@ -103,10 +101,10 @@ export async function processNode(node: FrameStructNodeV2, state: GraphState): P
 /**
  * Flatten tree into array using post-order traversal
  */
-function flattenPostOrder(node: FrameStructNodeV2): FrameStructNodeV2[] {
-    const result: FrameStructNodeV2[] = [];
+function flattenPostOrder(node: FrameStructNode): FrameStructNode[] {
+    const result: FrameStructNode[] = [];
 
-    function traverse(n: FrameStructNodeV2) {
+    function traverse(n: FrameStructNode) {
         n.children?.forEach(child => traverse(child));
         result.push(n);
     }
@@ -119,19 +117,9 @@ function flattenPostOrder(node: FrameStructNodeV2): FrameStructNodeV2[] {
  * Generate a frame/container component
  * Frames compose multiple child components based on layout
  */
-export async function generateFrame(
-    node: FrameStructNodeV2,
-    state: GraphState,
-    assetFilesList: string,
-    progressInfo: string
-): Promise<void> {
-    const frameName = node.data.name || 'UnknownFrame';
+export async function generateFrame(node: FrameStructNode, state: GraphState, assetFilesList: string, progressInfo: string): Promise<void> {
+    const frameName = node.data.name;
     logger.printInfoLog(`${progressInfo} 🖼️ Generating Frame: ${frameName}`);
-
-    const frames = state.processedFigma?.frames || [];
-
-    // Extract hierarchical CSS context for this frame
-    const hierarchicalNodes = FigmaNodeService.extractHierarchicalNodesByIds(frames, node.data.elementIds || []);
 
     // Build children imports information
     const childrenImports = (node.children || []).map(child => ({
@@ -145,7 +133,7 @@ export async function generateFrame(
         layoutData: JSON.stringify(node.data.layout || {}),
         figmaData: JSON.stringify(node.data),
         childrenImports: JSON.stringify(childrenImports),
-        cssContext: JSON.stringify(hierarchicalNodes),
+        cssContext: JSON.stringify(node.data.elements),
         styling: JSON.stringify(DEFAULT_STYLING),
         assetFiles: assetFilesList,
     });
@@ -171,18 +159,14 @@ export async function generateFrame(
  * Generate a component (leaf or reusable)
  * Components are self-contained UI elements driven by props
  */
-export async function generateComponent(node: FrameStructNodeV2, state: GraphState, progressInfo: string): Promise<void> {
+export async function generateComponent(node: FrameStructNode, state: GraphState, progressInfo: string): Promise<void> {
     const componentName = node.data.componentName || node.data.name || 'UnknownComponent';
     const componentPath = node.data.componentPath || node.data.path || '';
 
     logger.printInfoLog(`${progressInfo} 📦 Generating Component: ${componentName}`);
 
-    const frames = state.processedFigma?.frames || [];
-
     // Extract CSS context with full subtree
-    const cssContext = JSON.stringify(
-        FigmaNodeService.extractHierarchicalNodesByIds(frames, node.data.elementIds || [], { includeSubtree: true })
-    );
+    const cssContext = JSON.stringify(node.data.elements);
 
     // Prepare Figma data with children info for context
     const figmaDataObj = {
@@ -259,7 +243,7 @@ function getAssetFilesList(state: GraphState) {
  * Inject root component into App.tsx
  * Reads existing App.tsx, adds import and renders the root component
  */
-export async function injectRootComponentToApp(rootNode: FrameStructNodeV2, state: GraphState): Promise<void> {
+export async function injectRootComponentToApp(rootNode: FrameStructNode, state: GraphState): Promise<void> {
     try {
         logger.printInfoLog('💉 Injecting root component into App.tsx...');
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Figma API Types
  *
@@ -161,14 +162,15 @@ export interface FrameData {
         componentPath: string;
     }>;
     path?: string; // Derived slug for file system paths
+    layout?: EmbeddedLayoutInfo;
 }
 
 /**
  * Component Structure Node
- * 
+ *
  * Represents a single component in the UI hierarchy, including its layout,
  * Figma elements, and nested child components.
- * 
+ *
  * @example
  * ```typescript
  * const header: FrameStructNode = {
@@ -187,10 +189,51 @@ export interface FrameData {
 export interface FrameStructNode {
     /** Unique component identifier (e.g., "Header", "ProductCard") */
     id: string;
-    
+
     /** Component business data (layout, elements, paths, etc.) */
     data: FrameData;
-    
+
     /** Nested child components */
     children?: FrameStructNode[] | null;
+}
+
+/**
+ * Embedded layout information
+ * Direct layout data attached to each node in structure tree
+ * Eliminates need for separate LayoutMeasurementProvider lookups
+ */
+interface EmbeddedLayoutInfo {
+    /** Position and size in CSS coordinates */
+    boundingBox: CssBoundingBox;
+    /** Position and size relative to parent component */
+    relativeBoundingBox?: CssBoundingBox;
+    /** Computed layout direction based on children positions */
+    layoutDirection: LayoutDirection;
+    /** Gap to previous and next siblings */
+    spacing: {
+        previous?: number;
+        next?: number;
+    };
+    /** Pre-computed offset from parent's bounding box */
+    parentRelativeOffset: ParentRelativeOffset;
+}
+
+/**
+ * Bounding box with position and size using CSS coordinate naming (top, left)
+ */
+interface CssBoundingBox {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+}
+
+/**
+ * Parent-relative offset
+ * Pre-computed offset from parent's bounding box origin
+ * Replaces need for AI to subtract rootBoundingBox - parentRootBoundingBox
+ */
+interface ParentRelativeOffset {
+    x: number;
+    y: number;
 }

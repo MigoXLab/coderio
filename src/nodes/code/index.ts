@@ -11,7 +11,7 @@ export async function generateCode(state: GraphState) {
         logger.printInfoLog('🚀 Starting Code Generation...');
 
         // Validate required state fields
-        if (!state.pageStructure) {
+        if (!state.protocol) {
             logger.printErrorLog('No page structure found in state');
             return { success: false, error: 'No page structure found' };
         }
@@ -22,10 +22,10 @@ export async function generateCode(state: GraphState) {
         }
 
         // Process the entire node tree
-        const totalComponents = await processNode(state.pageStructure, state);
+        const totalComponents = await processNode(state.protocol, state);
 
         // Inject root component to App.tsx
-        await injectRootComponentToApp(state.pageStructure, state);
+        await injectRootComponentToApp(state.protocol, state);
 
         logger.printSuccessLog(`✨ Code generation completed! Generated ${totalComponents} components`);
 
