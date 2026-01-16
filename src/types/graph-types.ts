@@ -4,3 +4,7 @@ export enum GraphNode {
     PROCESS = 'process',
     DATA = 'data',
 }
+
+export interface GlobalFigmaInfo {
+    thumbnail: string;
+}
