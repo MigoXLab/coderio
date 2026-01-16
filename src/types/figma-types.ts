@@ -190,7 +190,6 @@ export interface FrameStructNode<TProps = Record<string, unknown>> {
 
     /** Component business data (layout, elements, paths, etc.) */
     data: FrameData<TProps>;
-
     /** Nested child components */
     children?: FrameStructNode<TProps>[] | null;
 }
