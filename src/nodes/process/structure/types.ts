@@ -33,4 +33,3 @@ export interface ParsedDataListResponse {
     state?: Array<Record<string, unknown>>;
     props?: Array<{ key: string; type: string; description: string }>;
 }
-

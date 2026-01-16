@@ -192,11 +192,7 @@ export const generateStructurePrompt = (options: { positions: string; width?: st
 /**
  * Prompt template for extracting data list and props schema.
  */
-export const extractDataListPrompt = (options: {
-    containerName: string;
-    childComponentName: string;
-    figmaData: string;
-}) => {
+export const extractDataListPrompt = (options: { containerName: string; childComponentName: string; figmaData: string }) => {
     const { containerName, childComponentName, figmaData } = options;
     return `
 You are an expert Frontend Developer.
@@ -305,4 +301,3 @@ Example Output JSON Structure (for reference only):
 }
 `.trim();
 };
-

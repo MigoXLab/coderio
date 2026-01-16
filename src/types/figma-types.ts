@@ -167,8 +167,10 @@ export interface FrameData<TProps = Record<string, unknown>> {
 /**
  * Component Structure Node
  *
+ *
  * Represents a single component in the UI hierarchy, including its layout,
  * Figma elements, and nested child components.
+ *
  *
  * @example
  * ```typescript
@@ -191,7 +193,6 @@ export interface FrameStructNode<TProps = Record<string, unknown>> {
 
     /** Component business data (layout, elements, paths, etc.) */
     data: FrameData<TProps>;
-
     /** Nested child components */
     children?: FrameStructNode<TProps>[] | null;
 }
