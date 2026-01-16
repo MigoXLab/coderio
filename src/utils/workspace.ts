@@ -8,18 +8,13 @@ import { WorkspaceStructure } from '../types/workspace-types';
     └── figmaName/                   # Project root directory generated from a Figma URL
         ├── my-app/                  # Generated project source code
         ├── process/                 # Intermediate data and cache during generation (if any)
-        │   ├── validation/          # Comparison screenshots during the refine iteration process
-        │   └── other...             # Others
+        │   └── ...                  # Others
         ├── reports.html             # Validation reports and screenshots
         └── coderio-cli.db           # Cache database (if any)
 */
 export class ProjectWorkspace {
     public readonly paths: WorkspaceStructure;
 
-    /**
-     * @param rootPath - The absolute or relative path to the project root.
-     * @param appName - The name of the application directory (defaults to 'my-app').
-     */
     constructor(rootPath: string, appName: string) {
         const absoluteRoot = path.resolve(rootPath);
         const processDir = path.join(absoluteRoot, 'process');
@@ -28,33 +23,20 @@ export class ProjectWorkspace {
             root: absoluteRoot,
             app: path.join(absoluteRoot, appName),
             process: processDir,
-            validation: path.join(processDir, 'validation'),
             reports: path.join(absoluteRoot, 'reports.html'),
             db: path.join(absoluteRoot, 'coderio-cli.db'),
         };
     }
 
-    /**
-     * Resolves a sub-path relative to the application directory.
-     * @param subPath - The relative path within the app directory.
-     * @returns The absolute path to the sub-path.
-     */
-    resolveApp(subPath: string): string {
-        return path.join(this.paths.app, subPath);
+    resolveAppSrc(srcSubPath: string): string {
+        return path.join(this.paths.app, 'src', srcSubPath);
     }
 }
 
-/**
- * Default workspace instance helper.
- * Uses the environment variable CODERIO_CLI_USER_CWD or current working directory as default root.
- */
-export const createDefaultWorkspace = (rootPath?: string, appName?: string) => {
+export const createDefaultWorkspace = (subPath: string, rootPath?: string, appName?: string) => {
     const root = rootPath || (process.env.CODERIO_CLI_USER_CWD ?? process.cwd());
+    const coderioRoot = path.join(root, 'coderio');
+    const finalRoot = path.resolve(coderioRoot, subPath);
     const app = appName || 'my-app';
-    return new ProjectWorkspace(root, app);
+    return new ProjectWorkspace(finalRoot, app);
 };
-
-/**
- * Global workspace singleton instance.
- */
-export const workspace = createDefaultWorkspace();
