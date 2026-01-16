@@ -7,13 +7,20 @@
  * @returns Array of results
  */
 export async function promisePool<T, R>(items: T[], taskGenerator: (item: T) => Promise<R>, concurrency: number = 5): Promise<R[]> {
+    if (!items || !items.length) {
+        return [];
+    }
     const results: R[] = [];
     let nextIndex = 0;
     const executing = new Set<Promise<void>>();
 
     const processTask = async (index: number) => {
         const item = items[index];
-        const result = await taskGenerator(item as T);
+        if (!item) {
+            results[index] = undefined as unknown as R;
+            return;
+        }
+        const result = await taskGenerator(item);
         results[index] = result;
     };
 

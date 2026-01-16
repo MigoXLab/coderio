@@ -6,6 +6,14 @@
  *
  * @see {@link https://developers.figma.com/docs/rest-api/ Figma REST API}
  */
+
+/* URL and File Information */
+export interface FigmaUrlInfo {
+    fileId: string | null; // The ID of the Figma file.
+    name: string; // The name of the Figma file.
+    nodeId: string | null; // The ID of the Figma node.
+}
+
 export interface FigmaColor {
     r: number;
     g: number;
@@ -89,35 +97,36 @@ export interface CSSStyles {
 
 export interface FigmaFrameInfo {
     id: string;
-    thumbnailUrl?: string;
     name: string;
-    visible: boolean;
     type: string;
-    scrollBehavior: string;
+    url?: string;
+    thumbnailUrl?: string;
+    visible?: boolean;
+    scrollBehavior?: string;
     children?: FigmaFrameInfo[];
     characters?: string;
     frames?: FigmaFrameInfo[];
-    blendMode: string;
-    clipsContent: boolean;
+    blendMode?: string;
+    clipsContent?: boolean;
     layoutMode?: string; // 'HORIZONTAL' | 'VERTICAL' | 'NONE'
-    background: FigmaColorObject[];
-    fills: FigmaColorObject[];
-    strokes: FigmaColorObject[];
-    strokeWeight: number;
-    cornerRadius: number;
-    rectangleCornerRadii: number[];
-    strokeAlign: string;
-    backgroundColor: FigmaColor;
+    background?: FigmaColorObject[];
+    fills?: FigmaColorObject[];
+    strokes?: FigmaColorObject[];
+    strokeWeight?: number;
+    cornerRadius?: number;
+    rectangleCornerRadii?: number[];
+    strokeAlign?: string;
+    backgroundColor?: FigmaColor;
     absoluteBoundingBox: FigmaPositionAndSize;
-    absoluteRenderBounds: FigmaPositionAndSize;
-    constraints: {
+    absoluteRenderBounds?: FigmaPositionAndSize;
+    constraints?: {
         vertical: string;
         horizontal: string;
     };
-    exportSettings: [
+    exportSettings?: [
         {
             suffix: string;
-            format: string;
+            format: FigmaImageFormat;
             constraint: {
                 type: string;
                 value: number;
@@ -126,6 +135,26 @@ export interface FigmaFrameInfo {
     ];
     style?: FigmaTextStyle;
     inlineStyles?: CSSStyles;
+    effects?: {
+        type: string; // 'DROP_SHADOW' | 'INNER_SHADOW' | 'LAYER_BLUR' | 'BACKGROUND_BLUR'
+        visible?: boolean;
+        radius: number;
+        color?: FigmaColor;
+        offset?: {
+            x: number;
+            y: number;
+        };
+        spread?: number;
+    }[];
+}
+
+export enum FigmaImageFormat {
+    PNG = 'png',
+    JPG = 'jpg',
+    SVG = 'svg',
+    PDF = 'pdf',
+    EPS = 'eps',
+    WEBP = 'webp',
 }
 
 export type LayoutDirection = 'VERTICAL' | 'HORIZONTAL' | 'NONE';
@@ -167,10 +196,8 @@ export interface FrameData<TProps = Record<string, unknown>> {
 /**
  * Component Structure Node
  *
- *
  * Represents a single component in the UI hierarchy, including its layout,
  * Figma elements, and nested child components.
- *
  *
  * @example
  * ```typescript
@@ -193,6 +220,7 @@ export interface FrameStructNode<TProps = Record<string, unknown>> {
 
     /** Component business data (layout, elements, paths, etc.) */
     data: FrameData<TProps>;
+
     /** Nested child components */
     children?: FrameStructNode<TProps>[] | null;
 }

@@ -33,6 +33,5 @@ pnpm-debug.log*
 *.tmp
 .cache/
 
-my-app/
-process/
-src/test/
+# Coderio
+coderio/

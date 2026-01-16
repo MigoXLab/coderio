@@ -1,9 +1,7 @@
-/**
- * Enum representing the nodes in the LangGraph.
- */
+/* Enum representing the nodes in the LangGraph. */
 export enum GraphNode {
     INITIAL = 'initial',
-    PROTOCOL = 'protocol',
+    PROCESS = 'process',
     DATA = 'data',
     CODE = 'code',
 }
