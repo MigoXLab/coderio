@@ -53,6 +53,9 @@ export async function processNode(node: FrameStructNodeV2, state: GraphState): P
     // Reset component cache for new generation run
     generatedComponentNames.clear();
 
+    // Read asset files list once for the entire generation run
+    const assetFilesList = getAssetFilesList(state);
+
     // Flatten tree using post-order traversal (children first, then parent)
     const flatNodes = flattenPostOrder(node);
     const total = flatNodes.length;
@@ -68,7 +71,7 @@ export async function processNode(node: FrameStructNodeV2, state: GraphState): P
     let processedCount = 0;
 
     const processSingleNode = async (currentNode: FrameStructNodeV2) => {
-        logger.printInfoLog(`[${++processedCount}/${total}] is Generating...`);
+        const progressInfo = `[${++processedCount}/${total}]`;
 
         const reusableName = currentNode.data.componentName;
 
@@ -76,16 +79,16 @@ export async function processNode(node: FrameStructNodeV2, state: GraphState): P
             // Reusable component: Generate definition if not already generated
             if (!generatedComponentNames.has(reusableName)) {
                 generatedComponentNames.add(reusableName);
-                await generateComponent(currentNode, state);
+                await generateComponent(currentNode, state, progressInfo);
             } else {
                 logger.printInfoLog(`  ↪ Skipping ${reusableName} (already generated)`);
             }
         } else {
             const isLeaf = !currentNode.children?.length;
             if (isLeaf) {
-                await generateComponent(currentNode, state);
+                await generateComponent(currentNode, state, progressInfo);
             } else {
-                await generateFrame(currentNode, state);
+                await generateFrame(currentNode, state, assetFilesList, progressInfo);
             }
         }
     };
@@ -116,9 +119,14 @@ function flattenPostOrder(node: FrameStructNodeV2): FrameStructNodeV2[] {
  * Generate a frame/container component
  * Frames compose multiple child components based on layout
  */
-export async function generateFrame(node: FrameStructNodeV2, state: GraphState): Promise<void> {
+export async function generateFrame(
+    node: FrameStructNodeV2,
+    state: GraphState,
+    assetFilesList: string,
+    progressInfo: string
+): Promise<void> {
     const frameName = node.data.name || 'UnknownFrame';
-    logger.printInfoLog(`🖼️  Frame: ${frameName}`);
+    logger.printInfoLog(`${progressInfo} 🖼️ Generating Frame: ${frameName}`);
 
     const frames = state.processedFigma?.frames || [];
 
@@ -139,7 +147,7 @@ export async function generateFrame(node: FrameStructNodeV2, state: GraphState):
         childrenImports: JSON.stringify(childrenImports),
         cssContext: JSON.stringify(hierarchicalNodes),
         styling: JSON.stringify(DEFAULT_STYLING),
-        assetFiles: getAssetFilesList(state),
+        assetFiles: assetFilesList,
     });
 
     // Call AI model
@@ -163,11 +171,11 @@ export async function generateFrame(node: FrameStructNodeV2, state: GraphState):
  * Generate a component (leaf or reusable)
  * Components are self-contained UI elements driven by props
  */
-export async function generateComponent(node: FrameStructNodeV2, state: GraphState): Promise<void> {
+export async function generateComponent(node: FrameStructNodeV2, state: GraphState, progressInfo: string): Promise<void> {
     const componentName = node.data.componentName || node.data.name || 'UnknownComponent';
     const componentPath = node.data.componentPath || node.data.path || '';
 
-    logger.printInfoLog(`📦 Component: ${componentName}`);
+    logger.printInfoLog(`${progressInfo} 📦 Generating Component: ${componentName}`);
 
     const frames = state.processedFigma?.frames || [];
 
