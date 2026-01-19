@@ -47,3 +47,8 @@ export interface RuntimeDiagnosticsResult {
     error?: string;
 }
 
+export interface DetectedCommands {
+    runCommand: string;
+    buildCommand: string;
+}
+

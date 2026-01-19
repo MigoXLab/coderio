@@ -31,10 +31,10 @@ import { extractFigmaLayoutMetadata } from '../utils/figma/extract-layout-metada
 import { normalizeFigmaCoordinates } from '../utils/figma/normalize-coordinates';
 import { report } from '../utils/report';
 import { ReportTool } from '../../../tools/report-tool';
+import { LaunchTool } from '../../../tools/launch-tool';
 import { type Dict } from '../utils/general/tree-traversal';
 import { buildElementRegistry, extractComponentPaths, buildMapFromRegistry, type ElementRegistry } from '../utils/figma/element-registry';
 import { FigmaNodeService } from '../utils/figma/figma-node-service';
-import { detectCommands } from '../utils/launch/detect-package';
 import { validatePositions } from './validate-position';
 
 interface RefinementContext {
@@ -269,6 +269,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     ...params.config,
   };
 
+  const launchTool = new LaunchTool();
+
   // Resolve commands: prefer params, fallback to auto-detection
   let runCommand = params.runCommand;
   let buildCommand = params.buildCommand;
@@ -280,7 +282,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
       runCommand = runCommand ?? 'npm run dev';
       buildCommand = buildCommand ?? 'npm run build';
     } else {
-      const detected = await detectCommands({ repoPath: workspaceDir });
+      const detected = await launchTool.detectCommands(workspaceDir);
       runCommand = runCommand ?? detected.runCommand;
       buildCommand = buildCommand ?? detected.buildCommand;
     }
@@ -664,9 +666,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     // Cleanup: Stop dev server if it was started by this validation loop
     if (serverKey) {
       logger.printLog('Cleaning up dev server...');
-      const { LaunchTool } = await import('../../../tools/launch-tool');
-      const tool = new LaunchTool();
-      await tool.stopDevServer(serverKey).catch((err: unknown) => {
+      await launchTool.stopDevServer(serverKey).catch((err: unknown) => {
         logger.printWarnLog(`Failed to stop dev server: ${err instanceof Error ? err.message : String(err)}`);
       });
     }
