@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { logger } from './logger';
+import { FileInfo } from '../types/file-types';
 
 /**
  * Write file to the specified path
@@ -18,17 +19,9 @@ export const writeFile = (folderPath: string, filePath: string, content: string)
 };
 
 /**
- * File information for batch creation
- */
-export interface FileInfo {
-    filename: string;
-    content: string;
-}
-
-/**
  * Create multiple files from parsed data
  */
-export function createFilesFromParsedData({ files, filePath }: { files: FileInfo[]; filePath: string }): void {
+export function createFiles({ files, filePath }: { files: FileInfo[]; filePath: string }): void {
     try {
         for (const file of files) {
             const dirPath = path.dirname(filePath);

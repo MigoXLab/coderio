@@ -2,18 +2,13 @@ import fs from 'fs';
 import { GraphState } from '../../state';
 import { logger } from '../../utils/logger';
 import { callModel } from '../../utils/call-model';
-import { extractCode, extractFilesFromContent } from '../../utils/response-parser';
 import { promisePool } from '../../utils/promise-pool';
 import { generateFramePrompt, generateComponentPrompt, injectRootComponentPrompt } from './prompt';
 import { FrameStructNode } from '../../types';
-import { createFilesFromParsedData, writeFile } from '../../utils/file';
+import { createFiles, writeFile } from '../../utils/file';
 import { DEFAULT_APP_CONTENT, DEFAULT_STYLING } from './constants';
 import path from 'path';
-
-/**
- * Track generated reusable components to avoid duplicates
- */
-const generatedComponentNames = new Set<string>();
+import { extractCode, extractFiles } from '../../utils/parser';
 
 /**
  * Convert a component path to the actual file system path
@@ -36,9 +31,6 @@ function getComponentPathFromPath(componentPath: string): string {
  * Uses post-order traversal (children first, then parent)
  */
 export async function processNode(state: GraphState): Promise<number> {
-    // Reset component cache for new generation run
-    generatedComponentNames.clear();
-
     // Read asset files list once for the entire generation run
     const assetFilesList = getAssetFilesList(state);
 
@@ -58,23 +50,11 @@ export async function processNode(state: GraphState): Promise<number> {
     const processSingleNode = async (currentNode: FrameStructNode) => {
         const progressInfo = `[${++processedCount}/${total}]`;
 
-        const reusableName = currentNode.data.componentName;
-
-        if (reusableName) {
-            // Reusable component: Generate definition if not already generated
-            if (!generatedComponentNames.has(reusableName)) {
-                generatedComponentNames.add(reusableName);
-                await generateComponent(currentNode, state, progressInfo);
-            } else {
-                logger.printInfoLog(`  ↪ Skipping ${reusableName} (already generated)`);
-            }
+        const isLeaf = !currentNode.children?.length;
+        if (isLeaf) {
+            await generateComponent(currentNode, state, assetFilesList, progressInfo);
         } else {
-            const isLeaf = !currentNode.children?.length;
-            if (isLeaf) {
-                await generateComponent(currentNode, state, progressInfo);
-            } else {
-                await generateFrame(currentNode, state, assetFilesList, progressInfo);
-            }
+            await generateFrame(currentNode, state, assetFilesList, progressInfo);
         }
     };
 
@@ -141,7 +121,12 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
  * Generate a component (leaf or reusable)
  * Components are self-contained UI elements driven by props
  */
-export async function generateComponent(node: FrameStructNode, state: GraphState, progressInfo: string): Promise<void> {
+export async function generateComponent(
+    node: FrameStructNode,
+    state: GraphState,
+    assetFilesList: string,
+    progressInfo: string
+): Promise<void> {
     const componentName = node.data.componentName || node.data.name || 'UnknownComponent';
     const componentPath = node.data.componentPath || node.data.path || '';
 
@@ -168,6 +153,7 @@ export async function generateComponent(node: FrameStructNode, state: GraphState
         figmaData: JSON.stringify(figmaDataObj),
         cssContext,
         styling: JSON.stringify(DEFAULT_STYLING),
+        assetFiles: assetFilesList,
     });
 
     // Call AI model
@@ -185,11 +171,11 @@ export async function generateComponent(node: FrameStructNode, state: GraphState
  * Helper function to save generated code (handles both single and multi-file output)
  */
 function saveGeneratedCode(code: string, filePath: string): void {
-    const files = extractFilesFromContent(code);
+    const files = extractFiles(code);
 
     if (files.length > 0) {
         // Multi-file output (e.g., index.tsx + index.module.less)
-        createFilesFromParsedData({ files, filePath });
+        createFiles({ files, filePath });
     } else {
         const extractedCode = extractCode(code);
         const folderPath = path.dirname(filePath);

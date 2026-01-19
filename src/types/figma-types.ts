@@ -243,48 +243,10 @@ interface EmbeddedLayoutInfo {
         next?: number;
     };
     /** Pre-computed offset from parent's bounding box */
-    parentRelativeOffset: ParentRelativeOffset;
-}
-
-/**
- * Bounding box with position and size using CSS coordinate naming (top, left)
- */
-interface CssBoundingBox {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-}
-
-/**
- * Parent-relative offset
- * Pre-computed offset from parent's bounding box origin
- * Replaces need for AI to subtract rootBoundingBox - parentRootBoundingBox
- */
-interface ParentRelativeOffset {
-    x: number;
-    y: number;
-}
-
-/**
- * Embedded layout information
- * Direct layout data attached to each node in structure tree
- * Eliminates need for separate LayoutMeasurementProvider lookups
- */
-interface EmbeddedLayoutInfo {
-    /** Position and size in CSS coordinates */
-    boundingBox: CssBoundingBox;
-    /** Position and size relative to parent component */
-    relativeBoundingBox?: CssBoundingBox;
-    /** Computed layout direction based on children positions */
-    layoutDirection: LayoutDirection;
-    /** Gap to previous and next siblings */
-    spacing: {
-        previous?: number;
-        next?: number;
+    parentRelativeOffset: {
+        x: number;
+        y: number;
     };
-    /** Pre-computed offset from parent's bounding box */
-    parentRelativeOffset: ParentRelativeOffset;
 }
 
 /**
@@ -295,14 +257,4 @@ interface CssBoundingBox {
     left: number;
     width: number;
     height: number;
-}
-
-/**
- * Parent-relative offset
- * Pre-computed offset from parent's bounding box origin
- * Replaces need for AI to subtract rootBoundingBox - parentRootBoundingBox
- */
-interface ParentRelativeOffset {
-    x: number;
-    y: number;
 }

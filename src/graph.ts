@@ -7,12 +7,10 @@ import { parseFigmaUrl } from './utils/url-parser';
 import { createDefaultWorkspace } from './utils/workspace';
 import { generateCode } from './nodes/code';
 
-const DEFAULT_RETRY_POLICY = { retryPolicy: { maxAttempts: 3 } };
-
 const graph = new StateGraph(GraphStateAnnotation)
-    .addNode(GraphNode.INITIAL, initialProject, DEFAULT_RETRY_POLICY)
-    .addNode(GraphNode.PROCESS, generateProtocol, DEFAULT_RETRY_POLICY)
-    .addNode(GraphNode.CODE, generateCode, DEFAULT_RETRY_POLICY)
+    .addNode(GraphNode.INITIAL, initialProject)
+    .addNode(GraphNode.PROCESS, generateProtocol)
+    .addNode(GraphNode.CODE, generateCode)
     .addEdge(START, GraphNode.INITIAL)
     .addEdge(GraphNode.INITIAL, GraphNode.PROCESS)
     .addEdge(GraphNode.PROCESS, GraphNode.CODE)

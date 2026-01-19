@@ -12,8 +12,7 @@ export async function generateCode(state: GraphState) {
 
         // Validate required state fields
         if (!state.protocol) {
-            logger.printErrorLog('No protoca data found in state');
-            return { success: false, error: 'No protocol data found' };
+            throw new Error('No protocol data found');
         }
 
         // Process the entire node tree
@@ -28,7 +27,7 @@ export async function generateCode(state: GraphState) {
             success: true,
         };
     } catch (error) {
-        logger.printErrorLog(`Code generation failed: ${(error as Error).message}`);
-        return { success: false, error: (error as Error).message };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Code generation failed: ${errorMessage}`);
     }
 }

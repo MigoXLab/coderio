@@ -184,11 +184,13 @@ export const generateComponentPrompt = ({
     figmaData,
     cssContext,
     styling,
+    assetFiles,
 }: {
     componentName: string;
     figmaData: string;
     styling: string;
     cssContext?: string;
+    assetFiles?: string;
 }) => {
     return `
 <system_instructions>
@@ -199,6 +201,7 @@ export const generateComponentPrompt = ({
 
   <input_context>
     <figma_data>${figmaData}</figma_data>
+    ${assetFiles ? `<available_assets>Available asset files: ${assetFiles}</available_assets>` : ''}
     <css_context>
       Contains extracted CSS styles and Asset URLs for elements in this component.
       Use this for precise background gradients, font styles, and image sources.
@@ -254,14 +257,8 @@ ${STYLING_GUIDELINES}
     </req_2>
 
     <req_3>
-      **Assets Handling**:
-       - **CRITICAL**: For any image URL starting with \`@/assets\`, you MUST import it at the top of the file.
-       - Example:
-         \`import BgImage from '@/assets/bg.png';\`
-         \`<img src={BgImage} />\` , do not use backgroundImage property.
-       - **NEVER** use the string path directly in JSX or styles (e.g. DO NOT do \`src="@/assets/..."\`).
-       - Match the file path in \`css_context\` exactly.
-       - Do not import asset names that does not exist in the assets folder.
+      **Images & Assets**:
+${ASSETS_HANDLING}
     </req_3>
 
     <req_4>
