@@ -21,7 +21,14 @@ const generatedComponentNames = new Set<string>();
  */
 function getComponentPathFromPath(componentPath: string): string {
     // Remove @/ alias if present
-    return componentPath.replace(/^@\//, '');
+    let normalizedPath = componentPath.replace(/^@\//, '');
+
+    // If path doesn't end with .tsx or .ts, assume it's a directory and add index.tsx
+    if (!normalizedPath.endsWith('.tsx') && !normalizedPath.endsWith('.ts')) {
+        normalizedPath = path.join(normalizedPath, 'index.tsx');
+    }
+
+    return normalizedPath;
 }
 
 /**
@@ -99,7 +106,7 @@ function flattenPostOrder(node: FrameStructNode): FrameStructNode[] {
  */
 export async function generateFrame(node: FrameStructNode, state: GraphState, assetFilesList: string, progressInfo: string): Promise<void> {
     const frameName = node.data.name;
-    logger.printInfoLog(`${progressInfo} 🖼️ Generating Frame: ${frameName}`);
+    logger.printInfoLog(`${progressInfo} 🖼️  Generating Frame: ${frameName}`);
 
     // Build children imports information
     const childrenImports = (node.children || []).map(child => ({
@@ -127,7 +134,7 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
     // Save generated files
     const componentPath = node.data.path || '';
     const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
-
+    logger.printInfoLog(`${progressInfo} 📦 Saving generated files to ${filePath}. The componentPath is ${componentPath}`);
     saveGeneratedCode(code, filePath);
 }
 
@@ -172,6 +179,7 @@ export async function generateComponent(node: FrameStructNode, state: GraphState
 
     // Save generated files
     const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
+    logger.printInfoLog(`${progressInfo} 📦 Saving generated files to ${filePath}. The componentPath is ${componentPath}`);
     saveGeneratedCode(code, filePath);
 }
 
@@ -251,7 +259,8 @@ export async function injectRootComponentToApp(rootNode: FrameStructNode, state:
         const finalCode = updatedCode.includes('```') ? extractCode(updatedCode) : updatedCode.trim();
 
         // Write updated App.tsx
-        writeFile(state.workspace.paths.app, 'App.tsx', finalCode);
+        const appFolderPath = path.dirname(appTsxPath);
+        writeFile(appFolderPath, 'App.tsx', finalCode);
 
         logger.printSuccessLog(`✅ Successfully injected ${componentName} into App.tsx`);
     } catch (error) {
