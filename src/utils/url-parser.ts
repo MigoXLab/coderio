@@ -31,5 +31,5 @@ export const parseFigmaUrl = (url: string): FigmaUrlInfo => {
         throw new Error('Invalid Figma URL');
     }
 
-    return { fileId, name, nodeId };
+    return { fileId, name, nodeId, projectName: `${name}_${nodeId}` };
 };

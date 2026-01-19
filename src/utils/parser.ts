@@ -17,7 +17,7 @@ import { FileInfo } from '../types/file-types';
  * // Input: "```json\n{\"key\": \"value\"}\n```"
  * // Output: "{\"key\": \"value\"}"
  */
-export function extractJSONFromMarkdown(response: string): string {
+export function extractJSON(response: string): string {
     // Try to match ```json ... ``` format first
     const jsonBlockMatch = response.match(/```json\s*\n([\s\S]*?)\n```/);
     if (jsonBlockMatch && jsonBlockMatch[1]) {

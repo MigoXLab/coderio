@@ -12,6 +12,7 @@ export interface FigmaUrlInfo {
     fileId: string | null; // The ID of the Figma file.
     name: string; // The name of the Figma file.
     nodeId: string | null; // The ID of the Figma node.
+    projectName: string | null; // The name of the project.
 }
 
 export interface FigmaColor {
