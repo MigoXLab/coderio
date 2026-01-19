@@ -1,13 +1,19 @@
-import { StateGraph, START, END } from '@langchain/langgraph';
+import { StateGraph, START, END, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { GraphNode } from './types/graph-types';
 import { GraphStateAnnotation } from './state';
 import { initialProject } from './nodes/initial';
 import { generateProtocol } from './nodes/process';
+import { runValidation } from './nodes/validation';
 import { parseFigmaUrl } from './utils/url-parser';
 import { deleteWorkspace, initWorkspace } from './utils/workspace';
 import { generateCode } from './nodes/code';
 import { initializeSqliteSaver, promptCheckpointChoice } from './utils/checkpoint';
 import { logger } from './utils/logger';
+
+type GraphNodeAction = (
+    state: typeof GraphStateAnnotation.State,
+    config: LangGraphRunnableConfig
+) => Promise<typeof GraphStateAnnotation.Update> | typeof GraphStateAnnotation.Update;
 
 export async function design2code(url: string): Promise<void> {
     const urlInfo = parseFigmaUrl(url);
@@ -35,10 +41,12 @@ export async function design2code(url: string): Promise<void> {
         .addNode(GraphNode.INITIAL, initialProject)
         .addNode(GraphNode.PROCESS, generateProtocol)
         .addNode(GraphNode.CODE, generateCode)
+        .addNode(GraphNode.VALIDATION, runValidation as unknown as GraphNodeAction)
         .addEdge(START, GraphNode.INITIAL)
         .addEdge(GraphNode.INITIAL, GraphNode.PROCESS)
         .addEdge(GraphNode.PROCESS, GraphNode.CODE)
-        .addEdge(GraphNode.CODE, END)
+        .addEdge(GraphNode.CODE, GraphNode.VALIDATION)
+        .addEdge(GraphNode.VALIDATION, END)
         .compile({ checkpointer });
 
     const config = { configurable: { thread_id: threadId } };

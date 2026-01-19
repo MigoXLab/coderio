@@ -43,8 +43,9 @@ export const generateProtocol = async (state: GraphState) => {
 
     return {
         protocol,
+        processedFigma: processedStyleDocument,
         figmaInfo: {
-            thumbnail: document?.thumbnailUrl || '',
+            thumbnail: processedStyleDocument?.thumbnailUrl || document?.thumbnailUrl || '',
         },
     };
 };
