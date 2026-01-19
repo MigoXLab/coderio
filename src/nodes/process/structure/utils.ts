@@ -1,15 +1,11 @@
 import type { FigmaFrameInfo, FrameStructNode, FrameData } from '../../../types';
 import type { SimplifiedFigmaNode, ExtendedFrameStructNode, ParsedDataListResponse } from './types';
 import { toKebabCase } from '../../../utils/naming';
-import { extractJSONFromMarkdown } from '../../../utils/parser';
+import { extractJSON } from '../../../utils/parser';
 import { callModel } from '../../../utils/call-model';
 import { logger } from '../../../utils/logger';
 
-// Re-export for external use
-export { extractJSONFromMarkdown };
-
 // ============= Figma Node Utilities =============
-
 /**
  * Simplifies Figma nodes for content extraction, retaining essential fields for AI processing
  * Removes heavy vector data while keeping text content, images, and layout information
@@ -379,7 +375,7 @@ export async function populateComponentProps(node: FrameStructNode, frames: Figm
                 responseFormat: { type: 'json_object' },
             });
 
-            const json = extractJSONFromMarkdown(result);
+            const json = extractJSON(result);
             const parsed = JSON.parse(json) as ParsedDataListResponse;
 
             if (parsed && parsed.state && Array.isArray(parsed.state)) {

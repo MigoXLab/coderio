@@ -12,6 +12,7 @@ export interface FigmaUrlInfo {
     fileId: string | null; // The ID of the Figma file.
     name: string; // The name of the Figma file.
     nodeId: string | null; // The ID of the Figma node.
+    projectName: string | null; // The name of the project.
 }
 
 export interface FigmaColor {
@@ -190,6 +191,7 @@ export interface FrameData<TProps = Record<string, unknown>> {
         componentPath: string;
     }>;
     path?: string; // Derived slug for file system paths
+    layout?: EmbeddedLayoutInfo;
 }
 
 /**
@@ -219,6 +221,41 @@ export interface FrameStructNode<TProps = Record<string, unknown>> {
 
     /** Component business data (layout, elements, paths, etc.) */
     data: FrameData<TProps>;
+
     /** Nested child components */
     children?: FrameStructNode<TProps>[] | null;
+}
+
+/**
+ * Embedded layout information
+ * Direct layout data attached to each node in structure tree
+ * Eliminates need for separate LayoutMeasurementProvider lookups
+ */
+interface EmbeddedLayoutInfo {
+    /** Position and size in CSS coordinates */
+    boundingBox: CssBoundingBox;
+    /** Position and size relative to parent component */
+    relativeBoundingBox?: CssBoundingBox;
+    /** Computed layout direction based on children positions */
+    layoutDirection: LayoutDirection;
+    /** Gap to previous and next siblings */
+    spacing: {
+        previous?: number;
+        next?: number;
+    };
+    /** Pre-computed offset from parent's bounding box */
+    parentRelativeOffset: {
+        x: number;
+        y: number;
+    };
+}
+
+/**
+ * Bounding box with position and size using CSS coordinate naming (top, left)
+ */
+interface CssBoundingBox {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
 }

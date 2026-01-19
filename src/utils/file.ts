@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { logger } from './logger';
+import { FileInfo } from '../types/file-types';
 
 /**
  * Write file to the specified path
@@ -15,3 +17,18 @@ export const writeFile = (folderPath: string, filePath: string, content: string)
     }
     fs.writeFileSync(path.join(folderPath, filePath), content);
 };
+
+/**
+ * Create multiple files from parsed data
+ */
+export function createFiles({ files, filePath }: { files: FileInfo[]; filePath: string }): void {
+    try {
+        for (const file of files) {
+            const dirPath = path.dirname(filePath);
+            writeFile(dirPath, file.filename, file.content);
+        }
+    } catch (error) {
+        logger.printErrorLog(`Failed to create files in ${filePath}: ${(error as Error).message}`);
+        throw error;
+    }
+}
