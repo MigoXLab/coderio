@@ -3,7 +3,8 @@ import type { FrameStructNode } from '../../../types';
 import { callModel } from '../../../utils/call-model';
 import { logger } from '../../../utils/logger';
 import { generateStructurePrompt } from './prompt';
-import { extractJSONFromMarkdown, extractNodePositionsHierarchical, postProcessStructure, populateComponentProps } from './utils';
+import { extractNodePositionsHierarchical, postProcessStructure, populateComponentProps } from './utils';
+import { extractJSON } from '../../../utils/parser';
 
 /**
  * Structure node - generates component hierarchy from Figma design
@@ -50,7 +51,7 @@ export const generateStructure = async (figma: FigmaFrameInfo) => {
         });
 
         // Parse AI response
-        const jsonContent = extractJSONFromMarkdown(structureResult);
+        const jsonContent = extractJSON(structureResult);
         const parsedStructure = JSON.parse(jsonContent) as FrameStructNode | FrameStructNode[];
 
         // Post-process structure: normalize names, populate elements, annotate paths
@@ -67,9 +68,7 @@ export const generateStructure = async (figma: FigmaFrameInfo) => {
 
         logger.printSuccessLog('Component structure generated successfully');
 
-        return {
-            protocol,
-        };
+        return protocol;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         logger.printErrorLog(`Error generating component structure: ${errorMessage}`);

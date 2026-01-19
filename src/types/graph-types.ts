@@ -3,6 +3,7 @@ export enum GraphNode {
     INITIAL = 'initial',
     PROCESS = 'process',
     DATA = 'data',
+    CODE = 'code',
 }
 
 export interface GlobalFigmaInfo {
