@@ -12,6 +12,8 @@ dist/
 *.swp
 *.swo
 *~
+.claude/
+.cursor/
 
 # OS
 .DS_Store

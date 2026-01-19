@@ -77,13 +77,7 @@ export async function generatePixelDiffHeatmap(renderSnap: string, targetSnap: s
     return await bufferToWebPDataUri(heatmapBuffer);
 }
 
-async function generateRedGreenOverlay(
-    data1: Buffer,
-    data2: Buffer,
-    diffBuffer: Buffer,
-    width: number,
-    height: number
-): Promise<Buffer> {
+async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer: Buffer, width: number, height: number): Promise<Buffer> {
     const outputData = Buffer.alloc(width * height * 3);
 
     const gray1 = new Uint8Array(width * height);
@@ -138,7 +132,9 @@ async function generateRedGreenOverlay(
         `[Heatmap] Pixels with differences: ${pixelsWithDifferences} / ${width * height} (${((pixelsWithDifferences / (width * height)) * 100).toFixed(2)}%)`
     );
 
-    return sharp(outputData, { raw: { width, height, channels: 3 } }).png().toBuffer();
+    return sharp(outputData, { raw: { width, height, channels: 3 } })
+        .png()
+        .toBuffer();
 }
 
 async function loadImageData(dataUri: string): Promise<{ width: number; height: number; data: Buffer }> {
@@ -160,4 +156,3 @@ async function loadImageData(dataUri: string): Promise<{ width: number; height: 
 
     return { width: info.width, height: info.height, data };
 }
-

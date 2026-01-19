@@ -84,11 +84,7 @@ function findBestLayoutNode(elementIds: string[], figmaJson: Dict): Dict | undef
  * @param componentId - Target component ID (from structure tree)
  * @param elementIds - Pre-extracted element IDs for this component (from element registry)
  */
-export function extractFigmaLayoutMetadata(
-    figmaJson: Dict,
-    componentId: string,
-    elementIds: string[]
-): FigmaLayoutMetadata {
+export function extractFigmaLayoutMetadata(figmaJson: Dict, componentId: string, elementIds: string[]): FigmaLayoutMetadata {
     let node: Dict | undefined;
 
     // Try direct lookup in figmaJson.nodes
@@ -127,4 +123,3 @@ export function extractFigmaLayoutMetadata(
         },
     };
 }
-

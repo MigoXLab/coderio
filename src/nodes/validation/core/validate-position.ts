@@ -80,18 +80,14 @@ async function generateIterationScreenshot(
 
         // Use cached thumbnail if available to avoid redundant downloads
         const targetMarked = cachedFigmaThumbnailBase64
-            ? await visualizationTool.annotateTargetFromBase64(
-                  cachedFigmaThumbnailBase64,
-                  misalignedData,
-                  viewport,
-                  { x: designOffset[0], y: designOffset[1] }
-              )
-            : await visualizationTool.annotateTarget(
-                  figmaThumbnailUrl,
-                  misalignedData,
-                  viewport,
-                  { x: designOffset[0], y: designOffset[1] }
-              );
+            ? await visualizationTool.annotateTargetFromBase64(cachedFigmaThumbnailBase64, misalignedData, viewport, {
+                  x: designOffset[0],
+                  y: designOffset[1],
+              })
+            : await visualizationTool.annotateTarget(figmaThumbnailUrl, misalignedData, viewport, {
+                  x: designOffset[0],
+                  y: designOffset[1],
+              });
 
         const screenshotPath = path.join(comparisonDir, `iteration_${iteration}.webp`);
         await visualizationTool.combine(render.renderMarked, targetMarked, screenshotPath);
@@ -100,9 +96,7 @@ async function generateIterationScreenshot(
         return screenshotPath;
     } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        logger.printWarnLog(
-            `Failed to generate iteration screenshot: ${errorMsg}. Continuing validation without screenshot.`
-        );
+        logger.printWarnLog(`Failed to generate iteration screenshot: ${errorMsg}. Continuing validation without screenshot.`);
         return '';
     }
 }
@@ -146,11 +140,7 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
     // Build element-to-component mapping (use cached if provided)
     const elementToComponent = config.elementToComponentMap || buildMapFromRegistry(config.elementRegistry);
 
-    const aggregated = positionTool.aggregateElements(
-        captureResult.positions,
-        elementToComponent,
-        positionThreshold
-    );
+    const aggregated = positionTool.aggregateElements(captureResult.positions, elementToComponent, positionThreshold);
     const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
     const skippedElements = aggregated.skippedElements as unknown as SkippedElement[];
 

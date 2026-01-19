@@ -67,8 +67,8 @@ export async function launchLoop(options: LaunchOptions = {}): Promise<LaunchRes
     const mode = options.mode ?? 'full';
 
     // Defensive casts: options may come from non-typed call sites.
-    const maxBuildAttempts = (options.maxBuildAttempts) ?? 3;
-    const maxRuntimeAttempts = (options.maxRuntimeAttempts) ?? 2;
+    const maxBuildAttempts = options.maxBuildAttempts ?? 3;
+    const maxRuntimeAttempts = options.maxRuntimeAttempts ?? 2;
 
     const installTimeoutMs = options.installTimeoutMs ?? 180_000;
     const buildTimeoutMs = options.buildTimeoutMs ?? 180_000;
@@ -503,4 +503,3 @@ export async function launchLoop(options: LaunchOptions = {}): Promise<LaunchRes
         };
     }
 }
-

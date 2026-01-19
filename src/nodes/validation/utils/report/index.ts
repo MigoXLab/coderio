@@ -42,9 +42,4 @@ export async function report(options: ReportOptions): Promise<ReportResult> {
 export { ReportTool };
 
 // Re-export types from ReportTool for convenience
-export type {
-    FinalReportRequest,
-    FinalReportResult,
-    ErrorReportOptions,
-    GenerateHtmlResult,
-} from '../../../../tools/report-tool';
+export type { FinalReportRequest, FinalReportResult, ErrorReportOptions, GenerateHtmlResult } from '../../../../tools/report-tool';

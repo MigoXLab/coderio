@@ -42,9 +42,7 @@ export async function combineSideBySide(
         const scale = leftMeta.height / rightMeta.height;
         const rightResizedWidth = Math.round(rightMeta.width * scale);
 
-        const rightResized = await sharp(rightBuffer)
-            .resize({ height: leftMeta.height, width: rightResizedWidth, fit: 'fill' })
-            .toBuffer();
+        const rightResized = await sharp(rightBuffer).resize({ height: leftMeta.height, width: rightResizedWidth, fit: 'fill' }).toBuffer();
 
         const combinedWidth = leftMeta.width + opts.gapWidth + rightResizedWidth;
         const combinedHeight = opts.headerHeight + leftMeta.height;
@@ -95,9 +93,7 @@ export async function combineSideBySide(
             .webp({ quality: SCREENSHOT_WEBP_QUALITY })
             .toFile(outputPath);
     } catch (error) {
-        throw new Error(
-            `Failed to combine side-by-side screenshots: ${error instanceof Error ? error.message : String(error)}`
-        );
+        throw new Error(`Failed to combine side-by-side screenshots: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
 
@@ -108,4 +104,3 @@ function extractBase64Data(base64String: string): string {
     }
     return base64String;
 }
-

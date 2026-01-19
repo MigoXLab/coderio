@@ -19,7 +19,7 @@ export interface RuntimeDiagnosticsOutput {
     candidateFiles: string[];
 }
 
-async function collectConsoleErrors(page: Page): Promise<{ consoleErrors: string[]; pageErrors: string[] }> {
+function collectConsoleErrors(page: Page): { consoleErrors: string[]; pageErrors: string[] } {
     const consoleErrors: string[] = [];
     const pageErrors: string[] = [];
 
@@ -71,7 +71,7 @@ export async function runtimeDiagnostics(input: RuntimeDiagnosticsInput): Promis
         const context = await browser.newContext({ viewport: input.viewport });
         const page = await context.newPage();
 
-        const { consoleErrors, pageErrors } = await collectConsoleErrors(page);
+        const { consoleErrors, pageErrors } = collectConsoleErrors(page);
         await page.goto(input.serverUrl, { waitUntil: 'domcontentloaded', timeout: input.timeoutMs });
         await page.waitForTimeout(1500);
 
@@ -93,4 +93,3 @@ export async function runtimeDiagnostics(input: RuntimeDiagnosticsInput): Promis
         await browser.close().catch(() => {});
     }
 }
-

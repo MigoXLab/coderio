@@ -27,8 +27,12 @@ export async function launch(options?: Parameters<typeof launchLoop>[0]): Promis
         logger.printErrorLog('╔════════════════════════════════════════════════════════╗');
         logger.printErrorLog('║            ❌ LAUNCH FAILED                           ║');
         logger.printErrorLog('╚════════════════════════════════════════════════════════╝');
-        logger.printLog(`📦 Build: ${result.buildAgentIterations > 0 ? `❌ Failed after ${result.buildAgentIterations} agent iteration(s)` : '❌ Failed'}`);
-        logger.printLog(`🚀 Runtime: ${result.runtimeAgentIterations > 0 ? `❌ Failed after ${result.runtimeAgentIterations} agent iteration(s)` : '⊘ Not reached'}`);
+        logger.printLog(
+            `📦 Build: ${result.buildAgentIterations > 0 ? `❌ Failed after ${result.buildAgentIterations} agent iteration(s)` : '❌ Failed'}`
+        );
+        logger.printLog(
+            `🚀 Runtime: ${result.runtimeAgentIterations > 0 ? `❌ Failed after ${result.runtimeAgentIterations} agent iteration(s)` : '⊘ Not reached'}`
+        );
         logger.printErrorLog('\n💬 Error Details:');
         logger.printErrorLog(result.error || 'Unknown error');
         return result;
@@ -49,4 +53,3 @@ export async function launch(options?: Parameters<typeof launchLoop>[0]): Promis
 }
 
 export { launchLoop };
-

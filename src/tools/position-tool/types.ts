@@ -13,10 +13,7 @@ import type { ElementRegistry } from '../../nodes/validation/utils/figma/element
 /**
  * Figma JSON input supports multiple shapes for compatibility.
  */
-export type FigmaJSONInput =
-    | FigmaFrameInfo
-    | FigmaFrameInfo[]
-    | { frames: FigmaFrameInfo[]; absoluteBoundingBox: FigmaPositionAndSize };
+export type FigmaJSONInput = FigmaFrameInfo | FigmaFrameInfo[] | { frames: FigmaFrameInfo[]; absoluteBoundingBox: FigmaPositionAndSize };
 
 /**
  * Input for capturing browser positions.
@@ -176,4 +173,3 @@ export interface ComponentData extends ComponentAggregationData {
 export type ElementToComponent = Map<string, { id: string; name: string; path: string }>;
 
 export type { BoundingBox, ComponentAggregationData, PositionError, Rectangle } from './utils/aggregate-elements';
-

@@ -100,7 +100,7 @@ export class VisualizationTool {
         const response = await axios.get(figmaThumbnailUrl, { responseType: 'arraybuffer', timeout: 30000 });
         const figmaThumbnailBase64 = Buffer.from(response.data).toString('base64');
 
-        return await browserManagement(viewport, async (browser) => {
+        return await browserManagement(viewport, async browser => {
             return await annotateTargetWithPlaywright(browser, figmaThumbnailBase64, misalignedData, viewport, designOffset);
         });
     }
@@ -115,17 +115,12 @@ export class VisualizationTool {
         viewport: { width: number; height: number },
         designOffset?: { x: number; y: number }
     ): Promise<string> {
-        return await browserManagement(viewport, async (browser) => {
+        return await browserManagement(viewport, async browser => {
             return await annotateTargetWithPlaywright(browser, figmaThumbnailBase64, misalignedData, viewport, designOffset);
         });
     }
 
-    async combine(
-        renderMarked: string,
-        targetMarked: string,
-        outputPath: string,
-        options?: CombineOptions
-    ): Promise<string> {
+    async combine(renderMarked: string, targetMarked: string, outputPath: string, options?: CombineOptions): Promise<string> {
         await combineSideBySide(renderMarked, targetMarked, outputPath, options);
         return outputPath;
     }
@@ -134,4 +129,3 @@ export class VisualizationTool {
         return await generatePixelDiffHeatmap(renderSnap, targetSnap);
     }
 }
-

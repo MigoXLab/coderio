@@ -1,4 +1,8 @@
-import chalk from 'chalk';
+import chalkModule from 'chalk';
+
+// Chalk v5 is ESM-only. When bundled to CJS, the default import can become a module namespace object.
+// This normalizes to the actual Chalk instance in both ESM and CJS outputs.
+const chalk = (chalkModule as unknown as { default?: typeof chalkModule }).default ?? chalkModule;
 
 /**
  * Get current timestamp in YYYY-MM-DD HH:mm:ss format

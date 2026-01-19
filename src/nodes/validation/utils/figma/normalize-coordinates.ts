@@ -33,7 +33,7 @@ function collectNodesWithBbox(figmaJson: Dict): Dict[] {
         collectBboxNode(processedFigma);
     }
 
-    const frames = (processedFigma?.frames as Dict[]) || [];
+    const frames = (processedFigma?.frames as Dict[] | undefined) ?? (processedFigma?.children as Dict[] | undefined) ?? [];
     for (const frame of frames) {
         traverseTree(frame, collectBboxNode);
     }
@@ -79,9 +79,7 @@ export function normalizeFigmaCoordinates(figmaJson: Dict, normalizedCache: Set<
     logger.printTestLog(`Using Page frame position as offset: (${minX.toFixed(1)}, ${minY.toFixed(1)})`);
 
     if (Math.abs(minX) < 1 && Math.abs(minY) < 1) {
-        logger.printTestLog(
-            `Design offset (${minX.toFixed(2)}, ${minY.toFixed(2)}) is negligible, skipping normalization`
-        );
+        logger.printTestLog(`Design offset (${minX.toFixed(2)}, ${minY.toFixed(2)}) is negligible, skipping normalization`);
         normalizedCache.add(figmaJson);
         return [minX, minY];
     }
@@ -96,10 +94,7 @@ export function normalizeFigmaCoordinates(figmaJson: Dict, normalizedCache: Set<
 
     normalizedCache.add(figmaJson);
 
-    logger.printTestLog(
-        `Normalized ${nodesWithBbox.length} nodes with Page frame offset (${minX.toFixed(1)}, ${minY.toFixed(1)})`
-    );
+    logger.printTestLog(`Normalized ${nodesWithBbox.length} nodes with Page frame offset (${minX.toFixed(1)}, ${minY.toFixed(1)})`);
 
     return [minX, minY];
 }
-

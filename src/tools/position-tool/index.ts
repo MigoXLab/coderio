@@ -44,8 +44,7 @@ export { calculateAggregateBoundingBox, calculateComponentMetrics, calculatePosi
         returns: { type: 'object', description: 'AggregateElementsResult: misalignedComponents + skippedElements.' },
     },
     computeMetrics: {
-        description:
-            'Compute MAE/MSE/RMSE/accuracy metrics from element positions, and SAE from component misalignments.',
+        description: 'Compute MAE/MSE/RMSE/accuracy metrics from element positions, and SAE from component misalignments.',
         params: [
             { name: 'positions', type: 'object', description: 'Positions keyed by elementId (from capturePosition).' },
             {

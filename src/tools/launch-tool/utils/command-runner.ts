@@ -66,14 +66,17 @@ export async function runCommandCapture(params: {
             stderr = push(stderr, d);
         });
 
-        const timeout = setTimeout(() => {
-            timedOut = true;
-            try {
-                child.kill('SIGTERM');
-            } catch {
-                // ignore
-            }
-        }, Math.max(1, params.timeoutMs));
+        const timeout = setTimeout(
+            () => {
+                timedOut = true;
+                try {
+                    child.kill('SIGTERM');
+                } catch {
+                    // ignore
+                }
+            },
+            Math.max(1, params.timeoutMs)
+        );
 
         child.on('close', code => {
             clearTimeout(timeout);
@@ -94,4 +97,3 @@ export async function runCommandCapture(params: {
         });
     });
 }
-
