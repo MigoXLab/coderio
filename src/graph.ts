@@ -19,7 +19,7 @@ const graph = new StateGraph(GraphStateAnnotation)
 
 export async function design2code(url: string): Promise<void> {
     const urlInfo = parseFigmaUrl(url);
-    const workspace = createDefaultWorkspace(urlInfo.projectName);
+    const workspace = createDefaultWorkspace(urlInfo.projectName!);
 
     const initialState = {
         messages: [],
