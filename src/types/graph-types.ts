@@ -2,6 +2,7 @@
 export enum GraphNode {
     INITIAL = 'initial',
     PROCESS = 'process',
+    VALIDATION = 'validation',
     DATA = 'data',
     CODE = 'code',
 }

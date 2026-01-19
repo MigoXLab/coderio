@@ -1,0 +1,72 @@
+/**
+ * Validation module (coderio-native).
+ *
+ * This file intentionally avoids any old-repo dependencies (`config/output`, `core/node`, etc.).
+ * Graph wiring happens in `src/graph.ts` (see todo: graph-validation-node).
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+
+import type { GraphState } from '../../state';
+import { METRIC_DECIMAL_PLACES } from '../../constants/validation';
+import { logger } from '../../utils/logger';
+import { validationLoop } from './core/validation-loop';
+import type { ValidationLoopParams, ValidationLoopResult } from './types';
+
+/**
+ * Standalone API for running validation outside the LangGraph workflow.
+ */
+export async function runValidationStandalone(params: ValidationLoopParams): Promise<ValidationLoopResult> {
+    return await validationLoop(params);
+}
+
+/**
+ * LangGraph node: run validation on the generated app and write a report into the workspace.
+ */
+export const runValidation = async (state: GraphState) => {
+    if (!state.protocol) {
+        throw new Error('No protocol found for validation (state.protocol is missing).');
+    }
+    if (!state.processedFigma) {
+        throw new Error('No processed Figma found for validation (state.processedFigma is missing).');
+    }
+    if (!state.figmaInfo?.thumbnail) {
+        throw new Error('Missing Figma thumbnail URL (state.figmaInfo.thumbnail is missing).');
+    }
+
+    const workspaceDir = state.workspace.paths.app;
+    const outputDir = path.join(state.workspace.paths.root, 'validation');
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    logger.printLog('Starting validation loop...');
+
+    const result = await validationLoop({
+        figmaJson: state.processedFigma,
+        structureTree: state.protocol,
+        figmaThumbnailUrl: state.figmaInfo.thumbnail,
+        outputDir,
+        workspaceDir,
+    });
+
+    if (result.error) {
+        throw new Error(result.error);
+    }
+
+    const reportHtmlPath = path.join(outputDir, 'index.html');
+    logger.printLog(
+        `Validation complete: ${result.validationPassed ? 'PASSED' : 'FAILED'} (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`
+    );
+    logger.printLog(`Validation report: ${reportHtmlPath}`);
+
+    return {
+        validationSatisfied: result.validationPassed,
+        validationReportDir: outputDir,
+        validationReportHtmlPath: reportHtmlPath,
+    };
+};
+
+export { validationLoop };
+export * from './types';
