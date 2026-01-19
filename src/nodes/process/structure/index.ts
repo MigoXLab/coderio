@@ -67,9 +67,7 @@ export const generateStructure = async (figma: FigmaFrameInfo) => {
 
         logger.printSuccessLog('Component structure generated successfully');
 
-        return {
-            protocol,
-        };
+        return protocol;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         logger.printErrorLog(`Error generating component structure: ${errorMessage}`);

@@ -134,7 +134,6 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
     // Save generated files
     const componentPath = node.data.path || '';
     const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
-    logger.printInfoLog(`${progressInfo} 📦 Saving generated files to ${filePath}. The componentPath is ${componentPath}`);
     saveGeneratedCode(code, filePath);
 }
 
@@ -179,7 +178,6 @@ export async function generateComponent(node: FrameStructNode, state: GraphState
 
     // Save generated files
     const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
-    logger.printInfoLog(`${progressInfo} 📦 Saving generated files to ${filePath}. The componentPath is ${componentPath}`);
     saveGeneratedCode(code, filePath);
 }
 
