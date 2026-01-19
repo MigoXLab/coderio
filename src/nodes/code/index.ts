@@ -22,10 +22,6 @@ export async function generateCode(state: GraphState) {
         await injectRootComponentToApp(state);
 
         logger.printSuccessLog(`✨ Code generation completed! Generated ${totalComponents} components`);
-
-        return {
-            success: true,
-        };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         throw new Error(`Code generation failed: ${errorMessage}`);
