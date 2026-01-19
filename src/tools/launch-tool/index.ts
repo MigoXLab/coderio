@@ -5,6 +5,7 @@ import { tools } from 'evoltagent';
 import { logger } from '../../utils/logger';
 import type {
     BuildProjectResult,
+    DetectedCommands,
     InstallDependenciesResult,
     RuntimeDiagnosticsResult,
     StartDevServerResult,
@@ -13,7 +14,6 @@ import type {
 import { runCommandCapture } from './utils/command-runner';
 import { DevServerManager } from './utils/dev-server-manager';
 import { extractCandidateFilesFromLog } from './utils/error-parsing';
-import { runtimeDiagnostics } from './utils/runtime-diagnostics';
 
 function detectInstallCommand(repoPath: string): string {
     const pnpmLock = path.join(repoPath, 'pnpm-lock.yaml');
@@ -37,6 +37,29 @@ function detectPackageManager(repoPath: string): PackageManager {
     if (fs.existsSync(yarnLock)) return 'yarn';
     if (fs.existsSync(npmLock)) return 'npm';
     return 'npm';
+}
+
+type PackageJson = {
+    scripts?: Record<string, string>;
+};
+
+function readPackageJson(repoPath: string): PackageJson | null {
+    const packageJsonPath = path.join(repoPath, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) return null;
+
+    try {
+        const raw = fs.readFileSync(packageJsonPath, 'utf8');
+        return JSON.parse(raw) as PackageJson;
+    } catch (error) {
+        logger.printWarnLog(`Failed to read ${packageJsonPath}: ${error instanceof Error ? error.message : String(error)}`);
+        return null;
+    }
+}
+
+function formatRunCommand(pm: PackageManager, script: string): string {
+    if (pm === 'pnpm') return `pnpm ${script}`;
+    if (pm === 'yarn') return `yarn ${script}`;
+    return `npm run ${script}`;
 }
 
 function buildInstallDevDependencyCommand(repoPath: string, depName: string): string {
@@ -68,6 +91,12 @@ function makeServerKey(repoPath: string): string {
 }
 
 @tools({
+    detectCommands: {
+        description:
+            'Detect the package manager and choose reasonable run/build commands (prefer dev over start when available).',
+        params: [{ name: 'repoPath', type: 'string', description: 'Absolute path to the repository', optional: true }],
+        returns: { type: 'object', description: 'DetectedCommands with runCommand/buildCommand.' },
+    },
     installDependencies: {
         description: 'Detect the package manager and install dependencies in repoPath with a timeout.',
         params: [
@@ -123,6 +152,24 @@ function makeServerKey(repoPath: string): string {
 })
 export class LaunchTool {
     private static readonly serverManagers = new Map<string, { manager: DevServerManager; repoPath: string }>();
+
+    async detectCommands(repoPath?: string): Promise<DetectedCommands> {
+        if (!repoPath) {
+            logger.printWarnLog('repoPath not provided to detectCommands(); defaulting to "npm run dev" / "npm run build"');
+            return { runCommand: 'npm run dev', buildCommand: 'npm run build' };
+        }
+
+        const pm = detectPackageManager(repoPath);
+        const pkg = readPackageJson(repoPath);
+        const scripts = pkg?.scripts ?? {};
+
+        const runScript = scripts.dev ? 'dev' : scripts.start ? 'start' : 'dev';
+
+        return {
+            runCommand: formatRunCommand(pm, runScript),
+            buildCommand: formatRunCommand(pm, 'build'),
+        };
+    }
 
     async installDependencies(repoPath: string, timeoutMs: number = 180_000): Promise<InstallDependenciesResult> {
         const command = detectInstallCommand(repoPath);
@@ -274,7 +321,8 @@ export class LaunchTool {
         serverKey?: string
     ): Promise<RuntimeDiagnosticsResult> {
         try {
-            const diag = await runtimeDiagnostics({ repoPath, serverUrl, timeoutMs, viewport });
+            const { runtimeDiagnostics: runRuntimeDiagnostics } = await import('./utils/runtime-diagnostics');
+            const diag = await runRuntimeDiagnostics({ repoPath, serverUrl, timeoutMs, viewport });
             const overlayText = diag.overlayText.trim();
 
             const entry = serverKey ? LaunchTool.serverManagers.get(serverKey) : null;
