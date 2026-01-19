@@ -206,7 +206,7 @@ export class ReportTool {
      * Generate standalone HTML report file from userReport.
      * Inlines all assets (JS/CSS) for single-file distribution.
      */
-    generateHtml(userReport: UserReport, outputDir: string): Promise<GenerateHtmlResult> {
+    async generateHtml(userReport: UserReport, outputDir: string): Promise<GenerateHtmlResult> {
         const reportDistDir = this.getReportDistDir();
         const reportIndexHtml = path.join(reportDistDir, 'index.html');
         logger.printLog(`[ReportTool] Using template: ${reportIndexHtml}`);
@@ -216,7 +216,7 @@ export class ReportTool {
             if (!fs.existsSync(reportIndexHtml)) {
                 const errorMsg = `Template not found at ${reportIndexHtml}`;
                 logger.printErrorLog(`[ReportTool] ${errorMsg}. Skipping report generation.`);
-                return Promise.resolve({ success: false, error: errorMsg });
+                return { success: false, error: errorMsg };
             }
 
             // Ensure output directory exists
@@ -284,11 +284,11 @@ export class ReportTool {
             const absoluteOutputPath = path.join(outputDir, 'index.html');
             fs.writeFileSync(absoluteOutputPath, htmlContent);
 
-            return Promise.resolve({ success: true, htmlPath: absoluteOutputPath });
+            return { success: true, htmlPath: absoluteOutputPath };
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             logger.printErrorLog(`[ReportTool] Failed to generate report: ${errorMsg}`);
-            return Promise.resolve({ success: false, error: errorMsg });
+            return { success: false, error: errorMsg };
         }
     }
 

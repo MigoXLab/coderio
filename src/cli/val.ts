@@ -19,8 +19,17 @@ function readJsonFile<T>(absolutePath: string): T {
 }
 
 function resolveWorkspaceRoot(input: string): string {
-    const expanded = input.startsWith('~') ? path.join(process.env.HOME ?? '', input.slice(1)) : input;
-    return path.resolve(expanded);
+    if (input.startsWith('~')) {
+        const home = process.env.HOME;
+        if (!home) {
+            throw new Error(
+                'HOME environment variable is not set. Cannot resolve ~ in workspace path. ' +
+                    'Please use an absolute path or set the HOME environment variable.'
+            );
+        }
+        return path.resolve(path.join(home, input.slice(1)));
+    }
+    return path.resolve(input);
 }
 
 function normalizeProtocol(raw: unknown): FrameStructNode {
@@ -31,7 +40,13 @@ function normalizeProtocol(raw: unknown): FrameStructNode {
     return raw as FrameStructNode;
 }
 
-export const registerValidateCommand = (program: Command) => {
+/**
+ * Register the 'validate' CLI command.
+ * Validates position alignment using an existing workspace without re-running d2p/d2c.
+ *
+ * @param program - Commander program instance
+ */
+export function registerValidateCommand(program: Command): void {
     program
         .command('validate')
         .alias('val')
@@ -72,6 +87,8 @@ export const registerValidateCommand = (program: Command) => {
 
                 const update = await runValidation(
                     {
+                        // Note: fileId and nodeId are null (not undefined) to match FigmaUrlInfo type requirements
+                        // Other optional fields use undefined as per GraphState annotation
                         urlInfo: { fileId: null, name: path.basename(workspaceRoot), nodeId: null },
                         workspace,
                         figmaInfo: { thumbnail: figmaThumbnailUrl },

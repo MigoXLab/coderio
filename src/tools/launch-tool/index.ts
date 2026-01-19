@@ -152,10 +152,10 @@ function makeServerKey(repoPath: string): string {
 export class LaunchTool {
     private static readonly serverManagers = new Map<string, { manager: DevServerManager; repoPath: string }>();
 
-    detectCommands(repoPath?: string): Promise<DetectedCommands> {
+    async detectCommands(repoPath?: string): Promise<DetectedCommands> {
         if (!repoPath) {
             logger.printWarnLog('repoPath not provided to detectCommands(); defaulting to "npm run dev" / "npm run build"');
-            return Promise.resolve({ runCommand: 'npm run dev', buildCommand: 'npm run build' });
+            return { runCommand: 'npm run dev', buildCommand: 'npm run build' };
         }
 
         const pm = detectPackageManager(repoPath);
@@ -164,10 +164,10 @@ export class LaunchTool {
 
         const runScript = scripts.dev ? 'dev' : scripts.start ? 'start' : 'dev';
 
-        return Promise.resolve({
+        return {
             runCommand: formatRunCommand(pm, runScript),
             buildCommand: formatRunCommand(pm, 'build'),
-        });
+        };
     }
 
     async installDependencies(repoPath: string, timeoutMs: number = 180_000): Promise<InstallDependenciesResult> {
