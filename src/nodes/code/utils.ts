@@ -35,7 +35,7 @@ function getComponentPathFromPath(componentPath: string): string {
  * Process a node tree and generate code for all nodes
  * Uses post-order traversal (children first, then parent)
  */
-export async function processNode(node: FrameStructNode, state: GraphState): Promise<number> {
+export async function processNode(state: GraphState): Promise<number> {
     // Reset component cache for new generation run
     generatedComponentNames.clear();
 
@@ -43,7 +43,7 @@ export async function processNode(node: FrameStructNode, state: GraphState): Pro
     const assetFilesList = getAssetFilesList(state);
 
     // Flatten tree using post-order traversal (children first, then parent)
-    const flatNodes = flattenPostOrder(node);
+    const flatNodes = flattenPostOrder(state.protocol!);
     const total = flatNodes.length;
 
     if (total === 0) {
@@ -222,7 +222,7 @@ function getAssetFilesList(state: GraphState) {
  * Inject root component into App.tsx
  * Reads existing App.tsx, adds import and renders the root component
  */
-export async function injectRootComponentToApp(rootNode: FrameStructNode, state: GraphState): Promise<void> {
+export async function injectRootComponentToApp(state: GraphState): Promise<void> {
     try {
         logger.printInfoLog('💉 Injecting root component into App.tsx...');
 
@@ -240,6 +240,7 @@ export async function injectRootComponentToApp(rootNode: FrameStructNode, state:
         }
 
         // Get root component information
+        const rootNode = state.protocol!;
         const componentName = rootNode.data.name || 'RootComponent';
         const componentPath = rootNode.data.path || '';
 

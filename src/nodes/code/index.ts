@@ -17,10 +17,10 @@ export async function generateCode(state: GraphState) {
         }
 
         // Process the entire node tree
-        const totalComponents = await processNode(state.protocol, state);
+        const totalComponents = await processNode(state);
 
         // Inject root component to App.tsx
-        await injectRootComponentToApp(state.protocol, state);
+        await injectRootComponentToApp(state);
 
         logger.printSuccessLog(`✨ Code generation completed! Generated ${totalComponents} components`);
 
