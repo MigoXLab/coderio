@@ -1,12 +1,6 @@
 import type { Page } from 'playwright';
 import type { MisalignedComponentData } from '../types';
-import {
-    ANNOTATION_COLORS,
-    createBoxStyle,
-    createCircleLabelStyle,
-    createContainerStyle,
-    createTextLabelStyle,
-} from './annotation-styles';
+import { ANNOTATION_COLORS, createBoxStyle, createCircleLabelStyle, createContainerStyle, createTextLabelStyle } from './annotation-styles';
 
 /**
  * Annotates the rendered page with RED boxes showing current positions.
@@ -66,20 +60,11 @@ export async function annotateRenderWithPlaywright(page: Page, misalignedData: M
                 boxes: Object.fromEntries(
                     misalignedData.map(item => [
                         item.index,
-                        createBoxStyle(
-                            item.currentX,
-                            item.currentY,
-                            item.currentWidth,
-                            item.currentHeight,
-                            ANNOTATION_COLORS.RED
-                        ),
+                        createBoxStyle(item.currentX, item.currentY, item.currentWidth, item.currentHeight, ANNOTATION_COLORS.RED),
                     ])
                 ),
                 circleLabels: Object.fromEntries(
-                    misalignedData.map(item => [
-                        item.index,
-                        createCircleLabelStyle(item.currentX, item.currentY, ANNOTATION_COLORS.RED),
-                    ])
+                    misalignedData.map(item => [item.index, createCircleLabelStyle(item.currentX, item.currentY, ANNOTATION_COLORS.RED)])
                 ),
                 textLabels: Object.fromEntries(
                     misalignedData.map(item => [
@@ -91,4 +76,3 @@ export async function annotateRenderWithPlaywright(page: Page, misalignedData: M
         }
     );
 }
-

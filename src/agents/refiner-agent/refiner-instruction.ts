@@ -4,9 +4,7 @@ import type { JudgerDiagnosis, MisalignedComponent } from '../../nodes/validatio
  * Format refiner instruction with diagnosis and fix instructions
  */
 export function formatRefinerInstruction(component: MisalignedComponent, diagnosis: JudgerDiagnosis): string {
-    const refineInstructionsList = (diagnosis.refineInstructions || [])
-        .map((instr, i) => `${i + 1}. ${instr}`)
-        .join('\n');
+    const refineInstructionsList = (diagnosis.refineInstructions || []).map((instr, i) => `${i + 1}. ${instr}`).join('\n');
 
     return `Component ID: ${component.componentId}
 Element IDs: ${JSON.stringify(component.elementIds)}
@@ -25,4 +23,3 @@ For each instruction:
 3. Report success or failure
 `;
 }
-

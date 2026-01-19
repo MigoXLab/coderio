@@ -12,19 +12,11 @@ import type { GraphState } from '../../state';
 import { METRIC_DECIMAL_PLACES } from '../../constants/validation';
 import { logger } from '../../utils/logger';
 import { validationLoop } from './core/validation-loop';
-import type { ValidationLoopParams, ValidationLoopResult } from './types';
-
-/**
- * Standalone API for running validation outside the LangGraph workflow.
- */
-export async function runValidationStandalone(params: ValidationLoopParams): Promise<ValidationLoopResult> {
-    return await validationLoop(params);
-}
 
 /**
  * LangGraph node: run validation on the generated app and write a report into the workspace.
  */
-export const runValidation = async (state: GraphState) => {
+export const runValidation = async (state: GraphState, _langGraphConfig?: unknown, options?: { mode?: 'reportOnly' | 'full' }) => {
     if (!state.protocol) {
         throw new Error('No protocol found for validation (state.protocol is missing).');
     }
@@ -49,6 +41,7 @@ export const runValidation = async (state: GraphState) => {
         figmaThumbnailUrl: state.figmaInfo.thumbnail,
         outputDir,
         workspaceDir,
+        config: options?.mode ? { mode: options.mode } : undefined,
     });
 
     if (result.error) {

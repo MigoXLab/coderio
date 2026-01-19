@@ -124,7 +124,7 @@ export interface ProcessedOutput {
         finalMae: number;
         finalSae: number;
         totalIterations: number;
-        misalignedCount: number;  // Number of misaligned components in final result
+        misalignedCount: number; // Number of misaligned components in final result
     };
 }
 
@@ -219,6 +219,12 @@ export interface ValidationLoopConfig {
     defaultViewportWidth: number;
     defaultViewportHeight: number;
     headless: boolean;
+    /**
+     * Validation execution mode.
+     * - reportOnly: run a single validation pass and generate a report (no code edits).
+     * - full: run iterative actor-critic refinement loop (may edit code + commit markers).
+     */
+    mode?: 'reportOnly' | 'full';
     /** Max build attempts with LaunchAgent assistance during validation. */
     maxLaunchBuildAttempts: number;
     /** Max runtime check attempts with LaunchAgent assistance. */
@@ -230,8 +236,8 @@ export interface ValidationLoopConfig {
  * Result returned from validationLoop function
  */
 export interface ValidationLoopResult {
-    reportGenerated: boolean;     // Whether a validation report was successfully generated
-    validationPassed: boolean;    // Whether validation criteria met (MAE threshold + no errors)
+    reportGenerated: boolean; // Whether a validation report was successfully generated
+    validationPassed: boolean; // Whether validation criteria met (MAE threshold + no errors)
     finalMae: number;
     finalSae: number;
     totalIterations: number;

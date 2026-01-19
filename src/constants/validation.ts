@@ -74,15 +74,15 @@ export const COMPARISON_DIR_NAME = 'comparison-screenshots';
  * Used when no custom config is provided to validationLoop().
  */
 export const DEFAULT_VALIDATION_LOOP_CONFIG = {
-  maxIterations: MAX_ITERATIONS,
-  targetMae: TARGET_MAE,
-  positionThreshold: POSITION_THRESHOLD,
-  browserTimeout: DEFAULT_TIMEOUT,
-  defaultViewportWidth: DEFAULT_VIEWPORT.width,
-  defaultViewportHeight: DEFAULT_VIEWPORT.height,
-  headless: HEADLESS,
-  maxLaunchBuildAttempts: MAX_LAUNCH_BUILD_ATTEMPTS,
-  maxLaunchRuntimeAttempts: MAX_LAUNCH_RUNTIME_ATTEMPTS,
+    maxIterations: MAX_ITERATIONS,
+    targetMae: TARGET_MAE,
+    positionThreshold: POSITION_THRESHOLD,
+    browserTimeout: DEFAULT_TIMEOUT,
+    defaultViewportWidth: DEFAULT_VIEWPORT.width,
+    defaultViewportHeight: DEFAULT_VIEWPORT.height,
+    headless: HEADLESS,
+    maxLaunchBuildAttempts: MAX_LAUNCH_BUILD_ATTEMPTS,
+    maxLaunchRuntimeAttempts: MAX_LAUNCH_RUNTIME_ATTEMPTS,
 };
 
 /**
@@ -94,5 +94,5 @@ export const DEFAULT_PORT = 5173;
  * Builds the default dev server URL from a port number.
  */
 export function buildDevServerUrl(port: number): string {
-  return `http://localhost:${port}`;
+    return `http://localhost:${port}`;
 }

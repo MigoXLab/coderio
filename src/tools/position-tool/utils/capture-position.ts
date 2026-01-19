@@ -8,12 +8,7 @@ import { DEFAULT_TIMEOUT, DEFAULT_VIEWPORT, POSITION_THRESHOLD, SELECTOR_WAIT_TI
 import { launchChromiumWithAutoInstall } from '../../../nodes/validation/utils/playwright/launcher';
 import { logger } from '../../../utils/logger';
 
-import type {
-    BrowserPositionInput,
-    ElementAbsolutePosition,
-    PositionMetrics,
-    PositionValidationOutput,
-} from '../types';
+import type { BrowserPositionInput, ElementAbsolutePosition, PositionMetrics, PositionValidationOutput } from '../types';
 import { calculatePositionMetrics } from './position-metrics';
 
 /**
@@ -60,9 +55,7 @@ export async function captureBrowserPositions(input: BrowserPositionInput): Prom
         try {
             browser = await launchChromiumWithAutoInstall({ headless: true });
         } catch (launchError) {
-            throw new Error(
-                `Failed to launch Playwright Chromium browser for position validation: ${(launchError as Error).message}`
-            );
+            throw new Error(`Failed to launch Playwright Chromium browser for position validation: ${(launchError as Error).message}`);
         }
 
         const context = await browser.newContext({ viewport });
@@ -71,9 +64,7 @@ export async function captureBrowserPositions(input: BrowserPositionInput): Prom
         try {
             await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
         } catch (error) {
-            throw new Error(
-                `Failed to load ${url}. Make sure the development server is running. Error: ${(error as Error).message}`
-            );
+            throw new Error(`Failed to load ${url}. Make sure the development server is running. Error: ${(error as Error).message}`);
         }
 
         if (input.waitForSelector) {
@@ -179,9 +170,7 @@ export async function captureBrowserPositions(input: BrowserPositionInput): Prom
                         bottom: Math.round(result.boundingBox.bottom * 100) / 100,
                     },
                     computedStyle: result.computedStyle,
-                    figmaPosition: figmaPos
-                        ? { x: figmaPos.x, y: figmaPos.y, width: figmaPos.w, height: figmaPos.h }
-                        : undefined,
+                    figmaPosition: figmaPos ? { x: figmaPos.x, y: figmaPos.y, width: figmaPos.w, height: figmaPos.h } : undefined,
                     metrics,
                 };
 
@@ -246,4 +235,3 @@ function extractFigmaFrames(figmaJSON: BrowserPositionInput['figmaJSON']): {
         rootBoundingBox: singleFrame.absoluteBoundingBox,
     };
 }
-

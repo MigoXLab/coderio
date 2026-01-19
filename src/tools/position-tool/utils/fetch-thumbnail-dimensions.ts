@@ -31,9 +31,7 @@ export interface ThumbnailDimensions {
  * }
  * ```
  */
-export async function fetchThumbnailDimensions(
-    figmaThumbnailUrl: string
-): Promise<ThumbnailDimensions | undefined> {
+export async function fetchThumbnailDimensions(figmaThumbnailUrl: string): Promise<ThumbnailDimensions | undefined> {
     if (!figmaThumbnailUrl) {
         return undefined;
     }
@@ -54,9 +52,7 @@ export async function fetchThumbnailDimensions(
             return undefined;
         }
 
-        logger.printTestLog(
-            `✅ Fetched Figma thumbnail dimensions: ${metadata.width}×${metadata.height}px`
-        );
+        logger.printTestLog(`✅ Fetched Figma thumbnail dimensions: ${metadata.width}×${metadata.height}px`);
 
         return {
             width: metadata.width,

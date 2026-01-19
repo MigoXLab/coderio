@@ -79,9 +79,7 @@ export class HierarchyTool {
             const parentNode = findInTree(this._structureTree, parentInfo.id);
             if (parentNode) {
                 const children = (parentNode.children as HierarchyNode[]) || [];
-                siblings = children
-                    .map(child => getNodeId(child))
-                    .filter((id): id is string => id !== undefined && id !== componentId);
+                siblings = children.map(child => getNodeId(child)).filter((id): id is string => id !== undefined && id !== componentId);
             }
         }
         const siblingsStr = siblings.length > 0 ? `Siblings: ${siblings.join(', ')}` : 'Siblings: None';

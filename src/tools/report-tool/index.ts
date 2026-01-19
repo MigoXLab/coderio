@@ -23,29 +23,29 @@ export type { ErrorReportOptions, FinalReportRequest, FinalReportResult, Generat
     buildUserReport: {
         description: 'Capture positions, generate annotated screenshots, and build userReport with metrics and component details',
         params: [
-            { name: 'request', type: 'object', description: 'FinalReportRequest with figmaJson, structureTree, serverUrl, outputDir, etc.' }
+            {
+                name: 'request',
+                type: 'object',
+                description: 'FinalReportRequest with figmaJson, structureTree, serverUrl, outputDir, etc.',
+            },
         ],
         returns: { type: 'object', description: 'FinalReportResult with userReport and misalignedCount' },
     },
     formatMisalignedData: {
         description: 'Transform MisalignedComponent array to MisalignedComponentData format for screenshot annotation',
-        params: [
-            { name: 'components', type: 'object', description: 'MisalignedComponent[] to transform' }
-        ],
+        params: [{ name: 'components', type: 'object', description: 'MisalignedComponent[] to transform' }],
         returns: { type: 'object', description: 'MisalignedComponentData[] for visualization' },
     },
     createMinimalReport: {
         description: 'Create a minimal user report for error scenarios without screenshots',
-        params: [
-            { name: 'options', type: 'object', description: 'ErrorReportOptions with serverUrl, figmaThumbnailUrl, mae, sae' }
-        ],
+        params: [{ name: 'options', type: 'object', description: 'ErrorReportOptions with serverUrl, figmaThumbnailUrl, mae, sae' }],
         returns: { type: 'object', description: 'Minimal UserReport structure' },
     },
     generateHtml: {
         description: 'Generate standalone HTML report file from userReport with embedded data and inlined assets',
         params: [
             { name: 'userReport', type: 'object', description: 'UserReport data from validation with screenshots and metrics' },
-            { name: 'outputDir', type: 'string', description: 'Output directory path for HTML file' }
+            { name: 'outputDir', type: 'string', description: 'Output directory path for HTML file' },
         ],
         returns: { type: 'object', description: 'GenerateHtmlResult with success/htmlPath/error' },
     },
@@ -71,8 +71,7 @@ export class ReportTool {
             elementRegistry: request.elementRegistry,
         });
 
-        const elementToComponent =
-            request.elementToComponentMap || buildMapFromRegistry(request.elementRegistry);
+        const elementToComponent = request.elementToComponentMap || buildMapFromRegistry(request.elementRegistry);
         const aggregated = positionTool.aggregateElements(finalCaptureResult.positions, elementToComponent, request.positionThreshold);
         const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
         const misalignedData = this.formatMisalignedData(misalignedComponents);
@@ -91,18 +90,8 @@ export class ReportTool {
 
         // Use cached thumbnail if available to avoid redundant download
         const targetMarked = request.cachedFigmaThumbnailBase64
-            ? await visualizationTool.annotateTargetFromBase64(
-                  request.cachedFigmaThumbnailBase64,
-                  misalignedData,
-                  viewport,
-                  designOffset
-              )
-            : await visualizationTool.annotateTarget(
-                  request.figmaThumbnailUrl,
-                  misalignedData,
-                  viewport,
-                  designOffset
-              );
+            ? await visualizationTool.annotateTargetFromBase64(request.cachedFigmaThumbnailBase64, misalignedData, viewport, designOffset)
+            : await visualizationTool.annotateTarget(request.figmaThumbnailUrl, misalignedData, viewport, designOffset);
 
         const screenshots = {
             renderSnap: render.renderSnap,
@@ -131,9 +120,7 @@ export class ReportTool {
             }
         } catch (heatmapError) {
             const errorMsg = heatmapError instanceof Error ? heatmapError.message : 'Unknown error';
-            logger.printLog(
-                `⚠️  Failed to generate pixel difference heatmap: ${errorMsg}. Continuing without heatmap.`
-            );
+            logger.printLog(`⚠️  Failed to generate pixel difference heatmap: ${errorMsg}. Continuing without heatmap.`);
         }
 
         const userReport = this.buildUserReportStructure(
@@ -219,7 +206,7 @@ export class ReportTool {
      * Generate standalone HTML report file from userReport.
      * Inlines all assets (JS/CSS) for single-file distribution.
      */
-    async generateHtml(userReport: UserReport, outputDir: string): Promise<GenerateHtmlResult> {
+    generateHtml(userReport: UserReport, outputDir: string): Promise<GenerateHtmlResult> {
         const reportDistDir = this.getReportDistDir();
         const reportIndexHtml = path.join(reportDistDir, 'index.html');
         logger.printLog(`[ReportTool] Using template: ${reportIndexHtml}`);
@@ -229,7 +216,7 @@ export class ReportTool {
             if (!fs.existsSync(reportIndexHtml)) {
                 const errorMsg = `Template not found at ${reportIndexHtml}`;
                 logger.printErrorLog(`[ReportTool] ${errorMsg}. Skipping report generation.`);
-                return { success: false, error: errorMsg };
+                return Promise.resolve({ success: false, error: errorMsg });
             }
 
             // Ensure output directory exists
@@ -297,11 +284,11 @@ export class ReportTool {
             const absoluteOutputPath = path.join(outputDir, 'index.html');
             fs.writeFileSync(absoluteOutputPath, htmlContent);
 
-            return { success: true, htmlPath: absoluteOutputPath };
+            return Promise.resolve({ success: true, htmlPath: absoluteOutputPath });
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             logger.printErrorLog(`[ReportTool] Failed to generate report: ${errorMsg}`);
-            return { success: false, error: errorMsg };
+            return Promise.resolve({ success: false, error: errorMsg });
         }
     }
 

@@ -92,8 +92,7 @@ function makeServerKey(repoPath: string): string {
 
 @tools({
     detectCommands: {
-        description:
-            'Detect the package manager and choose reasonable run/build commands (prefer dev over start when available).',
+        description: 'Detect the package manager and choose reasonable run/build commands (prefer dev over start when available).',
         params: [{ name: 'repoPath', type: 'string', description: 'Absolute path to the repository', optional: true }],
         returns: { type: 'object', description: 'DetectedCommands with runCommand/buildCommand.' },
     },
@@ -153,10 +152,10 @@ function makeServerKey(repoPath: string): string {
 export class LaunchTool {
     private static readonly serverManagers = new Map<string, { manager: DevServerManager; repoPath: string }>();
 
-    async detectCommands(repoPath?: string): Promise<DetectedCommands> {
+    detectCommands(repoPath?: string): Promise<DetectedCommands> {
         if (!repoPath) {
             logger.printWarnLog('repoPath not provided to detectCommands(); defaulting to "npm run dev" / "npm run build"');
-            return { runCommand: 'npm run dev', buildCommand: 'npm run build' };
+            return Promise.resolve({ runCommand: 'npm run dev', buildCommand: 'npm run build' });
         }
 
         const pm = detectPackageManager(repoPath);
@@ -165,10 +164,10 @@ export class LaunchTool {
 
         const runScript = scripts.dev ? 'dev' : scripts.start ? 'start' : 'dev';
 
-        return {
+        return Promise.resolve({
             runCommand: formatRunCommand(pm, runScript),
             buildCommand: formatRunCommand(pm, 'build'),
-        };
+        });
     }
 
     async installDependencies(repoPath: string, timeoutMs: number = 180_000): Promise<InstallDependenciesResult> {
@@ -196,11 +195,7 @@ export class LaunchTool {
         }
     }
 
-    async installDevDependency(
-        repoPath: string,
-        dependency: string,
-        timeoutMs: number = 180_000
-    ): Promise<InstallDependenciesResult> {
+    async installDevDependency(repoPath: string, dependency: string, timeoutMs: number = 180_000): Promise<InstallDependenciesResult> {
         const dep = dependency.trim();
         const command = buildInstallDevDependencyCommand(repoPath, dep);
         logger.printLog(`📦 Installing dev dependency: ${command}`);
@@ -212,7 +207,8 @@ export class LaunchTool {
                 exitCode: res.exitCode,
                 timedOut: res.timedOut,
                 combined: res.combined,
-                error: res.exitCode === 0 ? undefined : `Dev dependency install failed (exitCode=${res.exitCode}, timeout=${res.timedOut}).`,
+                error:
+                    res.exitCode === 0 ? undefined : `Dev dependency install failed (exitCode=${res.exitCode}, timeout=${res.timedOut}).`,
             };
         } catch (error) {
             return {
@@ -355,4 +351,3 @@ export class LaunchTool {
         }
     }
 }
-

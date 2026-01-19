@@ -1,13 +1,7 @@
 import type { Browser } from 'playwright';
 import type { MisalignedComponentData } from '../types';
 import { bufferToWebPDataUri } from './image-converter';
-import {
-    ANNOTATION_COLORS,
-    createBoxStyle,
-    createCircleLabelStyle,
-    createContainerStyle,
-    createTextLabelStyle,
-} from './annotation-styles';
+import { ANNOTATION_COLORS, createBoxStyle, createCircleLabelStyle, createContainerStyle, createTextLabelStyle } from './annotation-styles';
 
 /**
  * Annotates the Figma thumbnail with GREEN boxes showing target positions.
@@ -26,9 +20,7 @@ export async function annotateTargetWithPlaywright(
     const page = await context.newPage();
 
     try {
-        const dataUri = figmaThumbnailBase64.startsWith('data:')
-            ? figmaThumbnailBase64
-            : `data:image/png;base64,${figmaThumbnailBase64}`;
+        const dataUri = figmaThumbnailBase64.startsWith('data:') ? figmaThumbnailBase64 : `data:image/png;base64,${figmaThumbnailBase64}`;
 
         const html = `
             <!DOCTYPE html>
@@ -85,10 +77,7 @@ export async function annotateTargetWithPlaywright(
                 ])
             ),
             circleLabels: Object.fromEntries(
-                elementsData.map(item => [
-                    item.index,
-                    createCircleLabelStyle(item.targetX, item.targetY, ANNOTATION_COLORS.GREEN),
-                ])
+                elementsData.map(item => [item.index, createCircleLabelStyle(item.targetX, item.targetY, ANNOTATION_COLORS.GREEN)])
             ),
             textLabels: Object.fromEntries(
                 elementsData.map(item => [
@@ -151,4 +140,3 @@ export async function annotateTargetWithPlaywright(
         await context.close();
     }
 }
-

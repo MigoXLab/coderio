@@ -13,9 +13,11 @@ export function formatJudgerInstruction(
 Target Position: (${vr.targetPosition[0].toFixed(1)}, ${vr.targetPosition[1].toFixed(1)}) px
 Absolute Error: (${vr.absoluteError[0].toFixed(1)}, ${vr.absoluteError[1].toFixed(1)}) px`;
 
-    const padding = figmaMetadata.padding as
-        | { left?: number; top?: number; right?: number; bottom?: number }
-        | undefined;
+    const padding = figmaMetadata.padding as { left?: number; top?: number; right?: number; bottom?: number } | undefined;
+    const layoutMode = typeof figmaMetadata.layoutMode === 'string' ? figmaMetadata.layoutMode : 'NONE';
+    const itemSpacing = typeof figmaMetadata.itemSpacing === 'number' ? figmaMetadata.itemSpacing : 0;
+    const primaryAxisAlignItems = typeof figmaMetadata.primaryAxisAlignItems === 'string' ? figmaMetadata.primaryAxisAlignItems : 'N/A';
+    const counterAxisAlignItems = typeof figmaMetadata.counterAxisAlignItems === 'string' ? figmaMetadata.counterAxisAlignItems : 'N/A';
     const resolvedPath = componentPaths?.[component.componentId] || component.path;
 
     return `Component ID: ${component.componentId}
@@ -26,11 +28,11 @@ Validation Report:
 ${validationReportFormatted}
 
 Figma Layout:
-- Mode: ${String(figmaMetadata.layoutMode ?? 'NONE')}
-- Item Spacing: ${String(figmaMetadata.itemSpacing ?? 0)}px
+- Mode: ${layoutMode}
+- Item Spacing: ${itemSpacing}px
 - Padding: ${padding?.left ?? 0}px (left) ${padding?.top ?? 0}px (top) ${padding?.right ?? 0}px (right) ${padding?.bottom ?? 0}px (bottom)
-- Primary Axis Alignment: ${String(figmaMetadata.primaryAxisAlignItems ?? 'N/A')}
-- Counter Axis Alignment: ${String(figmaMetadata.counterAxisAlignItems ?? 'N/A')}
+- Primary Axis Alignment: ${primaryAxisAlignItems}
+- Counter Axis Alignment: ${counterAxisAlignItems}
 
 TASK:
 1. Read component file at: ${resolvedPath}
@@ -46,4 +48,3 @@ IMPORTANT:
 Remember: Use exact code strings and line numbers in refine_instructions.
 `;
 }
-

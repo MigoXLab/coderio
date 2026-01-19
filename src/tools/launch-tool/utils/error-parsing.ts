@@ -48,7 +48,7 @@ export function extractCandidateFilesFromLog(repoPath: string, log: string): str
     }
 
     // Generic format: src/App.tsx
-    const generic = new RegExp("((?:src|app)\\/[^\\s\\\"'`]+?\\." + supportedExt + ')', 'g');
+    const generic = new RegExp('((?:src|app)\\/[^\\s\\"\'`]+?\\.' + supportedExt + ')', 'g');
     for (const m of log.matchAll(generic)) {
         if (m[1]) push(normalizeToRepoPath(repoPath, m[1]));
     }
@@ -62,4 +62,3 @@ export function extractCandidateFilesFromLog(repoPath: string, log: string): str
 
     return results;
 }
-
