@@ -13,18 +13,13 @@ import { HierarchyTool } from '../../tools/hierarchy-tool';
 import type { ComponentHistory, JudgerDiagnosis } from './types';
 import type { Dict } from '../../nodes/validation/utils/general/tree-traversal';
 import { JUDGER_PROMPT } from './system-prompt';
+import { getModelConfig } from '../../utils/config';
 export { formatJudgerInstruction } from './judger-instruction';
 
 /**
  * Default model configuration for judger agent
  */
-const JUDGER_MODEL_CONFIG: ModelConfig = {
-    provider: 'openai',
-    model: 'gpt-5.2',
-    apiKey: process.env.BOYUE_API_KEY || '',
-    baseUrl: process.env.BOYUE_API_URL || '',
-    contextWindowTokens: 1280000,
-};
+const JUDGER_CONTEXT_WINDOW_TOKENS = 1280000;
 
 /**
  * Extract JSON diagnosis from agent response.
@@ -144,14 +139,18 @@ export function createJudgerAgent(options: {
         systemTools.push(...historyToolNames);
     }
 
+    const modelConfig: ModelConfig = {
+        ...getModelConfig(),
+        contextWindowTokens: JUDGER_CONTEXT_WINDOW_TOKENS,
+    };
+
     return new Agent({
         name: 'JudgerAgent',
         profile: 'Layout diagnosis specialist',
         system: systemPrompt,
         tools: systemTools,
-        modelConfig: JUDGER_MODEL_CONFIG,
+        modelConfig,
         postProcessor: parseDiagnosisJson,
         verbose: 1,
     });
 }
-
