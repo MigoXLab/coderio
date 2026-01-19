@@ -14,6 +14,7 @@ import { logger } from '../utils/logger';
 import { registerD2PCommand } from './d2p';
 import { registerD2CCommand } from './d2c';
 import { registerImagesCommand } from './images';
+import { registerP2CCommand } from './p2c';
 
 async function main(argv: string[]): Promise<void> {
     const program = new Command();
@@ -22,6 +23,7 @@ async function main(argv: string[]): Promise<void> {
     registerCommands(program);
     registerD2CCommand(program);
     registerD2PCommand(program);
+    registerP2CCommand(program);
     registerImagesCommand(program);
 
     if (argv.length <= 2) {
