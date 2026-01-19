@@ -9,7 +9,3 @@ export enum GraphNode {
 export interface GlobalFigmaInfo {
     thumbnail: string;
 }
-
-export interface GlobalFigmaInfo {
-    thumbnail: string;
-}
