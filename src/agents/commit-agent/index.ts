@@ -2,8 +2,6 @@ import { Agent } from 'evoltagent';
 import type { ModelConfig } from 'evoltagent';
 
 import { COMMIT_AGENT_SYSTEM_PROMPT } from './system-prompt';
-import type { GitCommitOptions, GitCommitResult } from './types';
-import { commitWithAgent } from './utils/commit';
 import { getModelConfig } from '../../utils/config';
 
 export type { GitCommitOptions, GitCommitResult } from './types';
@@ -27,9 +25,4 @@ export function createCommitAgent(): Agent {
         verbose: 1,
         toolcallManagerPoolSize: 1,
     });
-}
-
-export async function commit(options: GitCommitOptions = {}): Promise<GitCommitResult> {
-    const agent = createCommitAgent();
-    return await commitWithAgent(agent, options);
 }

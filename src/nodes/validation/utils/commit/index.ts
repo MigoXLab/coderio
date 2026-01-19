@@ -1,5 +1,5 @@
 import type { GitCommitOptions, GitCommitResult } from '../../types';
-import { commit as commitWithAgent } from '../../../../agents/commit-agent';
+import { commitWithAgent, createCommitAgent } from '../../../../agents/commit-agent';
 import { logger } from '../../../../utils/logger';
 
 export type { GitCommitOptions, GitCommitResult };
@@ -10,7 +10,8 @@ export type { GitCommitOptions, GitCommitResult };
  */
 export async function commit(options?: GitCommitOptions): Promise<GitCommitResult> {
     try {
-        const result = await commitWithAgent(options);
+        const agent = createCommitAgent();
+        const result = await commitWithAgent(agent, options);
 
         if (result.success) {
             logger.printSuccessLog('✅ Commit completed!');
@@ -28,4 +29,3 @@ export async function commit(options?: GitCommitOptions): Promise<GitCommitResul
         };
     }
 }
-
