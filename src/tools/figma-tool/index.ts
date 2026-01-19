@@ -4,6 +4,7 @@ import { FigmaFrameInfo } from '../../types/figma-types';
 import { ImageNode } from './types';
 import { executeDownloadImages, fetchImages, findImageNodes } from './images';
 import { cleanFigma, fetchFigmaNode, fetchFigmaImages } from './figma';
+import { styleTool } from '../style-tool';
 
 @tools({
     fetchAndClean: {
@@ -32,15 +33,15 @@ import { cleanFigma, fetchFigmaNode, fetchFigmaImages } from './figma';
             },
         ],
         returns: {
-            type: '{ successCount: number; failCount: number; results: ImageNode[] }',
-            description: 'Download results of images from the Figma document',
+            type: '{ successCount: number; failCount: number; imageNodesMap: Map<string, ImageNode> }',
+            description: 'Download results of images from the Figma document with Map structure',
         },
     },
     simplifyImageNodes: {
         description: 'Simplify image nodes in figma document by replacing redundant properties with url',
         params: [
             { name: 'node', type: 'FigmaFrameInfo', description: 'Figma node' },
-            { name: 'imageNodes', type: 'ImageNode[]', description: 'Image nodes' },
+            { name: 'imageNodes', type: 'Map<string, ImageNode>', description: 'Image nodes map with id as key' },
         ],
         returns: {
             type: 'FigmaFrameInfo',
@@ -67,11 +68,9 @@ class FigmaTool {
             return undefined;
         }
 
-        if (!document?.thumbnailUrl) {
-            const images = await fetchFigmaImages(fileId, nodeId, token);
-            const thumbnail = images?.[nodeId] || '';
-            document.thumbnailUrl = thumbnail;
-        }
+        const images = await fetchFigmaImages(fileId, nodeId, token);
+        const thumbnail = images?.[nodeId] || '';
+        document.thumbnailUrl = thumbnail;
 
         const cleanedDocument = cleanFigma(document);
 
@@ -83,23 +82,23 @@ class FigmaTool {
         token: string,
         imageDir: string,
         document?: FigmaFrameInfo
-    ): Promise<{ successCount: number; failCount: number; results: ImageNode[] }> {
+    ): Promise<{ successCount: number; failCount: number; imageNodesMap: Map<string, ImageNode> }> {
         if (!fileId) {
-            return { successCount: 0, failCount: 0, results: [] };
+            return { successCount: 0, failCount: 0, imageNodesMap: new Map() };
         }
 
         /* Detect images from the document */
         const imageNodes = findImageNodes(document?.children || [], document?.absoluteBoundingBox);
         const fetchedImages = await fetchImages(imageNodes, fileId, token);
         if (!fetchedImages.length) {
-            return { successCount: 0, failCount: 0, results: [] };
+            return { successCount: 0, failCount: 0, imageNodesMap: new Map() };
         }
 
         return await executeDownloadImages(fetchedImages, imageDir);
     }
 
-    simplifyImageNodes(node: FigmaFrameInfo, imageNodes: ImageNode[]): FigmaFrameInfo {
-        const imageTarget = imageNodes.find(image => image.id === node.id);
+    simplifyImageNodes(node: FigmaFrameInfo, imageNodes: Map<string, ImageNode>): FigmaFrameInfo {
+        const imageTarget = imageNodes.get(node.id);
 
         if (imageTarget) {
             const basicInfo: FigmaFrameInfo = {
@@ -132,11 +131,15 @@ class FigmaTool {
     }
 
     processedStyle(node: FigmaFrameInfo): FigmaFrameInfo {
-        const result: FigmaFrameInfo = { ...node };
-        if (node.children && Array.isArray(node.children)) {
-            result.children = node.children.map(child => this.processedStyle(child));
+        // Convert current node's styles using style-tool
+        const processedNode = styleTool.convert(node);
+
+        // Recursively process children
+        if (processedNode.children && Array.isArray(processedNode.children)) {
+            processedNode.children = processedNode.children.map(child => this.processedStyle(child));
         }
-        return result;
+
+        return processedNode;
     }
 }
 
