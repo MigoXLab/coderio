@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { tools } from 'evoltagent';
 
 import { logger } from '../../utils/logger';
@@ -15,28 +15,22 @@ import { runCommandCapture } from './utils/command-runner';
 import { DevServerManager } from './utils/dev-server-manager';
 import { extractCandidateFilesFromLog } from './utils/error-parsing';
 
-function detectInstallCommand(repoPath: string): string {
-    const pnpmLock = path.join(repoPath, 'pnpm-lock.yaml');
-    const yarnLock = path.join(repoPath, 'yarn.lock');
-    const npmLock = path.join(repoPath, 'package-lock.json');
-
-    if (fs.existsSync(pnpmLock)) return 'pnpm i';
-    if (fs.existsSync(yarnLock)) return 'yarn install';
-    if (fs.existsSync(npmLock)) return 'npm install';
-    return 'npm install';
-}
-
 type PackageManager = 'pnpm' | 'yarn' | 'npm';
 
 function detectPackageManager(repoPath: string): PackageManager {
-    const pnpmLock = path.join(repoPath, 'pnpm-lock.yaml');
-    const yarnLock = path.join(repoPath, 'yarn.lock');
-    const npmLock = path.join(repoPath, 'package-lock.json');
-
-    if (fs.existsSync(pnpmLock)) return 'pnpm';
-    if (fs.existsSync(yarnLock)) return 'yarn';
-    if (fs.existsSync(npmLock)) return 'npm';
+    if (fs.existsSync(path.join(repoPath, 'pnpm-lock.yaml'))) return 'pnpm';
+    if (fs.existsSync(path.join(repoPath, 'yarn.lock'))) return 'yarn';
+    if (fs.existsSync(path.join(repoPath, 'package-lock.json'))) return 'npm';
     return 'npm';
+}
+
+function getInstallCommand(pm: PackageManager): string {
+    const commands: Record<PackageManager, string> = {
+        pnpm: 'pnpm i',
+        yarn: 'yarn install',
+        npm: 'npm install',
+    };
+    return commands[pm];
 }
 
 type PackageJson = {
@@ -171,7 +165,7 @@ export class LaunchTool {
     }
 
     async installDependencies(repoPath: string, timeoutMs: number = 180_000): Promise<InstallDependenciesResult> {
-        const command = detectInstallCommand(repoPath);
+        const command = getInstallCommand(detectPackageManager(repoPath));
         logger.printLog(`📦 Installing dependencies: ${command}`);
         try {
             const res = await runCommandCapture({ cwd: repoPath, command, timeoutMs });

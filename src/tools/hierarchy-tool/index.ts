@@ -65,10 +65,10 @@ export class HierarchyTool {
         this._componentPaths = componentPaths;
     }
 
-    lookup(componentId: string): Promise<string> {
+    lookup(componentId: string): string {
         const node = findInTree(this._structureTree, componentId);
         if (!node) {
-            return Promise.resolve(`Component '${componentId}' not found in structure tree`);
+            return `Component '${componentId}' not found in structure tree`;
         }
 
         const parentInfo = this._findParent(this._structureTree, componentId);
@@ -88,21 +88,21 @@ export class HierarchyTool {
         const children = nodeChildren.map(child => getNodeId(child)).filter((id): id is string => id !== undefined);
         const childrenStr = children.length > 0 ? `Children: ${children.join(', ')}` : 'Children: None';
 
-        return Promise.resolve(`Component: ${componentId}
+        return `Component: ${componentId}
 ${parentStr}
 ${siblingsStr}
-${childrenStr}`);
+${childrenStr}`;
     }
 
-    getSiblings(componentId: string): Promise<string> {
+    getSiblings(componentId: string): string {
         const parentInfo = this._findParent(this._structureTree, componentId);
         if (!parentInfo) {
-            return Promise.resolve(`Component '${componentId}' has no parent (root component)`);
+            return `Component '${componentId}' has no parent (root component)`;
         }
 
         const parentNode = findInTree(this._structureTree, parentInfo.id);
         if (!parentNode) {
-            return Promise.resolve(`Parent node not found for component '${componentId}'`);
+            return `Parent node not found for component '${componentId}'`;
         }
 
         const siblings: string[] = [];
@@ -115,14 +115,14 @@ ${childrenStr}`);
         }
 
         if (siblings.length === 0) {
-            return Promise.resolve(`Component '${componentId}' has no siblings`);
+            return `Component '${componentId}' has no siblings`;
         }
 
         const siblingsList = siblings.map(sib => `  - ${sib}`).join('\n');
-        return Promise.resolve(`Siblings of ${componentId}:\n${siblingsList}`);
+        return `Siblings of ${componentId}:\n${siblingsList}`;
     }
 
-    getSharedInstances(filePath: string): Promise<string> {
+    getSharedInstances(filePath: string): string {
         const instances: string[] = [];
         for (const [compId, compPath] of Object.entries(this._componentPaths)) {
             if (compPath.includes(filePath) || compPath.endsWith(filePath)) {
@@ -131,14 +131,14 @@ ${childrenStr}`);
         }
 
         if (instances.length === 0) {
-            return Promise.resolve(`No components found using file: ${filePath}`);
+            return `No components found using file: ${filePath}`;
         }
 
         const instancesList = instances.map(inst => `  - ${inst}`).join('\n');
-        return Promise.resolve(`Components using ${filePath}:
+        return `Components using ${filePath}:
 ${instancesList}
 
-Warning: Changes to this file will affect ALL ${instances.length} instance(s)`);
+Warning: Changes to this file will affect ALL ${instances.length} instance(s)`;
     }
 
     private _findParent(node: HierarchyNode, targetId: string, parent: HierarchyNode | null = null): ParentInfo | undefined {
