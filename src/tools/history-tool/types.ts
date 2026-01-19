@@ -14,4 +14,3 @@ export interface IterationSummaryChange {
     error: [number, number];
     fixApplied: string[];
 }
-

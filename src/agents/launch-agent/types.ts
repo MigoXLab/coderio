@@ -78,4 +78,3 @@ export interface LaunchAgentResult {
     touchedFiles: string[];
     error?: string;
 }
-

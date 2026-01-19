@@ -45,4 +45,3 @@ export async function commitWithAgent(agent: Agent, options: GitCommitOptions = 
         };
     }
 }
-

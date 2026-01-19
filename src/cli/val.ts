@@ -89,7 +89,7 @@ export function registerValidateCommand(program: Command): void {
                     {
                         // Note: fileId and nodeId are null (not undefined) to match FigmaUrlInfo type requirements
                         // Other optional fields use undefined as per GraphState annotation
-                        urlInfo: { fileId: null, name: path.basename(workspaceRoot), nodeId: null },
+                        urlInfo: { fileId: null, name: path.basename(workspaceRoot), nodeId: null, projectName: null },
                         workspace,
                         figmaInfo: { thumbnail: figmaThumbnailUrl },
                         protocol,

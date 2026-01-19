@@ -4,6 +4,7 @@
  */
 
 import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { tools } from 'evoltagent';
@@ -213,16 +214,17 @@ export class ReportTool {
         logger.printLog(`[ReportTool] Output directory: ${outputDir}`);
 
         try {
-            if (!fs.existsSync(reportIndexHtml)) {
+            // Check if template exists
+            try {
+                await fsPromises.access(reportIndexHtml);
+            } catch {
                 const errorMsg = `Template not found at ${reportIndexHtml}`;
                 logger.printErrorLog(`[ReportTool] ${errorMsg}. Skipping report generation.`);
                 return { success: false, error: errorMsg };
             }
 
             // Ensure output directory exists
-            if (!fs.existsSync(outputDir)) {
-                fs.mkdirSync(outputDir, { recursive: true });
-            }
+            await fsPromises.mkdir(outputDir, { recursive: true });
 
             // Transform data if it exists
             let reportData = userReport;
@@ -231,7 +233,7 @@ export class ReportTool {
             }
 
             logger.printTestLog(`Report data: ${JSON.stringify(reportData)}`);
-            let htmlContent = fs.readFileSync(reportIndexHtml, 'utf-8');
+            let htmlContent = await fsPromises.readFile(reportIndexHtml, 'utf-8');
 
             // 1. Inject Data
             // Serialize report data as JSON and inject directly into the HTML
@@ -246,20 +248,32 @@ export class ReportTool {
             htmlContent = htmlContent.replace(/<script>\s*window\.__REPORT_DATA__\s*=\s*null;?\s*<\/script>/, scriptTag);
 
             // 2. Inline Assets (JS) to make it single-file
-            // Find ALL script tags with src="/assets/..." using global regex
+            // Find ALL script tags with src="/assets/..." and pre-read files
             const scriptRegexGlobal = /<script\s+type="module"\s+crossorigin\s+src="\/assets\/([^"]+)"><\/script>/g;
+            const jsMatches = [...htmlContent.matchAll(scriptRegexGlobal)];
+            const jsContentsMap = new Map<string, string>();
+
+            for (const match of jsMatches) {
+                const fileName = match[1];
+                if (fileName) {
+                    const jsFilePath = path.join(reportDistDir, 'assets', fileName);
+                    try {
+                        let jsContent = await fsPromises.readFile(jsFilePath, 'utf-8');
+                        // Prevent </script> inside JS from breaking HTML
+                        jsContent = jsContent.replace(/<\/script>/g, '\\u003c/script>');
+                        jsContentsMap.set(fileName, jsContent);
+                    } catch {
+                        logger.printWarnLog(`[ReportTool] JS asset not found: ${jsFilePath}`);
+                    }
+                }
+            }
 
             htmlContent = htmlContent.replace(scriptRegexGlobal, (match, fileName: string) => {
-                const jsFilePath = path.join(reportDistDir, 'assets', fileName);
-                if (fs.existsSync(jsFilePath)) {
-                    let jsContent = fs.readFileSync(jsFilePath, 'utf-8');
-                    // Prevent </script> inside JS from breaking HTML
-                    jsContent = jsContent.replace(/<\/script>/g, '\\u003c/script>');
+                const jsContent = jsContentsMap.get(fileName);
+                if (jsContent) {
                     return `<script type="module">${jsContent}</script>`;
-                } else {
-                    logger.printWarnLog(`[ReportTool] JS asset not found: ${jsFilePath}`);
-                    return match; // Keep original if file not found
                 }
+                return match; // Keep original if file not found
             });
 
             // 3. Inline CSS if exists (Vite might produce css in assets)
@@ -271,9 +285,11 @@ export class ReportTool {
                     logger.printWarnLog('[ReportTool] CSS filename not found in match');
                 } else {
                     const cssFilePath = path.join(reportDistDir, 'assets', cssFileName);
-                    if (fs.existsSync(cssFilePath)) {
-                        const cssContent = fs.readFileSync(cssFilePath, 'utf-8');
+                    try {
+                        const cssContent = await fsPromises.readFile(cssFilePath, 'utf-8');
                         htmlContent = htmlContent.replace(cssMatch[0], `<style>${cssContent}</style>`);
+                    } catch {
+                        // CSS file not found, skip inlining
                     }
                 }
             }
@@ -282,7 +298,7 @@ export class ReportTool {
             htmlContent = htmlContent.replace('<link rel="stylesheet" href="/index.css">', '');
 
             const absoluteOutputPath = path.join(outputDir, 'index.html');
-            fs.writeFileSync(absoluteOutputPath, htmlContent);
+            await fsPromises.writeFile(absoluteOutputPath, htmlContent);
 
             return { success: true, htmlPath: absoluteOutputPath };
         } catch (error) {

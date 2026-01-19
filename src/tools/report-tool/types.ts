@@ -40,4 +40,3 @@ export interface GenerateHtmlResult {
     htmlPath?: string;
     error?: string;
 }
-

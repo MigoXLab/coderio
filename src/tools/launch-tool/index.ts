@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import * as fsPromises from 'node:fs/promises';
 import * as path from 'node:path';
 import { tools } from 'evoltagent';
 
@@ -24,6 +25,21 @@ function detectPackageManager(repoPath: string): PackageManager {
     return 'npm';
 }
 
+async function detectPackageManagerAsync(repoPath: string): Promise<PackageManager> {
+    const checkFile = async (file: string) => {
+        try {
+            await fsPromises.access(path.join(repoPath, file));
+            return true;
+        } catch {
+            return false;
+        }
+    };
+    if (await checkFile('pnpm-lock.yaml')) return 'pnpm';
+    if (await checkFile('yarn.lock')) return 'yarn';
+    if (await checkFile('package-lock.json')) return 'npm';
+    return 'npm';
+}
+
 function getInstallCommand(pm: PackageManager): string {
     const commands: Record<PackageManager, string> = {
         pnpm: 'pnpm i',
@@ -37,15 +53,12 @@ type PackageJson = {
     scripts?: Record<string, string>;
 };
 
-function readPackageJson(repoPath: string): PackageJson | null {
+async function readPackageJsonAsync(repoPath: string): Promise<PackageJson | null> {
     const packageJsonPath = path.join(repoPath, 'package.json');
-    if (!fs.existsSync(packageJsonPath)) return null;
-
     try {
-        const raw = fs.readFileSync(packageJsonPath, 'utf8');
+        const raw = await fsPromises.readFile(packageJsonPath, 'utf8');
         return JSON.parse(raw) as PackageJson;
-    } catch (error) {
-        logger.printWarnLog(`Failed to read ${packageJsonPath}: ${error instanceof Error ? error.message : String(error)}`);
+    } catch {
         return null;
     }
 }
@@ -152,8 +165,8 @@ export class LaunchTool {
             return { runCommand: 'npm run dev', buildCommand: 'npm run build' };
         }
 
-        const pm = detectPackageManager(repoPath);
-        const pkg = readPackageJson(repoPath);
+        const pm = await detectPackageManagerAsync(repoPath);
+        const pkg = await readPackageJsonAsync(repoPath);
         const scripts = pkg?.scripts ?? {};
 
         const runScript = scripts.dev ? 'dev' : scripts.start ? 'start' : 'dev';

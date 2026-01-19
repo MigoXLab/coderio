@@ -28,4 +28,3 @@ export async function browserManagement<T>(
         if (browser) await browser.close().catch(() => {});
     }
 }
-

@@ -38,4 +38,3 @@ export interface AnnotateRenderResult {
     renderSnap: string;
     renderMarked: string;
 }
-

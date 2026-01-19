@@ -96,4 +96,3 @@ export function createTextLabelStyle(x: number, y: number, height: number, color
         box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     `;
 }
-

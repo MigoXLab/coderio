@@ -43,4 +43,3 @@ Wrap summary in <TaskCompletion> tags:
 </TaskCompletion>
 </output>
 `;
-

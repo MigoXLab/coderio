@@ -40,4 +40,3 @@ Input format (provided by the caller):
 Respond with a short summary in <TaskCompletion> tags.
 Include whether an empty commit was created and the final commit message.
 </output>`;
-

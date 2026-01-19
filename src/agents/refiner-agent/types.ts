@@ -12,4 +12,3 @@ export interface RefinerResult {
     editsApplied: number;
     error?: string;
 }
-

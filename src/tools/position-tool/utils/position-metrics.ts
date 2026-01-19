@@ -46,4 +46,3 @@ export function calculatePositionMetrics(positions: Record<string, ElementAbsolu
         maxDistance: Math.round(maxDistance * 100) / 100,
     };
 }
-

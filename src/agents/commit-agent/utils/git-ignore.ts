@@ -28,4 +28,3 @@ build/
 .cache
 .temp
 `;
-
