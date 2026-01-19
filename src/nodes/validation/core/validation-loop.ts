@@ -356,8 +356,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         }
 
         const normalizedCache = new Set<Dict>();
-        const wrapProcessedFigma = { processedFigma: figmaJson };
-        const designOffset = normalizeFigmaCoordinates(wrapProcessedFigma as unknown as Dict, normalizedCache);
+        const wrapProcessedFigma: Dict = { processedFigma: figmaJson };
+        const designOffset = normalizeFigmaCoordinates(wrapProcessedFigma, normalizedCache);
         if (Math.abs(designOffset[0]) >= 1 || Math.abs(designOffset[1]) >= 1) {
             logger.printLog(`Normalized Figma coordinates (offset: ${designOffset[0].toFixed(0)}, ${designOffset[1].toFixed(0)} px)`);
         }
@@ -541,7 +541,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 structureTree: structureTree as unknown as Dict,
                 componentPaths: resolvedComponentPaths,
                 componentHistory,
-                wrapProcessedFigma: wrapProcessedFigma as unknown as Dict,
+                wrapProcessedFigma,
                 elementRegistry,
                 previousScreenshotPath,
             };

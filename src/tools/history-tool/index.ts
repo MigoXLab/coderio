@@ -67,18 +67,18 @@ export class HistoryTool {
      * @param componentId - Component ID to get history for
      * @returns Formatted string with complete history of positions, errors, and fixes
      */
-    getComponentHistory(componentId: string): Promise<string> {
+    getComponentHistory(componentId: string): string {
         if (!this._history || Object.keys(this._history).length === 0) {
-            return Promise.resolve('No history available (this is iteration 1)');
+            return 'No history available (this is iteration 1)';
         }
 
         if (!(componentId in this._history)) {
-            return Promise.resolve(`No history found for component '${componentId}' (first time misaligned)`);
+            return `No history found for component '${componentId}' (first time misaligned)`;
         }
 
         const historyEntries = this._history[componentId];
         if (!historyEntries || historyEntries.length === 0) {
-            return Promise.resolve(`Empty history for component '${componentId}'`);
+            return `Empty history for component '${componentId}'`;
         }
 
         const lines: string[] = [`History for ${componentId}:`, ''];
@@ -112,7 +112,7 @@ export class HistoryTool {
             lines.push('');
         }
 
-        return Promise.resolve(lines.join('\n'));
+        return lines.join('\n');
     }
 
     /**
@@ -124,9 +124,9 @@ export class HistoryTool {
      * @param iteration - Iteration number (1-indexed)
      * @returns Formatted string with summary of changes in that iteration
      */
-    getIterationSummary(iteration: number): Promise<string> {
+    getIterationSummary(iteration: number): string {
         if (!this._history || Object.keys(this._history).length === 0) {
-            return Promise.resolve(`No history available (iteration ${iteration} has not completed yet)`);
+            return `No history available (iteration ${iteration} has not completed yet)`;
         }
 
         const changes: IterationSummaryChange[] = [];
@@ -146,7 +146,7 @@ export class HistoryTool {
         }
 
         if (changes.length === 0) {
-            return Promise.resolve(`No changes recorded for iteration ${iteration}`);
+            return `No changes recorded for iteration ${iteration}`;
         }
 
         const lines: string[] = [`Iteration ${iteration} Summary:`, `Total components modified: ${changes.length}`, ''];
@@ -158,7 +158,7 @@ export class HistoryTool {
             lines.push('');
         }
 
-        return Promise.resolve(lines.join('\n'));
+        return lines.join('\n');
     }
 }
 
