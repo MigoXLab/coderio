@@ -31,4 +31,3 @@ export interface ComponentHistoryEntry {
  * Maps component IDs to their history entries
  */
 export type ComponentHistory = Record<string, ComponentHistoryEntry[]>;
-

@@ -71,4 +71,3 @@ Wrap output:
 </TaskCompletion>
 </example>
 `;
-

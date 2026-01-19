@@ -161,4 +161,3 @@ export class HistoryTool {
         return lines.join('\n');
     }
 }
-

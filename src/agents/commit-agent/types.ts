@@ -25,4 +25,3 @@ export interface GitCommitResult {
     success: boolean;
     message: string;
 }
-

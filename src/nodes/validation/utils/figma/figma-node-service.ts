@@ -136,4 +136,3 @@ export class FigmaNodeService {
         return normalized;
     }
 }
-

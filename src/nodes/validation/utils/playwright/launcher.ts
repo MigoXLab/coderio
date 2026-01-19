@@ -71,4 +71,3 @@ export async function launchChromiumWithAutoInstall(options: LaunchOptions = {})
         throw error;
     }
 }
-

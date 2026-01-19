@@ -91,4 +91,3 @@ export function calculateComponentMetrics(
 
     return { currentBounds, targetBounds, error };
 }
-

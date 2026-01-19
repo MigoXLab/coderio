@@ -73,4 +73,3 @@ export interface ComponentInfo {
     name: string;
     path: string;
 }
-

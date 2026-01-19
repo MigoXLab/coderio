@@ -31,4 +31,3 @@ export async function bufferToWebPDataUri(buffer: Buffer): Promise<string> {
     const webpBuffer = await sharp(buffer).webp({ quality: SCREENSHOT_WEBP_QUALITY }).toBuffer();
     return `data:image/webp;base64,${webpBuffer.toString('base64')}`;
 }
-

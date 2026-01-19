@@ -13,4 +13,3 @@ export type ComponentPaths = Record<string, string>;
 export interface ParentInfo {
     id: string;
 }
-

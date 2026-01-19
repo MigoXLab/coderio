@@ -9,4 +9,3 @@ export function ensureGitignore(repoPath: string): void {
         fs.writeFileSync(gitIgnorePath, DEFAULT_GITIGNORE, 'utf-8');
     }
 }
-

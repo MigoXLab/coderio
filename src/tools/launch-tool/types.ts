@@ -51,4 +51,3 @@ export interface DetectedCommands {
     runCommand: string;
     buildCommand: string;
 }
-
