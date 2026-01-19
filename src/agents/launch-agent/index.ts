@@ -3,16 +3,11 @@ import type { ModelConfig } from 'evoltagent';
 
 import { LAUNCH_AGENT_PROMPT } from './system-prompt';
 import type { LaunchAgentResult, LaunchStage } from './types';
+import { getModelConfig } from '../../utils/config';
 
 export type { LaunchAgentResult, LaunchOptions, LaunchResult, LaunchStage } from './types';
 
-const LAUNCH_AGENT_MODEL_CONFIG: ModelConfig = {
-    provider: 'openai',
-    model: 'gpt-5.2',
-    apiKey: process.env.BOYUE_API_KEY || '',
-    baseUrl: process.env.BOYUE_API_URL || '',
-    contextWindowTokens: 128000,
-};
+const LAUNCH_AGENT_CONTEXT_WINDOW_TOKENS = 128000;
 
 export function parseLaunchAgentResult(response: string): Promise<LaunchAgentResult> {
     const taskMatch = response.match(/<TaskCompletion>([\s\S]*?)<\/TaskCompletion>/);
@@ -74,15 +69,19 @@ Resolve the error by editing the minimal set of files needed under WORKSPACE.
 Prefer PRIMARY_FILE then CANDIDATE_FILES when choosing where to start.`;
 }
 
-export function createLaunchAgent(modelConfig?: Partial<ModelConfig>): Agent {
+export function createLaunchAgent(): Agent {
+    const modelConfig: ModelConfig = {
+        ...getModelConfig(),
+        contextWindowTokens: LAUNCH_AGENT_CONTEXT_WINDOW_TOKENS,
+    };
+
     return new Agent({
         name: 'LaunchAgent',
         profile: 'Resolve build/runtime failures during project launch',
         system: LAUNCH_AGENT_PROMPT,
         tools: ['FileEditor.read', 'FileEditor.find', 'FileEditor.findAndReplace', 'FileEditor.write', 'ThinkTool.execute'],
-        modelConfig: { ...LAUNCH_AGENT_MODEL_CONFIG, ...(modelConfig || {}) },
+        modelConfig,
         postProcessor: parseLaunchAgentResult,
         verbose: 1,
     });
 }
-

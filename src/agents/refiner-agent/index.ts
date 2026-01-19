@@ -10,18 +10,13 @@ import type { ModelConfig } from 'evoltagent';
 
 import type { RefinerResult } from './types';
 import { REFINER_PROMPT } from './system-prompt';
+import { getModelConfig } from '../../utils/config';
 export { formatRefinerInstruction } from './refiner-instruction';
 
 /**
  * Default model configuration for refiner agent
  */
-const REFINER_MODEL_CONFIG: ModelConfig = {
-    provider: 'openai',
-    model: 'gpt-5.2',
-    apiKey: process.env.BOYUE_API_KEY || '',
-    baseUrl: process.env.BOYUE_API_URL || '',
-    contextWindowTokens: 128000,
-};
+const REFINER_CONTEXT_WINDOW_TOKENS = 128000;
 
 /**
  * Extract refiner result from agent response.
@@ -76,14 +71,18 @@ export function createRefinerAgent(workspaceDir?: string): Agent {
         systemPrompt += `\n\nWORKSPACE: ${workspaceDir}\nOnly modify files within this workspace.`;
     }
 
+    const modelConfig: ModelConfig = {
+        ...getModelConfig(),
+        contextWindowTokens: REFINER_CONTEXT_WINDOW_TOKENS,
+    };
+
     return new Agent({
         name: 'RefinerAgent',
         profile: 'Code editor specialist',
         system: systemPrompt,
         tools: ['FileEditor.read', 'FileEditor.find', 'FileEditor.findAndReplace'],
-        modelConfig: REFINER_MODEL_CONFIG,
+        modelConfig,
         postProcessor: parseRefinerResult,
         verbose: 1,
     });
 }
-
