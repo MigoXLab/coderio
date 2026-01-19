@@ -36,7 +36,7 @@ export const generateProtocol = async (state: GraphState) => {
     /* Process styles (convert Figma styles to CSS) */
     const processedStyleDocument = figmaTool.processedStyle(simplifiedDocument);
     /* Generate structure */
-    const protocol = await generateStructure(processedStyleDocument);
+    const { protocol } = await generateStructure(processedStyleDocument);
 
     writeFile(state.workspace.process, 'protocol.json', JSON.stringify(protocol, null, 2));
     logger.printInfoLog(`Please check the output in the workspace: ${state.workspace.process}`);
