@@ -1,8 +1,4 @@
-export function formatGitCommitInstruction(params: {
-    repoPath: string;
-    commitMessage?: string;
-    allowEmpty?: boolean;
-}): string {
+export function formatGitCommitInstruction(params: { repoPath: string; commitMessage?: string; allowEmpty?: boolean }): string {
     const commitMessage = (params.commitMessage ?? '').trim();
     const allowEmpty = params.allowEmpty ?? false;
 
