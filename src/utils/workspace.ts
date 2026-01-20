@@ -28,6 +28,7 @@ export const initWorkspace = (subPath: string, rootPath?: string, appName?: stri
         process: processDir,
         reports: path.join(absoluteRoot, 'reports.html'),
         db: path.join(absoluteRoot, 'coderio-cli.db'),
+        checkpoint: path.join(absoluteRoot, 'checkpoint.json'),
     };
 };
 

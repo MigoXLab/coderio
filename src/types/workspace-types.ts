@@ -5,4 +5,5 @@ export interface WorkspaceStructure {
     process: string;
     reports: string;
     db: string;
+    checkpoint: string;
 }

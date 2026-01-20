@@ -1,7 +1,7 @@
 import fs from 'node:fs';
-import prompts from 'prompts';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
 import { logger } from './logger';
+import { promptUserChoice } from '../cli/prompts';
 
 /**
  * Check if a checkpoint exists for the given thread_id
@@ -16,32 +16,6 @@ async function checkpointExists(checkpointer: SqliteSaver, threadId: string): Pr
         logger.printTestLog(`Error checking checkpoint: ${errorMessage}`);
         return false;
     }
-}
-
-/**
- * Prompt user to choose whether to resume from checkpoint or start fresh
- */
-async function promptUserChoice(): Promise<'resume' | 'fresh'> {
-    logger.printInfoLog('Found existing cache for this project.');
-
-    const response = await prompts({
-        type: 'select',
-        name: 'choice',
-        message: 'What would you like to do?',
-        choices: [
-            { title: 'Resume from cache', value: 'resume' },
-            { title: 'Start fresh (will clear existing cache)', value: 'fresh' },
-        ],
-        initial: 0,
-    });
-
-    // Handle user cancellation (Ctrl+C)
-    if (response.choice === undefined) {
-        logger.printWarnLog('Operation cancelled by user.');
-        process.exit(0);
-    }
-
-    return response.choice as 'resume' | 'fresh';
 }
 
 /**

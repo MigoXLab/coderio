@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import path from 'node:path';
 import { WorkspaceStructure } from '../types/workspace-types';
 import { logger } from './logger';
 
@@ -16,7 +15,7 @@ export interface CodeCache {
  * Get the path to the cache file
  */
 function getCachePath(workspace: WorkspaceStructure): string {
-    return path.join(workspace.process, 'checkpoint.json');
+    return workspace.checkpoint;
 }
 
 /**
