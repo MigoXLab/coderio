@@ -20,6 +20,13 @@ export const initialAgentPrompt = (options: { appPath: string }) => {
     </directory_constraint>
 
     <file_specs>
+      - \`.gitignore\`: Standard gitignore file. MUST include:
+        * node_modules/
+        * dist/ and build/ directories
+        * .env file
+        * Editor files (.vscode/*, .DS_Store, etc.)
+        * Log files and cache directories
+        * Lock files (package-lock.json, yarn.lock, pnpm-lock.yaml)
       - \`package.json\`: Basic scripts and dependencies. MUST include \`tailwindcss\` (v4) and \`@tailwindcss/vite\`.
       - \`vite.config.ts\`: Configure React and TailwindCSS V4 plugins. MUST include path alias configuration:
         * Add \`resolve.alias\` with \`@\` pointing to \`path.resolve(__dirname, './src')\`
