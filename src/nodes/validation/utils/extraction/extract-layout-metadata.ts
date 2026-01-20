@@ -5,7 +5,7 @@
  */
 
 import type { FigmaLayoutMetadata } from '../../types';
-import { findInTree, type Dict } from '../general/tree-traversal';
+import { findInTree, type Dict } from '../tree/tree-traversal';
 
 /** Layout quality scores for different node types */
 const LAYOUT_SCORES = {

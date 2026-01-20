@@ -6,7 +6,7 @@
  */
 
 import { tools } from 'evoltagent';
-import { findInTree, getNodeId } from '../../nodes/validation/utils/general/tree-traversal';
+import { findInTree, getNodeId } from '../../nodes/validation/utils/tree/tree-traversal';
 import type { ComponentPaths, HierarchyNode, ParentInfo } from './types';
 
 /**

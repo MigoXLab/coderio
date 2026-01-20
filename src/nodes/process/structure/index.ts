@@ -15,11 +15,10 @@ import { extractJSON } from '../../../utils/parser';
  * 3. Generates file paths and naming conventions
  * 4. Populates component props and states for code generation
  *
- * @param state - Current graph state containing processedFigma
+ * @param state - Current graph state
  * @returns Updated state with protocol
  */
 export const generateStructure = async (figma: FigmaFrameInfo) => {
-    // Support both frames (from processedFigma) and children (from raw Figma data)
     const frames = figma.frames || figma.children;
     const imageWidth = figma.absoluteBoundingBox?.width;
     const thumbnailUrl = figma.thumbnailUrl;

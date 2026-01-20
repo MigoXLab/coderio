@@ -29,7 +29,6 @@ export const registerP2CCommand = (program: Command) => {
                         nodeId: '',
                         projectName: '',
                     },
-                    processedFigma: undefined,
                     validationSatisfied: undefined,
                     validationReportDir: undefined,
                     validationReportHtmlPath: undefined,
