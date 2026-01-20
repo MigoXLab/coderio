@@ -33,7 +33,12 @@ import { report } from '../subnodes/report/index.js';
 import { ReportTool } from '../../../tools/report-tool';
 import { LaunchTool } from '../../../tools/launch-tool';
 import { type Dict } from '../utils/tree/tree-traversal.js';
-import { extractElementMetadata, extractComponentPaths, extractMapFromRegistry, type ElementMetadataRegistry } from '../utils/extraction/extract-element-metadata.js';
+import {
+    extractElementMetadata,
+    extractComponentPaths,
+    extractMapFromRegistry,
+    type ElementMetadataRegistry,
+} from '../utils/extraction/extract-element-metadata.js';
 import { FigmaNodeService } from '../utils/extraction/figma-node-service.js';
 import { validatePositions } from './validate-position';
 
@@ -96,8 +101,7 @@ function resolveComponentPaths(componentPaths: Record<string, string>, workspace
 }
 
 async function refineComponent(comp: MisalignedComponent, context: RefinementContext): Promise<ComponentCorrectionLog> {
-    const { workspaceDir, structureTree, componentPaths, componentHistory, figmaJson, elementRegistry, previousScreenshotPath } =
-        context;
+    const { workspaceDir, structureTree, componentPaths, componentHistory, figmaJson, elementRegistry, previousScreenshotPath } = context;
 
     try {
         // Extract element IDs from registry for this component

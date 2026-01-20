@@ -12,6 +12,7 @@ import type { GraphState } from '../../state';
 import { METRIC_DECIMAL_PLACES } from '../../constants/validation';
 import { logger } from '../../utils/logger';
 import { validationLoop } from './core/validation-loop';
+import { extractFigmaTreeFromProtocol } from './utils/extraction/extract-figma-tree.js';
 
 /**
  * LangGraph node: run validation on the generated app and write a report into the workspace.
@@ -20,15 +21,14 @@ export const runValidation = async (state: GraphState, _langGraphConfig?: unknow
     if (!state.protocol) {
         throw new Error('No protocol found for validation (state.protocol is missing).');
     }
-    if (!state.processedFigma) {
-        throw new Error('No processed Figma found for validation (state.processedFigma is missing).');
-    }
     if (!state.figmaInfo?.thumbnail) {
         throw new Error('Missing Figma thumbnail URL (state.figmaInfo.thumbnail is missing).');
     }
 
-    const workspaceDir = state.workspace.paths.app;
-    const outputDir = path.join(state.workspace.paths.root, 'validation');
+    const figmaTree = extractFigmaTreeFromProtocol(state.protocol);
+
+    const workspaceDir = state.workspace.app;
+    const outputDir = path.join(state.workspace.root, 'validation');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
@@ -36,7 +36,7 @@ export const runValidation = async (state: GraphState, _langGraphConfig?: unknow
     logger.printLog('Starting validation loop...');
 
     const result = await validationLoop({
-        figmaJson: state.processedFigma,
+        figmaJson: figmaTree,
         structureTree: state.protocol,
         figmaThumbnailUrl: state.figmaInfo.thumbnail,
         outputDir,

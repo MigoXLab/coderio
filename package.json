@@ -16,8 +16,7 @@
     "scripts": {
         "dev": "tsup --watch",
         "build:report": "npm --prefix src/report run build",
-        "copy:report": "node scripts/copy-report-dist.cjs",
-        "build": "pnpm run check && pnpm run build:report && tsup && pnpm run copy:report",
+        "build": "pnpm run check && pnpm run build:report && tsup",
         "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
