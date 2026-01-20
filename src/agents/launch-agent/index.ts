@@ -4,10 +4,9 @@ import type { ModelConfig } from 'evoltagent';
 import { LAUNCH_AGENT_PROMPT } from './system-prompt';
 import type { LaunchAgentResult, LaunchStage } from './types';
 import { getModelConfig } from '../../utils/config';
+import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
 
 export type { LaunchAgentResult, LaunchOptions, LaunchResult, LaunchStage } from './types';
-
-const LAUNCH_AGENT_CONTEXT_WINDOW_TOKENS = 128000;
 
 export function parseLaunchAgentResult(response: string): Promise<LaunchAgentResult> {
     const taskMatch = response.match(/<TaskCompletion>([\s\S]*?)<\/TaskCompletion>/);
@@ -72,7 +71,7 @@ Prefer PRIMARY_FILE then CANDIDATE_FILES when choosing where to start.`;
 export function createLaunchAgent(): Agent {
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
-        contextWindowTokens: LAUNCH_AGENT_CONTEXT_WINDOW_TOKENS,
+        contextWindowTokens: AGENT_CONTEXT_WINDOW_TOKENS,
     };
 
     return new Agent({
