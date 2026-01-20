@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { Command } from 'commander';
 
 import type { FrameStructNode, FigmaFrameInfo } from '../types/figma-types';
-import { ProjectWorkspace } from '../utils/workspace';
+import type { WorkspaceStructure } from '../types/workspace-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
 import { extractFigmaTreeFromProtocol } from '../nodes/validation/utils/extraction/extract-figma-tree.js';
@@ -61,8 +61,15 @@ export function registerValidateCommand(program: Command): void {
                 const appName = opts.appName || 'my-app';
                 const mode: 'reportOnly' | 'full' = opts.reportonly ? 'reportOnly' : 'full';
 
-                const workspace = new ProjectWorkspace(workspaceRoot, appName);
-                const protocolPath = path.join(workspace.paths.process, 'protocol.json');
+                const workspace: WorkspaceStructure = {
+                    root: workspaceRoot,
+                    app: path.join(workspaceRoot, appName),
+                    process: path.join(workspaceRoot, 'process'),
+                    reports: path.join(workspaceRoot, 'reports.html'),
+                    db: path.join(workspaceRoot, 'coderio-cli.db'),
+                    checkpoint: path.join(workspaceRoot, 'checkpoint.json'),
+                };
+                const protocolPath = path.join(workspace.process, 'protocol.json');
 
                 if (!fs.existsSync(protocolPath)) {
                     throw new Error(`Missing protocol at: ${protocolPath}. Run d2p/d2c first to generate process/protocol.json.`);
@@ -73,15 +80,14 @@ export function registerValidateCommand(program: Command): void {
 
                 // Extract Figma tree and thumbnail from protocol
                 const figmaJson = extractFigmaTreeFromProtocol(protocol);
-                const figmaThumbnailUrl = figmaJson.thumbnailUrl || (protocol.data.elements?.[0] as FigmaFrameInfo | undefined)?.thumbnailUrl;
+                const figmaThumbnailUrl =
+                    figmaJson.thumbnailUrl || (protocol.data.elements?.[0] as FigmaFrameInfo | undefined)?.thumbnailUrl;
 
                 if (!figmaThumbnailUrl) {
-                    throw new Error(
-                        'Missing thumbnailUrl in protocol. Ensure d2p/d2c generated protocol with thumbnail data.'
-                    );
+                    throw new Error('Missing thumbnailUrl in protocol. Ensure d2p/d2c generated protocol with thumbnail data.');
                 }
 
-                logger.printInfoLog(`Running validation (${mode}) using workspace: ${workspace.paths.root}`);
+                logger.printInfoLog(`Running validation (${mode}) using workspace: ${workspace.root}`);
 
                 const update = await runValidation(
                     {
