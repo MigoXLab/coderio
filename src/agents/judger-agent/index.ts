@@ -14,12 +14,8 @@ import type { ComponentHistory, JudgerDiagnosis } from './types';
 import type { Dict } from '../../nodes/validation/utils/general/tree-traversal';
 import { JUDGER_PROMPT } from './system-prompt';
 import { getModelConfig } from '../../utils/config';
+import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
 export { formatJudgerInstruction } from './judger-instruction';
-
-/**
- * Default model configuration for judger agent
- */
-const JUDGER_CONTEXT_WINDOW_TOKENS = 1280000;
 
 /**
  * Extract JSON diagnosis from agent response.
@@ -141,7 +137,7 @@ export function createJudgerAgent(options: {
 
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
-        contextWindowTokens: JUDGER_CONTEXT_WINDOW_TOKENS,
+        contextWindowTokens: AGENT_CONTEXT_WINDOW_TOKENS,
     };
 
     return new Agent({

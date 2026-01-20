@@ -11,12 +11,8 @@ import type { ModelConfig } from 'evoltagent';
 import type { RefinerResult } from './types';
 import { REFINER_PROMPT } from './system-prompt';
 import { getModelConfig } from '../../utils/config';
+import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
 export { formatRefinerInstruction } from './refiner-instruction';
-
-/**
- * Default model configuration for refiner agent
- */
-const REFINER_CONTEXT_WINDOW_TOKENS = 128000;
 
 /**
  * Extract refiner result from agent response.
@@ -73,7 +69,7 @@ export function createRefinerAgent(workspaceDir?: string): Agent {
 
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
-        contextWindowTokens: REFINER_CONTEXT_WINDOW_TOKENS,
+        contextWindowTokens: AGENT_CONTEXT_WINDOW_TOKENS,
     };
 
     return new Agent({
