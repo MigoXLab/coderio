@@ -4,6 +4,7 @@ import { logger } from '../utils/logger';
 async function typedPrompt<U>(config: prompts.PromptObject<string>): Promise<Record<string, U>> {
     return prompts(config, {
         onCancel: () => {
+            logger.printWarnLog('Operation cancelled by user.');
             process.exit(0);
         },
     });
@@ -22,11 +23,5 @@ export async function promptUserChoice(): Promise<UserChoice> {
         ],
         initial: 0,
     });
-    // Handle user cancellation (Ctrl+C)
-    if (response.choice === undefined) {
-        logger.printWarnLog('Operation cancelled by user.');
-        process.exit(0);
-    }
-
-    return response.choice;
+    return response.choice || 'resume';
 }
