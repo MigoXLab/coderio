@@ -29,9 +29,6 @@ export const registerP2CCommand = (program: Command) => {
                         nodeId: '',
                         projectName: '',
                     },
-                    validationSatisfied: undefined,
-                    validationReportDir: undefined,
-                    validationReportHtmlPath: undefined,
                     messages: [],
                 };
                 await initialProject(state);

@@ -248,6 +248,16 @@ export interface ValidationLoopResult {
 }
 
 /**
+ * Validation result returned from runValidation node
+ * Used for both graph workflow and standalone CLI invocation
+ */
+export interface ValidationResult {
+    validationPassed: boolean;
+    reportDir: string;
+    reportHtmlPath: string;
+}
+
+/**
  * Component data aggregation for multiple elements.
  */
 export interface ComponentData extends ComponentAggregationData {

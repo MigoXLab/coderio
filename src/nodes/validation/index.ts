@@ -13,11 +13,13 @@ import { METRIC_DECIMAL_PLACES } from '../../constants/validation';
 import { logger } from '../../utils/logger';
 import { validationLoop } from './core/validation-loop';
 import { extractFigmaTreeFromProtocol } from './utils/extraction/extract-figma-tree.js';
+import type { ValidationResult } from './types';
 
 /**
  * LangGraph node: run validation on the generated app and write a report into the workspace.
+ * Returns empty object for graph state (terminal node), but provides validation results for direct invocation.
  */
-export const runValidation = async (state: GraphState, _langGraphConfig?: unknown, options?: { mode?: 'reportOnly' | 'full' }) => {
+export const runValidation = async (state: GraphState, options?: { mode?: 'reportOnly' | 'full' }): Promise<ValidationResult> => {
     if (!state.protocol) {
         throw new Error('No protocol found for validation (state.protocol is missing).');
     }
@@ -55,9 +57,9 @@ export const runValidation = async (state: GraphState, _langGraphConfig?: unknow
     logger.printLog(`Validation report: ${reportHtmlPath}`);
 
     return {
-        validationSatisfied: result.validationPassed,
-        validationReportDir: outputDir,
-        validationReportHtmlPath: reportHtmlPath,
+        validationPassed: result.validationPassed,
+        reportDir: outputDir,
+        reportHtmlPath,
     };
 };
 

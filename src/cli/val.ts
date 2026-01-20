@@ -89,24 +89,18 @@ export function registerValidateCommand(program: Command): void {
 
                 logger.printInfoLog(`Running validation (${mode}) using workspace: ${workspace.root}`);
 
-                const update = await runValidation(
+                const result = await runValidation(
                     {
-                        // Note: fileId and nodeId are null (not undefined) to match FigmaUrlInfo type requirements
-                        // Other optional fields use undefined as per GraphState annotation
                         urlInfo: { fileId: null, name: path.basename(workspaceRoot), nodeId: null, projectName: null },
                         workspace,
                         figmaInfo: { thumbnail: figmaThumbnailUrl },
                         protocol,
-                        validationSatisfied: undefined,
-                        validationReportDir: undefined,
-                        validationReportHtmlPath: undefined,
                         messages: [],
                     },
-                    undefined,
                     { mode }
                 );
 
-                process.exit(update.validationSatisfied ? 0 : 1);
+                process.exit(result.validationPassed ? 0 : 1);
             } catch (error) {
                 logger.printErrorLog(`Error during val execution: ${error instanceof Error ? error.message : String(error)}`);
                 process.exit(1);
