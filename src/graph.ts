@@ -19,17 +19,6 @@ export async function design2code(url: string): Promise<void> {
     const threadId = urlInfo.projectName!;
     // Check if checkpoint exists and prompt user
     const userChoice = await promptCheckpointChoice(checkpointer, threadId);
-
-    // Handle checkpoint based on user choice
-    // true = resume from checkpoint
-    // false = start fresh (clear existing checkpoint)
-    if (userChoice === true) {
-        logger.printInfoLog('Resuming from cache...');
-    } else {
-        await clearThreadCheckpoint(checkpointer, threadId);
-        logger.printInfoLog('Starting fresh...');
-    }
-
     // Compile graph with checkpointer
     const graph = new StateGraph(GraphStateAnnotation)
         .addNode(GraphNode.INITIAL, initialProject)
@@ -48,10 +37,13 @@ export async function design2code(url: string): Promise<void> {
     // If resuming from checkpoint, pass null to let LangGraph resume from saved state
     // Otherwise, pass initial state to start fresh
     if (userChoice === true) {
+        logger.printInfoLog('Resuming from cache...');
         // Resume from checkpoint - pass null (no new input) to continue from saved state
         // LangGraph will automatically load the last checkpoint for this thread_id
         await graph.invoke(null, config);
     } else {
+        await clearThreadCheckpoint(checkpointer, threadId);
+        logger.printInfoLog('Starting fresh...');
         // Start fresh with initial state
         const initialState = {
             messages: [],
