@@ -19,7 +19,7 @@ export const initialProject = async (state: GraphState) => {
         maxOutputTokens: 4096,
     };
 
-    const appPath = state.workspace.paths.app;
+    const appPath = state.workspace.app;
     if (!appPath) {
         throw new Error('Workspace application path is not defined.');
     }

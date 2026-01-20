@@ -6,6 +6,7 @@ import { writeFile } from '../../utils/file';
 import { logger } from '../../utils/logger';
 import { generateStructure } from './structure';
 import { ImageNode } from '../../tools/figma-tool/types';
+import { resolveAppSrc } from '../../utils/workspace';
 
 /**
  * 'process' node, responsible for generating the protocol for frontend code generation.
@@ -26,8 +27,8 @@ import { ImageNode } from '../../tools/figma-tool/types';
  * @returns The state of the graph.
  */
 export const generateProtocol = async (state: GraphState) => {
-    const assetsDir = state.workspace.resolveAppSrc('assets');
-    const processDir = state.workspace.paths.process;
+    const assetsDir = resolveAppSrc(state.workspace, 'assets');
+    const processDir = state.workspace.process;
     const { document, imageNodesMap } = await executeFigmaAndImagesActions(state.urlInfo, assetsDir, processDir);
 
     /* Simplify image nodes in Figma document by replacing redundant properties with url */
@@ -37,8 +38,8 @@ export const generateProtocol = async (state: GraphState) => {
     /* Generate structure */
     const protocol = await generateStructure(processedStyleDocument);
 
-    writeFile(state.workspace.paths.process, 'protocol.json', JSON.stringify(protocol, null, 2));
-    logger.printInfoLog(`Please check the output in the workspace: ${state.workspace.paths.process}`);
+    writeFile(state.workspace.process, 'protocol.json', JSON.stringify(protocol, null, 2));
+    logger.printInfoLog(`Please check the output in the workspace: ${state.workspace.process}`);
 
     return {
         protocol,

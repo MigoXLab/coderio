@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { createDefaultWorkspace } from '../utils/workspace';
+import { initWorkspace } from '../utils/workspace';
 import { logger } from '../utils/logger';
 import { readFile } from 'fs/promises';
 import { generateCode } from '../nodes/code';
@@ -18,7 +18,7 @@ export const registerP2CCommand = (program: Command) => {
             try {
                 const protocolContent = await readFile(opts.protocol, 'utf-8');
                 const protocolData = JSON.parse(protocolContent) as FrameStructNode<Record<string, unknown>>;
-                const workspace = createDefaultWorkspace(protocolData.id);
+                const workspace = initWorkspace(protocolData.id);
                 const state: GraphState = {
                     protocol: protocolData,
                     workspace,

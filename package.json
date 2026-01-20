@@ -35,15 +35,18 @@
     "dependencies": {
         "@langchain/core": "^0.3.30",
         "@langchain/langgraph": "^0.2.45",
+        "@langchain/langgraph-checkpoint-sqlite": "^1.0.0",
         "@langchain/openai": "^0.3.17",
         "chalk": "^5.4.1",
         "commander": "^12.1.0",
         "evoltagent": "^1.1.1",
-        "js-yaml": "^4.1.1"
+        "js-yaml": "^4.1.1",
+        "prompts": "^2.4.2"
     },
     "devDependencies": {
         "@types/js-yaml": "^4.0.9",
         "@types/node": "^22.10.2",
+        "@types/prompts": "^2.4.9",
         "axios": "^1.13.2",
         "eslint": "^9.17.0",
         "prettier": "^3.4.2",
@@ -54,5 +57,12 @@
     },
     "engines": {
         "node": ">=18.0.0 <23.0.0"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "better-sqlite3",
+            "esbuild",
+            "protobufjs"
+        ]
     }
 }

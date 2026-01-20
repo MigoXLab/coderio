@@ -9,6 +9,7 @@ import { createFiles, writeFile } from '../../utils/file';
 import { DEFAULT_APP_CONTENT, DEFAULT_STYLING } from './constants';
 import path from 'path';
 import { extractCode, extractFiles } from '../../utils/parser';
+import { resolveAppSrc } from '../../utils/workspace';
 
 /**
  * Convert a component path to the actual file system path
@@ -113,7 +114,7 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
 
     // Save generated files
     const componentPath = node.data.path || '';
-    const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
+    const filePath = resolveAppSrc(state.workspace, getComponentPathFromPath(componentPath));
     saveGeneratedCode(code, filePath);
 }
 
@@ -163,7 +164,7 @@ export async function generateComponent(
     });
 
     // Save generated files
-    const filePath = state.workspace.resolveAppSrc(getComponentPathFromPath(componentPath));
+    const filePath = resolveAppSrc(state.workspace, getComponentPathFromPath(componentPath));
     saveGeneratedCode(code, filePath);
 }
 
@@ -189,7 +190,7 @@ function saveGeneratedCode(code: string, filePath: string): void {
  */
 function getAssetFilesList(state: GraphState) {
     try {
-        const assetsDir = state.workspace.resolveAppSrc('assets');
+        const assetsDir = resolveAppSrc(state.workspace, 'assets');
 
         if (!fs.existsSync(assetsDir)) {
             return '';
@@ -211,7 +212,7 @@ export async function injectRootComponentToApp(state: GraphState): Promise<void>
         logger.printInfoLog('💉 Injecting root component into App.tsx...');
 
         // Construct App.tsx path
-        const appTsxPath = state.workspace.resolveAppSrc('App.tsx');
+        const appTsxPath = resolveAppSrc(state.workspace, 'App.tsx');
 
         // Read existing App.tsx or use default template
         let appContent: string;
