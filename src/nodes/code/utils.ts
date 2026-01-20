@@ -10,6 +10,7 @@ import { DEFAULT_APP_CONTENT, DEFAULT_STYLING } from './constants';
 import path from 'path';
 import { extractCode, extractFiles } from '../../utils/parser';
 import { resolveAppSrc } from '../../utils/workspace';
+import { CodeCache, isComponentGenerated, saveComponentGenerated, isAppInjected, saveAppInjected } from '../../utils/code-cache';
 
 /**
  * Convert a component path to the actual file system path
@@ -31,7 +32,7 @@ function getComponentPathFromPath(componentPath: string): string {
  * Process a node tree and generate code for all nodes
  * Uses post-order traversal (children first, then parent)
  */
-export async function processNode(state: GraphState): Promise<number> {
+export async function processNode(state: GraphState, cache: CodeCache): Promise<number> {
     // Read asset files list once for the entire generation run
     const assetFilesList = getAssetFilesList(state);
 
@@ -47,9 +48,20 @@ export async function processNode(state: GraphState): Promise<number> {
     logger.printInfoLog(`Processing ${total} nodes...`);
 
     let processedCount = 0;
+    let skippedCount = 0;
 
     const processSingleNode = async (currentNode: FrameStructNode) => {
-        const progressInfo = `[${++processedCount}/${total}]`;
+        const componentName = currentNode.data.name || currentNode.data.componentName || 'UnknownComponent';
+        const nodeId = currentNode.id;
+
+        // Check if component is already generated
+        if (isComponentGenerated(cache, nodeId)) {
+            skippedCount++;
+            logger.printInfoLog(`[${processedCount + skippedCount}/${total}] ⏭️  Skipping (cached): ${componentName}`);
+            return;
+        }
+
+        const progressInfo = `[${++processedCount + skippedCount}/${total}]`;
 
         const isLeaf = !currentNode.children?.length;
         if (isLeaf) {
@@ -57,11 +69,17 @@ export async function processNode(state: GraphState): Promise<number> {
         } else {
             await generateFrame(currentNode, state, assetFilesList, progressInfo);
         }
+
+        // Mark component as generated and save immediately to prevent cache loss on interruption
+        saveComponentGenerated(cache, nodeId, state.workspace);
     };
 
     // Process nodes with concurrency control
     await promisePool(flatNodes, processSingleNode);
 
+    if (skippedCount > 0) {
+        logger.printInfoLog(`⏭️  Skipped ${skippedCount} cached components`);
+    }
     logger.printSuccessLog(`✅ Generated ${processedCount} components`);
     return processedCount;
 }
@@ -207,8 +225,14 @@ function getAssetFilesList(state: GraphState) {
  * Inject root component into App.tsx
  * Reads existing App.tsx, adds import and renders the root component
  */
-export async function injectRootComponentToApp(state: GraphState): Promise<void> {
+export async function injectRootComponentToApp(state: GraphState, cache: CodeCache): Promise<void> {
     try {
+        // Check if already injected
+        if (isAppInjected(cache)) {
+            logger.printInfoLog('⏭️  Skipping App.tsx injection (already injected)');
+            return;
+        }
+
         logger.printInfoLog('💉 Injecting root component into App.tsx...');
 
         // Construct App.tsx path
@@ -247,6 +271,9 @@ export async function injectRootComponentToApp(state: GraphState): Promise<void>
         // Write updated App.tsx
         const appFolderPath = path.dirname(appTsxPath);
         writeFile(appFolderPath, 'App.tsx', finalCode);
+
+        // Mark as injected and save immediately
+        saveAppInjected(cache, state.workspace);
 
         logger.printSuccessLog(`✅ Successfully injected ${componentName} into App.tsx`);
     } catch (error) {
