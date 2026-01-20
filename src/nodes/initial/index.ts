@@ -4,6 +4,7 @@ import path from 'node:path';
 import { logger } from '../../utils/logger';
 import { getModelConfig } from '../../utils/config';
 import { GraphState } from '../../state';
+import { CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
 
 /**
  * 'initial' node, responsible for initializing the empty project scaffold.
@@ -15,8 +16,8 @@ export const initialProject = async (state: GraphState) => {
     const envConfig = getModelConfig();
     const modelConfig = {
         ...envConfig,
-        contextWindowTokens: 1280000,
-        maxOutputTokens: 4096,
+        contextWindowTokens: CONTEXT_WINDOW_TOKENS,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
     };
 
     const appPath = state.workspace.paths.app;
