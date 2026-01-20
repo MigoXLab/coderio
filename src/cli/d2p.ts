@@ -22,9 +22,6 @@ export const registerD2PCommand = (program: Command) => {
                     workspace,
                     figmaInfo: { thumbnail: '' },
                     protocol: undefined,
-                    validationSatisfied: undefined,
-                    validationReportDir: undefined,
-                    validationReportHtmlPath: undefined,
                     messages: [],
                 });
 

@@ -9,9 +9,6 @@ export const GraphStateAnnotation = Annotation.Root({
     workspace: Annotation<WorkspaceStructure>(),
     figmaInfo: Annotation<GlobalFigmaInfo>(),
     protocol: Annotation<FrameStructNode | undefined>(),
-    validationSatisfied: Annotation<boolean | undefined>(),
-    validationReportDir: Annotation<string | undefined>(),
-    validationReportHtmlPath: Annotation<string | undefined>(),
 });
 
 export type GraphState = typeof GraphStateAnnotation.State;
