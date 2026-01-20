@@ -8,7 +8,7 @@
 
 import type { FrameStructNode, FigmaFrameInfo, FigmaPositionAndSize } from '../../types/figma-types';
 import type { ComponentAggregationData } from './utils/aggregate-elements';
-import type { ElementRegistry } from '../../nodes/validation/utils/figma/element-registry';
+import type { ElementMetadataRegistry } from '../../nodes/validation/utils/extraction/extract-element-metadata';
 
 /**
  * Figma JSON input supports multiple shapes for compatibility.
@@ -27,7 +27,7 @@ export interface BrowserPositionInput {
      * Unified element registry containing all element metadata (eliminates tree traversals).
      * When provided, position capture uses this instead of building registry internally.
      */
-    elementRegistry: ElementRegistry;
+    elementRegistry: ElementMetadataRegistry;
     /**
      * Threshold (pixels) used to classify element `metrics.status` as accurate vs misaligned.
      */

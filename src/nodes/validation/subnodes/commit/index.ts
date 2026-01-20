@@ -1,5 +1,4 @@
-import { createCommitAgent } from '../../../../agents/commit-agent';
-import { formatGitCommitInstruction } from '../../../../agents/commit-agent/commit-instruction';
+import { createCommitAgent, formatGitCommitInstruction } from '../../../../agents/commit-agent';
 import { logger } from '../../../../utils/logger';
 import type { GitCommitOptions, GitCommitResult } from '../../../../agents/commit-agent/types';
 import path from 'path';

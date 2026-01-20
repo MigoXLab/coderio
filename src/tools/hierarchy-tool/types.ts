@@ -4,7 +4,7 @@
  * Kept standalone to keep `index.ts` focused on behavior.
  */
 
-import type { Dict } from '../../nodes/validation/utils/general/tree-traversal';
+import type { Dict } from '../../nodes/validation/utils/tree/tree-traversal';
 
 export type HierarchyNode = Dict;
 

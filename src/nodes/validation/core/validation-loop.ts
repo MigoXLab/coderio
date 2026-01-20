@@ -11,10 +11,10 @@ import * as path from 'path';
 
 import { DEFAULT_VALIDATION_LOOP_CONFIG } from '../../../constants/validation';
 import { logger } from '../../../utils/logger';
-import { commit } from '../utils/commit';
+import { commit } from '../subnodes/commit/index.js';
 import { createJudgerAgent, formatJudgerInstruction } from '../../../agents/judger-agent';
 import { createRefinerAgent, formatRefinerInstruction } from '../../../agents/refiner-agent';
-import { launch } from '../utils/launch';
+import { launch } from '../subnodes/launch/index.js';
 import type {
     ComponentCorrectionLog,
     ComponentHistory,
@@ -27,14 +27,14 @@ import type {
     ValidationLoopParams,
     ValidationLoopResult,
 } from '../types';
-import { extractFigmaLayoutMetadata } from '../utils/figma/extract-layout-metadata';
-import { normalizeFigmaCoordinates } from '../utils/figma/normalize-coordinates';
-import { report } from '../utils/report';
+import { extractFigmaLayoutMetadata } from '../utils/extraction/extract-layout-metadata.js';
+import { normalizeFigmaCoordinates } from '../utils/extraction/normalize-coordinates.js';
+import { report } from '../subnodes/report/index.js';
 import { ReportTool } from '../../../tools/report-tool';
 import { LaunchTool } from '../../../tools/launch-tool';
-import { type Dict } from '../utils/general/tree-traversal';
-import { buildElementRegistry, extractComponentPaths, buildMapFromRegistry, type ElementRegistry } from '../utils/figma/element-registry';
-import { FigmaNodeService } from '../utils/figma/figma-node-service';
+import { type Dict } from '../utils/tree/tree-traversal.js';
+import { extractElementMetadata, extractComponentPaths, extractMapFromRegistry, type ElementMetadataRegistry } from '../utils/extraction/extract-element-metadata.js';
+import { FigmaNodeService } from '../utils/extraction/figma-node-service.js';
 import { validatePositions } from './validate-position';
 
 interface RefinementContext {
@@ -42,8 +42,8 @@ interface RefinementContext {
     structureTree: Dict;
     componentPaths: Record<string, string>;
     componentHistory: ComponentHistory;
-    wrapProcessedFigma: Dict;
-    elementRegistry: ElementRegistry;
+    figmaJson: Dict;
+    elementRegistry: ElementMetadataRegistry;
     previousScreenshotPath?: string;
 }
 
@@ -96,7 +96,7 @@ function resolveComponentPaths(componentPaths: Record<string, string>, workspace
 }
 
 async function refineComponent(comp: MisalignedComponent, context: RefinementContext): Promise<ComponentCorrectionLog> {
-    const { workspaceDir, structureTree, componentPaths, componentHistory, wrapProcessedFigma, elementRegistry, previousScreenshotPath } =
+    const { workspaceDir, structureTree, componentPaths, componentHistory, figmaJson, elementRegistry, previousScreenshotPath } =
         context;
 
     try {
@@ -105,7 +105,7 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
             .filter(e => e.parentComponentId === comp.componentId)
             .map(e => e.id);
 
-        const figmaMetadata = extractFigmaLayoutMetadata(wrapProcessedFigma, comp.componentId, elementIds);
+        const figmaMetadata = extractFigmaLayoutMetadata(figmaJson, comp.componentId, elementIds);
 
         logger.printLog(`  Analyzing ${comp.name}...`);
         const judger = createJudgerAgent({
@@ -356,8 +356,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         }
 
         const normalizedCache = new Set<Dict>();
-        const wrapProcessedFigma: Dict = { processedFigma: figmaJson };
-        const designOffset = normalizeFigmaCoordinates(wrapProcessedFigma, normalizedCache);
+        // Pass figmaJson directly (no wrapping needed)
+        const designOffset = normalizeFigmaCoordinates(figmaJson as unknown as Dict, normalizedCache);
         if (Math.abs(designOffset[0]) >= 1 || Math.abs(designOffset[1]) >= 1) {
             logger.printLog(`Normalized Figma coordinates (offset: ${designOffset[0].toFixed(0)}, ${designOffset[1].toFixed(0)} px)`);
         }
@@ -366,7 +366,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         const figmaTree = figmaJson.frames ?? figmaJson.children ?? figmaJson;
         const figmaNodeService = new FigmaNodeService(figmaTree);
         const figmaNodeMap = figmaNodeService.getNodeMap();
-        const elementRegistry = buildElementRegistry(structureTree as unknown as Dict, figmaNodeMap);
+        const elementRegistry = extractElementMetadata(structureTree as unknown as Dict, figmaNodeMap);
 
         // Extract component paths and element-to-component map from registry
         const componentPaths = extractComponentPaths(elementRegistry);
@@ -374,7 +374,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         // Resolve alias paths to absolute filesystem paths when workspaceDir available
         const resolvedComponentPaths = workspaceDir ? resolveComponentPaths(componentPaths, workspaceDir) : componentPaths;
 
-        const elementToComponentMap = buildMapFromRegistry(elementRegistry);
+        const elementToComponentMap = extractMapFromRegistry(elementRegistry);
 
         // Download and cache Figma thumbnail once to avoid redundant downloads in each iteration
         const cachedFigmaThumbnailBase64 = await downloadFigmaThumbnail(figmaThumbnailUrl);
@@ -541,7 +541,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 structureTree: structureTree as unknown as Dict,
                 componentPaths: resolvedComponentPaths,
                 componentHistory,
-                wrapProcessedFigma,
+                figmaJson: figmaJson as unknown as Dict,
                 elementRegistry,
                 previousScreenshotPath,
             };

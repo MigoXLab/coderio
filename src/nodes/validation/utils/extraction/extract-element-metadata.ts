@@ -9,7 +9,7 @@
  */
 
 import type { FigmaFrameInfo } from '../../../../types/figma-types';
-import { getNodeId, traverseTree, type Dict, type ComponentInfo } from '../general/tree-traversal';
+import { getNodeId, traverseTree, type Dict, type ComponentInfo } from '../tree/tree-traversal';
 
 /**
  * Complete metadata for a single element (Figma node) extracted from structure tree.
@@ -27,13 +27,16 @@ export interface ElementMetadata {
  * Unified registry containing all elements and components.
  * Built once at validation start and reused across all iterations.
  */
-export interface ElementRegistry {
+export interface ElementMetadataRegistry {
     elements: Map<string, ElementMetadata>; // elementId -> full metadata
     components: Map<string, ComponentInfo>; // componentId -> { id, name, path }
 }
 
 /**
- * Build complete element registry in a SINGLE traversal of the structure tree.
+ * Extract element metadata from protocol structure tree.
+ *
+ * Traverses the structure tree and builds a unified registry of all elements
+ * and components with complete metadata in a single pass.
  *
  * This function combines the logic previously split across:
  * - buildElementToComponentMap() (tree-traversal.ts)
@@ -42,9 +45,9 @@ export interface ElementRegistry {
  *
  * @param structureTree - The component structure tree from Structure node
  * @param figmaNodeMap - Map of Figma node IDs to node data (for element name lookup)
- * @returns ElementRegistry containing all elements and components with complete metadata
+ * @returns ElementMetadataRegistry containing all elements and components with complete metadata
  */
-export function buildElementRegistry(structureTree: Dict, figmaNodeMap: Record<string, FigmaFrameInfo>): ElementRegistry {
+export function extractElementMetadata(structureTree: Dict, figmaNodeMap: Record<string, FigmaFrameInfo>): ElementMetadataRegistry {
     const elements = new Map<string, ElementMetadata>();
     const components = new Map<string, ComponentInfo>();
 
@@ -99,7 +102,7 @@ export function buildElementRegistry(structureTree: Dict, figmaNodeMap: Record<s
  * @param registry - Pre-built element registry
  * @returns Map from component ID to filesystem path
  */
-export function extractComponentPaths(registry: ElementRegistry): Record<string, string> {
+export function extractComponentPaths(registry: ElementMetadataRegistry): Record<string, string> {
     const paths: Record<string, string> = {};
     for (const [id, info] of registry.components) {
         if (info.path) {
@@ -110,7 +113,7 @@ export function extractComponentPaths(registry: ElementRegistry): Record<string,
 }
 
 /**
- * Build element-to-component map from registry.
+ * Build element-to-component map from element metadata registry.
  *
  * Helper function to maintain compatibility with code expecting Map<elementId, ComponentInfo>.
  * This replaces the buildElementToComponentMap() traversal.
@@ -118,7 +121,7 @@ export function extractComponentPaths(registry: ElementRegistry): Record<string,
  * @param registry - Pre-built element registry
  * @returns Map from element ID to parent component info
  */
-export function buildMapFromRegistry(registry: ElementRegistry): Map<string, ComponentInfo> {
+export function extractMapFromRegistry(registry: ElementMetadataRegistry): Map<string, ComponentInfo> {
     const map = new Map<string, ComponentInfo>();
     for (const [elementId, metadata] of registry.elements) {
         map.set(elementId, {

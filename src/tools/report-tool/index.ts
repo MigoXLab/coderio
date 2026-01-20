@@ -15,7 +15,7 @@ import type { BrowserPositionInput } from '../position-tool/types';
 import { VisualizationTool } from '../visualization-tool';
 import type { MisalignedComponentData } from '../visualization-tool/types';
 import type { UserReport, MisalignedComponent } from '../../nodes/validation/types';
-import { buildMapFromRegistry } from '../../nodes/validation/utils/figma/element-registry';
+import { extractMapFromRegistry } from '../../nodes/validation/utils/extraction/extract-element-metadata';
 import type { ErrorReportOptions, FinalReportRequest, FinalReportResult, GenerateHtmlResult } from './types';
 
 export type { ErrorReportOptions, FinalReportRequest, FinalReportResult, GenerateHtmlResult } from './types';
@@ -72,7 +72,7 @@ export class ReportTool {
             elementRegistry: request.elementRegistry,
         });
 
-        const elementToComponent = request.elementToComponentMap || buildMapFromRegistry(request.elementRegistry);
+        const elementToComponent = request.elementToComponentMap || extractMapFromRegistry(request.elementRegistry);
         const aggregated = positionTool.aggregateElements(finalCaptureResult.positions, elementToComponent, request.positionThreshold);
         const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
         const misalignedData = this.formatMisalignedData(misalignedComponents);

@@ -6,15 +6,15 @@
  */
 
 import { logger } from '../../../../utils/logger';
-import { traverseTree, type Dict } from '../general/tree-traversal';
+import { traverseTree, type Dict } from '../tree/tree-traversal';
 
 /** Type alias for coordinate positions */
 type Position = [number, number];
 
 /**
- * Collect all nodes with absoluteBoundingBox from both data formats.
+ * Collect all nodes with absoluteBoundingBox from FigmaFrameInfo tree.
  *
- * Supports both processedFigma.frames and legacy nodes format.
+ * Extracts from FigmaFrameInfo.frames or FigmaFrameInfo.children.
  */
 function collectNodesWithBbox(figmaJson: Dict): Dict[] {
     const nodesWithBbox: Dict[] = [];
@@ -26,14 +26,10 @@ function collectNodesWithBbox(figmaJson: Dict): Dict[] {
         }
     };
 
-    const processedFigma = figmaJson.processedFigma as Dict | undefined;
-
     // Collect Page frame itself (root bbox) as well.
-    if (processedFigma) {
-        collectBboxNode(processedFigma);
-    }
+    collectBboxNode(figmaJson);
 
-    const frames = (processedFigma?.frames as Dict[] | undefined) ?? (processedFigma?.children as Dict[] | undefined) ?? [];
+    const frames = (figmaJson.frames as Dict[] | undefined) ?? (figmaJson.children as Dict[] | undefined) ?? [];
     for (const frame of frames) {
         traverseTree(frame, collectBboxNode);
     }
@@ -56,7 +52,7 @@ function collectNodesWithBbox(figmaJson: Dict): Dict[] {
 /**
  * Normalize all absoluteBoundingBox coordinates in figma_json in-place.
  *
- * Uses the Page frame's position (processedFigma.absoluteBoundingBox) as the offset,
+ * Uses the Page frame's position (figmaJson.absoluteBoundingBox) as the offset,
  * NOT the minimum element position.
  *
  * Idempotent via `normalizedCache`.
@@ -67,11 +63,11 @@ export function normalizeFigmaCoordinates(figmaJson: Dict, normalizedCache: Set<
         return [0.0, 0.0];
     }
 
-    const processedFigma = figmaJson.processedFigma as Dict | undefined;
-    const pageBbox = processedFigma?.absoluteBoundingBox as Dict | undefined;
+    // Direct access to absoluteBoundingBox (no wrapper support)
+    const pageBbox = figmaJson.absoluteBoundingBox as Dict | undefined;
 
     if (!pageBbox || !('x' in pageBbox) || !('y' in pageBbox)) {
-        throw new Error('No Page frame bounding box found in processedFigma.absoluteBoundingBox');
+        throw new Error('No root frame bounding box found. Ensure FigmaFrameInfo extracted from protocol contains absoluteBoundingBox.');
     }
 
     const minX = pageBbox.x as number;

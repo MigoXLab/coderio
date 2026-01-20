@@ -14,8 +14,8 @@ import type { MisalignedComponentData } from '../../../tools/visualization-tool/
 import type { FigmaFrameInfo, FrameStructNode } from '../../../types/figma-types';
 import type { MisalignedComponent, SkippedElement } from '../types';
 import { ReportTool } from '../../../tools/report-tool';
-import { buildMapFromRegistry } from '../utils/figma/element-registry';
-import type { ElementRegistry } from '../utils/figma/element-registry';
+import { extractMapFromRegistry } from '../utils/extraction/extract-element-metadata.js';
+import type { ElementMetadataRegistry } from '../utils/extraction/extract-element-metadata.js';
 
 /**
  * Configuration for validation iteration
@@ -31,7 +31,7 @@ export interface ValidationIterationConfig {
     outputDir: string;
     elementToComponentMap?: Map<string, { id: string; name: string; path: string }>;
     /** Unified element registry containing all element metadata (eliminates tree traversals) */
-    elementRegistry: ElementRegistry;
+    elementRegistry: ElementMetadataRegistry;
     /** Pre-cached Figma thumbnail base64 data to avoid redundant downloads. */
     cachedFigmaThumbnailBase64?: string;
 }
@@ -138,7 +138,7 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
     });
 
     // Build element-to-component mapping (use cached if provided)
-    const elementToComponent = config.elementToComponentMap || buildMapFromRegistry(config.elementRegistry);
+    const elementToComponent = config.elementToComponentMap || extractMapFromRegistry(config.elementRegistry);
 
     const aggregated = positionTool.aggregateElements(captureResult.positions, elementToComponent, positionThreshold);
     const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];

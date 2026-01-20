@@ -5,7 +5,7 @@
  */
 
 import type { UserReport } from '../../nodes/validation/types';
-import type { ElementRegistry } from '../../nodes/validation/utils/figma/element-registry';
+import type { ElementMetadataRegistry } from '../../nodes/validation/utils/extraction/extract-element-metadata';
 import type { FigmaFrameInfo, FrameStructNode } from '../../types/figma-types';
 
 export interface FinalReportRequest {
@@ -19,7 +19,7 @@ export interface FinalReportRequest {
     finalSae: number;
     positionThreshold: number;
     elementToComponentMap?: Map<string, { id: string; name: string; path: string }>;
-    elementRegistry: ElementRegistry;
+    elementRegistry: ElementMetadataRegistry;
     cachedFigmaThumbnailBase64?: string;
 }
 

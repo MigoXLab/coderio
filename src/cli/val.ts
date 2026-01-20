@@ -6,6 +6,7 @@ import type { FrameStructNode, FigmaFrameInfo } from '../types/figma-types';
 import { ProjectWorkspace } from '../utils/workspace';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
+import { extractFigmaTreeFromProtocol } from '../nodes/validation/utils/extraction/extract-figma-tree.js';
 
 type ValCommandOptions = {
     workspace: string;
@@ -62,24 +63,21 @@ export function registerValidateCommand(program: Command): void {
 
                 const workspace = new ProjectWorkspace(workspaceRoot, appName);
                 const protocolPath = path.join(workspace.paths.process, 'protocol.json');
-                const processedFigmaPath = path.join(workspace.paths.process, 'processed-figma.json');
 
                 if (!fs.existsSync(protocolPath)) {
                     throw new Error(`Missing protocol at: ${protocolPath}. Run d2p/d2c first to generate process/protocol.json.`);
                 }
-                if (!fs.existsSync(processedFigmaPath)) {
-                    throw new Error(
-                        `Missing processed Figma at: ${processedFigmaPath}. Re-run d2p/d2c with the updated version to generate process/processed-figma.json.`
-                    );
-                }
 
                 const rawProtocol = readJsonFile<unknown>(protocolPath);
                 const protocol = normalizeProtocol(rawProtocol);
-                const figmaJson = readJsonFile<FigmaFrameInfo>(processedFigmaPath);
-                const figmaThumbnailUrl = figmaJson.thumbnailUrl;
+
+                // Extract Figma tree and thumbnail from protocol
+                const figmaJson = extractFigmaTreeFromProtocol(protocol);
+                const figmaThumbnailUrl = figmaJson.thumbnailUrl || (protocol.data.elements?.[0] as FigmaFrameInfo | undefined)?.thumbnailUrl;
+
                 if (!figmaThumbnailUrl) {
                     throw new Error(
-                        'Missing figma thumbnailUrl in processed-figma.json. Ensure the upstream process fetched images and set thumbnailUrl.'
+                        'Missing thumbnailUrl in protocol. Ensure d2p/d2c generated protocol with thumbnail data.'
                     );
                 }
 
@@ -93,7 +91,6 @@ export function registerValidateCommand(program: Command): void {
                         workspace,
                         figmaInfo: { thumbnail: figmaThumbnailUrl },
                         protocol,
-                        processedFigma: figmaJson,
                         validationSatisfied: undefined,
                         validationReportDir: undefined,
                         validationReportHtmlPath: undefined,

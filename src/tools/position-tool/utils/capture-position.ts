@@ -2,7 +2,7 @@
 
 import { Browser, Page } from 'playwright';
 
-import { FigmaNodeService } from '../../../nodes/validation/utils/figma/figma-node-service';
+import { FigmaNodeService } from '../../../nodes/validation/utils/extraction/figma-node-service';
 import type { FigmaFrameInfo, FigmaPositionAndSize } from '../../../types/figma-types';
 import { DEFAULT_TIMEOUT, DEFAULT_VIEWPORT, POSITION_THRESHOLD, SELECTOR_WAIT_TIMEOUT } from '../../../constants/validation';
 import { launchChromiumWithAutoInstall } from '../../../nodes/validation/utils/playwright/launcher';

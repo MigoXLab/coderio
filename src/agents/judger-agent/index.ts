@@ -11,7 +11,7 @@ import type { ModelConfig } from 'evoltagent';
 import { HistoryTool } from '../../tools/history-tool';
 import { HierarchyTool } from '../../tools/hierarchy-tool';
 import type { ComponentHistory, JudgerDiagnosis } from './types';
-import type { Dict } from '../../nodes/validation/utils/general/tree-traversal';
+import type { Dict } from '../../nodes/validation/utils/tree/tree-traversal';
 import { JUDGER_PROMPT } from './system-prompt';
 import { getModelConfig } from '../../utils/config';
 import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
