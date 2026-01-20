@@ -12,31 +12,26 @@ import { WorkspaceStructure } from '../types/workspace-types';
         ├── reports.html             # Validation reports and screenshots
         └── coderio-cli.db           # Cache database (if any)
 */
-export class ProjectWorkspace {
-    public readonly paths: WorkspaceStructure;
 
-    constructor(rootPath: string, appName: string) {
-        const absoluteRoot = path.resolve(rootPath);
-        const processDir = path.join(absoluteRoot, 'process');
-
-        this.paths = {
-            root: absoluteRoot,
-            app: path.join(absoluteRoot, appName),
-            process: processDir,
-            reports: path.join(absoluteRoot, 'reports.html'),
-            db: path.join(absoluteRoot, 'coderio-cli.db'),
-        };
-    }
-
-    resolveAppSrc(srcSubPath: string): string {
-        return path.join(this.paths.app, 'src', srcSubPath);
-    }
-}
-
-export const createDefaultWorkspace = (subPath: string, rootPath?: string, appName?: string) => {
+export const initWorkspace = (subPath: string, rootPath?: string, appName?: string): WorkspaceStructure => {
     const root = rootPath || (process.env.CODERIO_CLI_USER_CWD ?? process.cwd());
     const coderioRoot = path.join(root, 'coderio');
     const finalRoot = path.resolve(coderioRoot, subPath);
     const app = appName || 'my-app';
-    return new ProjectWorkspace(finalRoot, app);
+
+    const absoluteRoot = path.resolve(finalRoot);
+    const processDir = path.join(absoluteRoot, 'process');
+
+    return {
+        root: absoluteRoot,
+        app: path.join(absoluteRoot, app),
+        process: processDir,
+        reports: path.join(absoluteRoot, 'reports.html'),
+        db: path.join(absoluteRoot, 'coderio-cli.db'),
+        checkpoint: path.join(absoluteRoot, 'checkpoint.json'),
+    };
+};
+
+export const resolveAppSrc = (paths: WorkspaceStructure, srcSubPath: string): string => {
+    return path.join(paths.app, 'src', srcSubPath);
 };
