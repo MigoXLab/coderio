@@ -1,4 +1,5 @@
-import type { JudgerDiagnosis, MisalignedComponent } from '../../nodes/validation/types';
+import type { JudgerDiagnosis } from '../judger-agent/types';
+import type { MisalignedComponent } from '../../types/validation-types';
 
 /**
  * Format refiner instruction with diagnosis and fix instructions

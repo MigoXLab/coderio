@@ -27,19 +27,17 @@ import type {
     ValidationLoopParams,
     ValidationLoopResult,
 } from '../types';
-import { extractFigmaLayoutMetadata } from '../utils/extraction/extract-layout-metadata.js';
-import { normalizeFigmaCoordinates } from '../utils/extraction/normalize-coordinates.js';
+import { extractLayoutFromContext } from '../utils/extraction/extract-layout-metadata.js';
 import { report } from '../subnodes/report/index.js';
 import { ReportTool } from '../../../tools/report-tool';
 import { LaunchTool } from '../../../tools/launch-tool';
 import { type Dict } from '../utils/tree/tree-traversal.js';
 import {
-    extractElementMetadata,
+    extractValidationContext,
     extractComponentPaths,
-    extractMapFromRegistry,
-    type ElementMetadataRegistry,
-} from '../utils/extraction/extract-element-metadata.js';
-import { FigmaNodeService } from '../utils/extraction/figma-node-service.js';
+    toElementMetadataRegistry,
+} from '../utils/extraction/extract-protocol-context.js';
+import type { ValidationContext } from '../../../types/validation-types.js';
 import { validatePositions } from './validate-position';
 
 interface RefinementContext {
@@ -47,8 +45,7 @@ interface RefinementContext {
     structureTree: Dict;
     componentPaths: Record<string, string>;
     componentHistory: ComponentHistory;
-    figmaJson: Dict;
-    elementRegistry: ElementMetadataRegistry;
+    validationContext: ValidationContext;
     previousScreenshotPath?: string;
 }
 
@@ -101,15 +98,15 @@ function resolveComponentPaths(componentPaths: Record<string, string>, workspace
 }
 
 async function refineComponent(comp: MisalignedComponent, context: RefinementContext): Promise<ComponentCorrectionLog> {
-    const { workspaceDir, structureTree, componentPaths, componentHistory, figmaJson, elementRegistry, previousScreenshotPath } = context;
+    const { workspaceDir, structureTree, componentPaths, componentHistory, validationContext, previousScreenshotPath } = context;
 
     try {
-        // Extract element IDs from registry for this component
-        const elementIds = Array.from(elementRegistry.elements.values())
+        // Extract element IDs from context for this component
+        const elementIds = Array.from(validationContext.elements.values())
             .filter(e => e.parentComponentId === comp.componentId)
             .map(e => e.id);
 
-        const figmaMetadata = extractFigmaLayoutMetadata(figmaJson, comp.componentId, elementIds);
+        const figmaMetadata = extractLayoutFromContext(validationContext, comp.componentId, elementIds);
 
         logger.printLog(`  Analyzing ${comp.name}...`);
         const judger = createJudgerAgent({
@@ -259,7 +256,7 @@ async function runBuildCheckBeforeCommit(params: {
 }
 
 export async function validationLoop(params: ValidationLoopParams): Promise<ValidationLoopResult> {
-    const { figmaJson, structureTree, figmaThumbnailUrl, outputDir, workspaceDir } = params;
+    const { protocol, figmaThumbnailUrl, outputDir, workspaceDir } = params;
 
     const config: ValidationLoopConfig = {
         ...DEFAULT_VALIDATION_LOOP_CONFIG,
@@ -359,26 +356,21 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             };
         }
 
-        const normalizedCache = new Set<Dict>();
-        // Pass figmaJson directly (no wrapping needed)
-        const designOffset = normalizeFigmaCoordinates(figmaJson as unknown as Dict, normalizedCache);
+        // Extract unified validation context from protocol (single traversal)
+        const validationContext = extractValidationContext(protocol);
+        const designOffset: [number, number] = [validationContext.offset.x, validationContext.offset.y];
         if (Math.abs(designOffset[0]) >= 1 || Math.abs(designOffset[1]) >= 1) {
-            logger.printLog(`Normalized Figma coordinates (offset: ${designOffset[0].toFixed(0)}, ${designOffset[1].toFixed(0)} px)`);
+            logger.printLog(`Design offset: (${designOffset[0].toFixed(0)}, ${designOffset[1].toFixed(0)} px)`);
         }
 
-        // Build unified element registry (single traversal, replaces 3 separate operations)
-        const figmaTree = figmaJson.frames ?? figmaJson.children ?? figmaJson;
-        const figmaNodeService = new FigmaNodeService(figmaTree);
-        const figmaNodeMap = figmaNodeService.getNodeMap();
-        const elementRegistry = extractElementMetadata(structureTree as unknown as Dict, figmaNodeMap);
-
-        // Extract component paths and element-to-component map from registry
-        const componentPaths = extractComponentPaths(elementRegistry);
+        // Extract component paths from context
+        const componentPaths = extractComponentPaths(validationContext);
 
         // Resolve alias paths to absolute filesystem paths when workspaceDir available
         const resolvedComponentPaths = workspaceDir ? resolveComponentPaths(componentPaths, workspaceDir) : componentPaths;
 
-        const elementToComponentMap = extractMapFromRegistry(elementRegistry);
+        // Build element registry for compatibility with existing APIs
+        const elementRegistry = toElementMetadataRegistry(validationContext);
 
         // Download and cache Figma thumbnail once to avoid redundant downloads in each iteration
         const cachedFigmaThumbnailBase64 = await downloadFigmaThumbnail(figmaThumbnailUrl);
@@ -413,13 +405,12 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             const validationResult = await validatePositions({
                 serverUrl: currentServerUrl,
                 figmaThumbnailUrl,
-                figmaJson,
-                structureTree,
+                protocol,
                 iteration,
                 positionThreshold: config.positionThreshold,
                 designOffset,
                 outputDir,
-                elementToComponentMap,
+                validationContext,
                 elementRegistry,
                 cachedFigmaThumbnailBase64,
             });
@@ -542,11 +533,10 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
 
             const refinementContext: RefinementContext = {
                 workspaceDir,
-                structureTree: structureTree as unknown as Dict,
+                structureTree: protocol as unknown as Dict,
                 componentPaths: resolvedComponentPaths,
                 componentHistory,
-                figmaJson: figmaJson as unknown as Dict,
-                elementRegistry,
+                validationContext,
                 previousScreenshotPath,
             };
 
@@ -654,8 +644,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         try {
             // Step 1: Build userReport with screenshots (replaces generateFinalReport)
             const reportResult = await reportTool.buildUserReport({
-                figmaJson,
-                structureTree,
+                protocol,
                 serverUrl: currentServerUrl,
                 figmaThumbnailUrl,
                 outputDir,
@@ -663,7 +652,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 finalMae: currentMae,
                 finalSae: currentSae,
                 positionThreshold: config.positionThreshold,
-                elementToComponentMap,
+                validationContext,
                 elementRegistry,
                 cachedFigmaThumbnailBase64,
             });

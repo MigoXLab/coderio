@@ -10,7 +10,8 @@ import type { ModelConfig } from 'evoltagent';
 
 import { HistoryTool } from '../../tools/history-tool';
 import { HierarchyTool } from '../../tools/hierarchy-tool';
-import type { ComponentHistory, JudgerDiagnosis } from './types';
+import type { ComponentHistory } from '../../types/validation-types.js';
+import type { JudgerDiagnosis } from './types';
 import type { Dict } from '../../nodes/validation/utils/tree/tree-traversal';
 import { JUDGER_PROMPT } from './system-prompt';
 import { getModelConfig } from '../../utils/config';

@@ -4,7 +4,7 @@
  * Kept standalone to keep `index.ts` focused on behavior.
  */
 
-import type { ComponentHistory } from '../../nodes/validation/types';
+import type { ComponentHistory } from '../../types/validation-types';
 
 export type { ComponentHistory };
 

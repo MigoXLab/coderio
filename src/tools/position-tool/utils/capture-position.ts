@@ -2,8 +2,6 @@
 
 import { Browser, Page } from 'playwright';
 
-import { FigmaNodeService } from '../../../nodes/validation/utils/extraction/figma-node-service';
-import type { FigmaFrameInfo, FigmaPositionAndSize } from '../../../types/figma-types';
 import { DEFAULT_TIMEOUT, DEFAULT_VIEWPORT, POSITION_THRESHOLD, SELECTOR_WAIT_TIMEOUT } from '../../../constants/validation';
 import { launchChromiumWithAutoInstall } from '../../../nodes/validation/utils/playwright/launcher';
 import { logger } from '../../../utils/logger';
@@ -24,12 +22,9 @@ export async function captureBrowserPositions(input: BrowserPositionInput): Prom
     let page: Page | null = null;
 
     try {
-        const { frames, rootBoundingBox } = extractFigmaFrames(input.figmaJSON);
-
-        const service = new FigmaNodeService(frames);
-
-        const designOffset = { x: rootBoundingBox.x, y: rootBoundingBox.y };
-        const figmaPositions = FigmaNodeService.normalizePositions(service.getNodePositions(), designOffset);
+        // Use pre-computed Figma positions from validation context (offset already applied)
+        const figmaPositions = input.validationContext.figmaPositions;
+        const designOffset = input.validationContext.offset;
 
         // Use pre-built element registry (eliminates tree traversals)
         const allElements = Array.from(input.elementRegistry.elements.values()).map(e => ({
@@ -209,29 +204,4 @@ export async function captureBrowserPositions(input: BrowserPositionInput): Prom
             await browser.close().catch(() => {});
         }
     }
-}
-
-function extractFigmaFrames(figmaJSON: BrowserPositionInput['figmaJSON']): {
-    frames: FigmaFrameInfo[];
-    rootBoundingBox: FigmaPositionAndSize;
-} {
-    if (Array.isArray(figmaJSON)) {
-        return {
-            frames: figmaJSON,
-            rootBoundingBox: figmaJSON[0]?.absoluteBoundingBox ?? { x: 0, y: 0, width: 0, height: 0 },
-        };
-    }
-
-    if ('frames' in figmaJSON && Array.isArray(figmaJSON.frames)) {
-        return {
-            frames: figmaJSON.frames,
-            rootBoundingBox: figmaJSON.absoluteBoundingBox,
-        };
-    }
-
-    const singleFrame = figmaJSON as FigmaFrameInfo;
-    return {
-        frames: [singleFrame],
-        rootBoundingBox: singleFrame.absoluteBoundingBox,
-    };
 }

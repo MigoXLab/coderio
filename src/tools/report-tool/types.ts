@@ -4,13 +4,11 @@
  * Kept in a standalone module to keep `index.ts` focused on implementation.
  */
 
-import type { UserReport } from '../../nodes/validation/types';
-import type { ElementMetadataRegistry } from '../../nodes/validation/utils/extraction/extract-element-metadata';
-import type { FigmaFrameInfo, FrameStructNode } from '../../types/figma-types';
+import type { ElementMetadataRegistry, UserReport, ValidationContext } from '../../types/validation-types';
+import type { FrameStructNode } from '../../types/figma-types';
 
 export interface FinalReportRequest {
-    figmaJson: FigmaFrameInfo;
-    structureTree: FrameStructNode;
+    protocol: FrameStructNode;
     serverUrl: string;
     figmaThumbnailUrl: string;
     outputDir: string;
@@ -18,7 +16,7 @@ export interface FinalReportRequest {
     finalMae: number;
     finalSae: number;
     positionThreshold: number;
-    elementToComponentMap?: Map<string, { id: string; name: string; path: string }>;
+    validationContext: ValidationContext;
     elementRegistry: ElementMetadataRegistry;
     cachedFigmaThumbnailBase64?: string;
 }

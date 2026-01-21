@@ -11,11 +11,9 @@ import { tools } from 'evoltagent';
 
 import { logger } from '../../utils/logger';
 import { PositionTool } from '../position-tool';
-import type { BrowserPositionInput } from '../position-tool/types';
 import { VisualizationTool } from '../visualization-tool';
 import type { MisalignedComponentData } from '../visualization-tool/types';
-import type { UserReport, MisalignedComponent } from '../../nodes/validation/types';
-import { extractMapFromRegistry } from '../../nodes/validation/utils/extraction/extract-element-metadata';
+import type { MisalignedComponent, UserReport } from '../../types/validation-types';
 import type { ErrorReportOptions, FinalReportRequest, FinalReportResult, GenerateHtmlResult } from './types';
 
 export type { ErrorReportOptions, FinalReportRequest, FinalReportResult, GenerateHtmlResult } from './types';
@@ -63,8 +61,8 @@ export class ReportTool {
         const visualizationTool = new VisualizationTool();
 
         const finalCaptureResult = await positionTool.capturePosition({
-            figmaJSON: request.figmaJson as unknown as BrowserPositionInput['figmaJSON'],
-            structure: request.structureTree as unknown as BrowserPositionInput['structure'],
+            protocol: request.protocol,
+            validationContext: request.validationContext,
             url: request.serverUrl,
             figmaThumbnailUrl: request.figmaThumbnailUrl,
             positionThreshold: request.positionThreshold,
@@ -72,7 +70,7 @@ export class ReportTool {
             elementRegistry: request.elementRegistry,
         });
 
-        const elementToComponent = request.elementToComponentMap || extractMapFromRegistry(request.elementRegistry);
+        const elementToComponent = request.validationContext.elementToComponent;
         const aggregated = positionTool.aggregateElements(finalCaptureResult.positions, elementToComponent, request.positionThreshold);
         const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
         const misalignedData = this.formatMisalignedData(misalignedComponents);

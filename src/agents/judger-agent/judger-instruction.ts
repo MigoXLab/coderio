@@ -1,4 +1,4 @@
-import type { MisalignedComponent } from '../../nodes/validation/types';
+import type { MisalignedComponent } from '../../types/validation-types';
 
 /**
  * Format judger instruction with component info and Figma metadata
