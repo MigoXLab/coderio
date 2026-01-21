@@ -1,4 +1,3 @@
-import * as fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import * as path from 'node:path';
 import { tools } from 'evoltagent';
@@ -16,39 +15,6 @@ import { runCommandCapture } from './utils/command-runner';
 import { DevServerManager } from './utils/dev-server-manager';
 import { extractCandidateFilesFromLog } from './utils/error-parsing';
 
-type PackageManager = 'pnpm' | 'yarn' | 'npm';
-
-function detectPackageManager(repoPath: string): PackageManager {
-    if (fs.existsSync(path.join(repoPath, 'pnpm-lock.yaml'))) return 'pnpm';
-    if (fs.existsSync(path.join(repoPath, 'yarn.lock'))) return 'yarn';
-    if (fs.existsSync(path.join(repoPath, 'package-lock.json'))) return 'npm';
-    return 'npm';
-}
-
-async function detectPackageManagerAsync(repoPath: string): Promise<PackageManager> {
-    const checkFile = async (file: string) => {
-        try {
-            await fsPromises.access(path.join(repoPath, file));
-            return true;
-        } catch {
-            return false;
-        }
-    };
-    if (await checkFile('pnpm-lock.yaml')) return 'pnpm';
-    if (await checkFile('yarn.lock')) return 'yarn';
-    if (await checkFile('package-lock.json')) return 'npm';
-    return 'npm';
-}
-
-function getInstallCommand(pm: PackageManager): string {
-    const commands: Record<PackageManager, string> = {
-        pnpm: 'pnpm i',
-        yarn: 'yarn install',
-        npm: 'npm install',
-    };
-    return commands[pm];
-}
-
 type PackageJson = {
     scripts?: Record<string, string>;
 };
@@ -61,19 +27,6 @@ async function readPackageJsonAsync(repoPath: string): Promise<PackageJson | nul
     } catch {
         return null;
     }
-}
-
-function formatRunCommand(pm: PackageManager, script: string): string {
-    if (pm === 'pnpm') return `pnpm ${script}`;
-    if (pm === 'yarn') return `yarn ${script}`;
-    return `npm run ${script}`;
-}
-
-function buildInstallDevDependencyCommand(repoPath: string, depName: string): string {
-    const pm = detectPackageManager(repoPath);
-    if (pm === 'pnpm') return `pnpm add -D ${depName}`;
-    if (pm === 'yarn') return `yarn add -D ${depName}`;
-    return `npm install -D ${depName}`;
 }
 
 function pickPrimarySourceFile(repoPath: string, log: string): string | null {
@@ -99,12 +52,12 @@ function makeServerKey(repoPath: string): string {
 
 @tools({
     detectCommands: {
-        description: 'Detect the package manager and choose reasonable run/build commands (prefer dev over start when available).',
+        description: 'Determine reasonable run/build commands for the project (prefer dev over start when available).',
         params: [{ name: 'repoPath', type: 'string', description: 'Absolute path to the repository', optional: true }],
         returns: { type: 'object', description: 'DetectedCommands with runCommand/buildCommand.' },
     },
     installDependencies: {
-        description: 'Detect the package manager and install dependencies in repoPath with a timeout.',
+        description: 'Install dependencies using pnpm in repoPath with a timeout.',
         params: [
             { name: 'repoPath', type: 'string', description: 'Absolute path to the repository' },
             { name: 'timeoutMs', type: 'number', description: 'Timeout in milliseconds', optional: true },
@@ -116,7 +69,7 @@ function makeServerKey(repoPath: string): string {
             'Build the project in repoPath using buildCommand with a timeout; returns output and candidate source files extracted from logs.',
         params: [
             { name: 'repoPath', type: 'string', description: 'Absolute path to the repository' },
-            { name: 'buildCommand', type: 'string', description: 'Build command (e.g. "npm run build")' },
+            { name: 'buildCommand', type: 'string', description: 'Build command (e.g. "pnpm build")' },
             { name: 'timeoutMs', type: 'number', description: 'Timeout in milliseconds', optional: true },
         ],
         returns: { type: 'object', description: 'BuildProjectResult with candidateFiles and primaryFile.' },
@@ -125,7 +78,7 @@ function makeServerKey(repoPath: string): string {
         description: 'Start a dev server in-process and wait for it to become reachable.',
         params: [
             { name: 'repoPath', type: 'string', description: 'Absolute path to the repository' },
-            { name: 'runCommand', type: 'string', description: 'Run command (e.g. "npm run dev")' },
+            { name: 'runCommand', type: 'string', description: 'Run command (e.g. "pnpm dev")' },
             { name: 'timeoutMs', type: 'number', description: 'Timeout in milliseconds', optional: true },
         ],
         returns: { type: 'object', description: 'StartDevServerResult with url/port/pid/serverKey.' },
@@ -161,24 +114,23 @@ export class LaunchTool {
 
     async detectCommands(repoPath?: string): Promise<DetectedCommands> {
         if (!repoPath) {
-            logger.printWarnLog('repoPath not provided to detectCommands(); defaulting to "npm run dev" / "npm run build"');
-            return { runCommand: 'npm run dev', buildCommand: 'npm run build' };
+            logger.printWarnLog('repoPath not provided to detectCommands(); defaulting to "pnpm dev" / "pnpm build"');
+            return { runCommand: 'pnpm dev', buildCommand: 'pnpm build' };
         }
 
-        const pm = await detectPackageManagerAsync(repoPath);
         const pkg = await readPackageJsonAsync(repoPath);
         const scripts = pkg?.scripts ?? {};
 
         const runScript = scripts.dev ? 'dev' : scripts.start ? 'start' : 'dev';
 
         return {
-            runCommand: formatRunCommand(pm, runScript),
-            buildCommand: formatRunCommand(pm, 'build'),
+            runCommand: `pnpm ${runScript}`,
+            buildCommand: 'pnpm build',
         };
     }
 
     async installDependencies(repoPath: string, timeoutMs: number = 180_000): Promise<InstallDependenciesResult> {
-        const command = getInstallCommand(detectPackageManager(repoPath));
+        const command = 'pnpm i';
         logger.printLog(`📦 Installing dependencies: ${command}`);
         try {
             const res = await runCommandCapture({ cwd: repoPath, command, timeoutMs });
@@ -204,7 +156,7 @@ export class LaunchTool {
 
     async installDevDependency(repoPath: string, dependency: string, timeoutMs: number = 180_000): Promise<InstallDependenciesResult> {
         const dep = dependency.trim();
-        const command = buildInstallDevDependencyCommand(repoPath, dep);
+        const command = `pnpm add -D ${dep}`;
         logger.printLog(`📦 Installing dev dependency: ${command}`);
         try {
             const res = await runCommandCapture({ cwd: repoPath, command, timeoutMs });
