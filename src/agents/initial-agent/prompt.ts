@@ -28,6 +28,10 @@ export const initialAgentPrompt = (options: { appPath: string }) => {
         * Log files and cache directories
         * Lock files (package-lock.json, yarn.lock, pnpm-lock.yaml)
       - \`package.json\`: Basic scripts and dependencies. MUST include \`tailwindcss\` (v4) and \`@tailwindcss/vite\`.
+        * Scripts MUST use "pnpm exec" prefix to ensure project dependencies are prioritized:
+          - "dev": "pnpm exec vite"
+          - "build": "pnpm exec tsc && pnpm exec vite build"
+          - "preview": "pnpm exec vite preview"
       - \`vite.config.ts\`: Configure React and TailwindCSS V4 plugins. MUST include path alias configuration:
         * Add \`resolve.alias\` with \`@\` pointing to \`path.resolve(__dirname, './src')\`
         * Import \`path\` from 'node:path'
