@@ -100,6 +100,26 @@ function flattenPostOrder(node: FrameStructNode): FrameStructNode[] {
 }
 
 /**
+ * Detect which rendering modes are used in this frame
+ */
+function detectRenderingModes(node: FrameStructNode): {
+    hasStates: boolean;
+    hasIndependentChildren: boolean;
+} {
+    const hasStates = !!node.data.states?.length;
+
+    let hasIndependentChildren = false;
+
+    (node.children || []).forEach(child => {
+        if (!child.data.componentName) {
+            hasIndependentChildren = true;
+        }
+    });
+
+    return { hasStates, hasIndependentChildren };
+}
+
+/**
  * Generate a frame/container component
  * Frames compose multiple child components based on layout
  */
@@ -114,6 +134,9 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
         properties: child.data.componentProperties,
     }));
 
+    // Detect rendering modes
+    const renderingModes = detectRenderingModes(node);
+
     // Generate prompt
     const prompt = generateFramePrompt({
         layoutData: JSON.stringify(node.data.layout || {}),
@@ -122,6 +145,7 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
         cssContext: JSON.stringify(node.data.elements),
         styling: JSON.stringify(DEFAULT_STYLING),
         assetFiles: assetFilesList,
+        renderingModes,
     });
 
     // Call AI model

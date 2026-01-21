@@ -68,6 +68,45 @@ const OUTPUT_FORMAT = `
 // Prompt Functions
 // ============================================
 
+/**
+ * Generate children rendering instructions based on detected modes
+ */
+function generateChildrenPropsInstructions(modes: { hasStates: boolean; hasIndependentChildren: boolean }): string {
+    const instructions: string[] = [];
+
+    if (modes.hasStates) {
+        instructions.push(`
+      - **List Rendering (States-based)**:
+        - Check if \`<figma_data>\` contains a \`states\` property (array).
+        - Each state entry has: \`state\` (data array), \`componentName\`, \`componentPath\`.
+        - Implementation:
+          \`\`\`tsx
+          import ComponentName from 'path';
+          
+          {states[0].state.map((item, index) => (
+            <ComponentName key={index} {...item} />
+          ))}
+          \`\`\`
+        - **CRITICAL - Only Use State Data**:
+          - **ONLY** pass props that exist in the state data objects.
+          - **DO NOT** add extra props like \`content\`, \`className\`, or any other fields not present in state.
+          - **DO NOT** create or invent additional data - use exactly what's in the state array.
+          - Example: If state has \`{iconSrc, title, description}\`, only pass those three props.
+        - **Asset Imports**: If state data contains image paths (e.g., \`imageSrc\`, \`iconSrc\`), 
+          import them at the top and pass as values.`);
+    }
+
+    if (modes.hasIndependentChildren) {
+        instructions.push(`
+      - **Independent Components (No Props) - CRITICAL**:
+        - If a child has NO \`componentName\` and NO \`properties\`, render as \`<ComponentName />\` without any props.
+        - **DO NOT** infer or pass props based on figma_data.
+        - These components use default values or hardcoded content internally.`);
+    }
+
+    return instructions.join('\n');
+}
+
 export const generateFramePrompt = ({
     childrenImports,
     layoutData,
@@ -75,6 +114,7 @@ export const generateFramePrompt = ({
     cssContext,
     assetFiles,
     styling,
+    renderingModes,
 }: {
     childrenImports: string;
     layoutData: string;
@@ -82,6 +122,10 @@ export const generateFramePrompt = ({
     cssContext?: string;
     assetFiles?: string;
     styling: string;
+    renderingModes: {
+        hasStates: boolean;
+        hasIndependentChildren: boolean;
+    };
 }) => {
     return `
 <system_instructions>
@@ -103,40 +147,10 @@ export const generateFramePrompt = ({
     <req_1>
       **Children Components & Props (CRITICAL)**:
       - The \`<children>\` field describes child components with their import paths and prop types.
+${generateChildrenPropsInstructions(renderingModes)}
       
-      - **Explicit Data Driven List**:
-        - Check if \`<figma_data>\` contains a \`state\` property (array).
-        - If yes, use this \`state\` array as the source of truth for rendering the children (usually a list of identical components).
-        
-        - **State Data → Component Props Mapping (EXTREMELY IMPORTANT)**:
-          - **STEP 1**: Inspect the child component's import path and infer its prop interface.
-          - **STEP 2**: Compare state data keys with expected prop names.
-          - **STEP 3**: If there's a mismatch, map the keys explicitly when spreading props.
-          - **Example**:
-            \`\`\`tsx
-            // State has: { icon: Icon1, title: "..." }
-            // But Component expects: { iconSrc: string, title: string }
-            // Solution:
-            state.map((item) => (
-              <Component 
-                key={...}
-                iconSrc={item.icon}  // Map icon -> iconSrc
-                title={item.title}    // Direct match
-              />
-            ))
-            \`\`\`
-          - **DO NOT** blindly use \`{...item}\` if prop names don't match!
-        
-        - **Asset Imports in State**:
-          - If the Figma data contains a "url" field, this field represents the image path. You MUST use the EXACT value from the "url" field as the value for "imageSrc", "iconSrc", or "avatarSrc" without any modifications.
-      
-      - **Single Instances**:
-        - If no \`state\` array, render children individually based on the \`children\` array.
-        - If a child object has \`properties\`, render as \`<ComponentName {...properties} />\`.
-        
       - **Component Imports (CRITICAL)**:
         - You MUST use the exact import path provided in the \`<children>\` list for each component.
-        - **DO NOT** invent paths or assume components are at the top level.
         - **Example**:
           - Provided: \`{"name": "TaskGrid", "path": "@/components/tasks-section/task-grid"}\`
           - CORRECT: \`import TaskGrid from "@/components/tasks-section/task-grid";\`
