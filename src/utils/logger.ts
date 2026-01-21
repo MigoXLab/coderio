@@ -23,7 +23,6 @@ export const logger = {
      */
     printInfoLog(message: string): void {
         console.log(chalk.blue(`[${getTimestamp()}] [INFO] ${message}`));
-        console.log(chalk.gray(`[${getTimestamp()}] [INFO] ${message}`));
     },
 
     /**
