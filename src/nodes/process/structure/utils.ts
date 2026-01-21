@@ -418,7 +418,7 @@ export async function populateComponentProps(node: FrameStructNode, frames: Figm
                     }
 
                     node.children = newChildren;
-                } 
+                }
             }
         } catch (e) {
             logger.printErrorLog(
