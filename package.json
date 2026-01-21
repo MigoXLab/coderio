@@ -1,76 +1,76 @@
 {
-  "name": "coderio",
-  "version": "0.1.0",
-  "description": "A modern CLI development tool built with TypeScript",
-  "type": "module",
-  "bin": {
-    "coderio": "./dist/cli.js"
-  },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "dev": "tsup --watch",
-    "build": "pnpm run check && tsup",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "typecheck": "tsc --noEmit",
-    "prepare": "husky"
-  },
-  "keywords": [
-    "cli",
-    "tool",
-    "typescript",
-    "development"
-  ],
-  "author": "",
-  "license": "Apache-2.0",
-  "dependencies": {
-    "@langchain/core": "^0.3.30",
-    "@langchain/langgraph": "^0.2.45",
-    "@langchain/langgraph-checkpoint-sqlite": "^1.0.0",
-    "@langchain/openai": "^0.3.17",
-    "axios": "^1.13.2",
-    "chalk": "^5.4.1",
-    "commander": "^12.1.0",
-    "evoltagent": "^1.1.1",
-    "js-yaml": "^4.1.1",
-    "prompts": "^2.4.2"
-  },
-  "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.10.2",
-    "@types/prompts": "^2.4.9",
-    "eslint": "^9.17.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.4.2",
-    "tsup": "^8.3.5",
-    "tsx": "^4.21.0",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.1"
-  },
-  "engines": {
-    "node": ">=18.0.0 <23.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3",
-      "esbuild",
-      "protobufjs"
-    ]
-  },
-  "lint-staged": {
-    "*.ts": [
-      "prettier --write",
-      "eslint --fix"
-    ]
-  }
+    "name": "coderio",
+    "version": "0.1.0",
+    "description": "A modern CLI development tool built with TypeScript",
+    "type": "module",
+    "bin": {
+        "coderio": "./dist/cli.js"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "dev": "tsup --watch",
+        "build": "pnpm run check && tsup",
+        "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "format:check": "prettier --check \"src/**/*.ts\"",
+        "typecheck": "tsc --noEmit",
+        "prepare": "husky"
+    },
+    "keywords": [
+        "cli",
+        "tool",
+        "typescript",
+        "development"
+    ],
+    "author": "",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "@langchain/core": "^0.3.30",
+        "@langchain/langgraph": "^0.2.45",
+        "@langchain/langgraph-checkpoint-sqlite": "^1.0.0",
+        "@langchain/openai": "^0.3.17",
+        "axios": "^1.13.2",
+        "chalk": "^5.4.1",
+        "commander": "^12.1.0",
+        "evoltagent": "^1.1.1",
+        "js-yaml": "^4.1.1",
+        "prompts": "^2.4.2"
+    },
+    "devDependencies": {
+        "@types/js-yaml": "^4.0.9",
+        "@types/node": "^22.10.2",
+        "@types/prompts": "^2.4.9",
+        "eslint": "^9.17.0",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.2.7",
+        "prettier": "^3.4.2",
+        "tsup": "^8.3.5",
+        "tsx": "^4.21.0",
+        "typescript": "^5.7.2",
+        "typescript-eslint": "^8.18.1"
+    },
+    "engines": {
+        "node": ">=18.0.0 <23.0.0"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "better-sqlite3",
+            "esbuild",
+            "protobufjs"
+        ]
+    },
+    "lint-staged": {
+        "*.ts": [
+            "prettier --write",
+            "eslint --fix"
+        ]
+    }
 }

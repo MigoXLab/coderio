@@ -35,7 +35,7 @@ const ASSETS_HANDLING = `
       - **NEVER** use the string path directly in JSX or styles.`;
 
 const DOM_IDS_REQUIREMENT = `
-      - Assign \`id\` attributes to the main container and any internal elements, matching \`figma_data\`.`;
+      - Assign \`id\` attributes to the main container and any internal elements, matching \`frame_details\`.`;
 
 const REACT_IMPORT_RULE = `
       - Do **NOT** include \`import React from 'react';\` at the top of the file.`;
@@ -77,7 +77,7 @@ function generateChildrenPropsInstructions(modes: { hasStates: boolean; hasIndep
     if (modes.hasStates) {
         instructions.push(`
       - **List Rendering (States-based)**:
-        - Check if \`<figma_data>\` contains a \`states\` property (array).
+        - Check if \`<frame_details>\` contains a \`states\` property (array).
         - Each state entry has: \`state\` (data array), \`componentName\`, \`componentPath\`.
         - Implementation:
           \`\`\`tsx
@@ -100,7 +100,6 @@ function generateChildrenPropsInstructions(modes: { hasStates: boolean; hasIndep
         instructions.push(`
       - **Independent Components (No Props) - CRITICAL**:
         - If a child has NO \`componentName\` and NO \`properties\`, render as \`<ComponentName />\` without any props.
-        - **DO NOT** infer or pass props based on figma_data.
         - These components use default values or hardcoded content internally.`);
     }
 
@@ -169,7 +168,7 @@ ${STYLING_GUIDELINES}
       - Use responsive utilities provided by the chosen libraries to ensure the component is adaptive.
       - Use \`css_context\` for exact background styles, gradients, and shadows.
       - Use \`relative\` positioning for the container.
-      - Use \`spacing\` field in <figma_data> to set the spacing between elements
+      - Use \`spacing\` field in <frame_details> to set the spacing between elements
     </req_2>
     
     <req_3>
@@ -283,7 +282,6 @@ ${ASSETS_HANDLING}
     <req_5>
       **Layout Strategy**:
       - PREFER relative/flex/grid layout.
-      - Use \`spacing\` field in <figma_data> to set the spacing between elements.
       - Use absolute positioning ONLY for decoration/overlays or if Figma structure explicitly implies overlay.
     </req_5>
 
@@ -300,7 +298,6 @@ ${ASSETS_HANDLING}
       - This is a **reusable component**
       - Generate props interface from \`component_details.props\`: \`interface ${componentName}Props { ... }\`
       - Reference props in JSX: \`{title}\`, \`<img src={iconSrc} />\` (NOT hardcoded values)
-      - Image props MUST use \`Src\` suffix: \`iconSrc\`, \`imageSrc\`, \`avatarSrc\`
       
       **IF \`component_details.componentName\` does NOT exist:**
       - This is a **regular component**
