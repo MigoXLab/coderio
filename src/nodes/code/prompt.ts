@@ -109,17 +109,13 @@ function generateChildrenPropsInstructions(modes: { hasStates: boolean; hasIndep
 
 export const generateFramePrompt = ({
     childrenImports,
-    layoutData,
-    figmaData,
-    cssContext,
+    frameDetails,
     assetFiles,
     styling,
     renderingModes,
 }: {
     childrenImports: string;
-    layoutData: string;
-    figmaData: string;
-    cssContext?: string;
+    frameDetails: string;
     assetFiles?: string;
     styling: string;
     renderingModes: {
@@ -135,12 +131,21 @@ export const generateFramePrompt = ({
   </role>
 
   <input_context>
-    <layout_data>${layoutData}</layout_data>
-    <figma_data>${figmaData}</figma_data>
+    <frame_details>${frameDetails}</frame_details>
     <children>${childrenImports}</children>
     <styling>${styling}</styling>
-    <css_context>${cssContext}</css_context>
     ${assetFiles ? `<available_assets>Available asset files: ${assetFiles}</available_assets>` : ''}
+
+    <frame_structure>
+      The \`frame_details\` parameter contains:
+      - \`layout\`: Layout information for the frame (flex/grid/absolute)
+      - \`elements\`: Array of CSS styles and asset URLs for all elements in this component (colors, spacing, fonts, backgrounds, etc.)
+      - \`states\` (optional): If present, this frame contains reusable components. Each state entry includes:
+        * \`state\`: Array of data objects to be used as props for component instances
+        * \`componentName\`: Name of the reusable component
+        * \`componentPath\`: Import path for the component
+        Use \`states\` data to render multiple instances of reusable components via \`.map()\`.
+    </frame_structure>
   </input_context>
 
   <requirements>
@@ -195,15 +200,13 @@ ${OUTPUT_FORMAT}
 
 export const generateComponentPrompt = ({
     componentName,
-    figmaData,
-    cssContext,
+    componentDetails,
     styling,
     assetFiles,
 }: {
     componentName: string;
-    figmaData: string;
+    componentDetails: string;
     styling: string;
-    cssContext?: string;
     assetFiles?: string;
 }) => {
     return `
@@ -214,14 +217,17 @@ export const generateComponentPrompt = ({
   </role>
 
   <input_context>
-    <figma_data>${figmaData}</figma_data>
+    <component_details>${componentDetails}</component_details>
     ${assetFiles ? `<available_assets>Available asset files: ${assetFiles}</available_assets>` : ''}
-    <css_context>
-      Contains extracted CSS styles and Asset URLs for elements in this component.
-      Use this for precise background gradients, font styles, and image sources.
-      ${cssContext}
-    </css_context>
     <styling>${styling}</styling>
+
+    <component_structure>
+      The \`component_details\` parameter contains:
+      - \`elements\`: Array of CSS styles and asset URLs for all elements in this component (colors, spacing, fonts, backgrounds, etc.)
+      - \`componentName\` (optional): If present, indicates this is a **reusable component**; if absent, it's a **regular component**
+      - \`props\` (optional): Props interface definition, only present when \`componentName\` exists
+    </component_structure>
+
     <global_styles>
       .gradientBorder {
         position: relative;
@@ -240,27 +246,21 @@ export const generateComponentPrompt = ({
         }
       } 
     </global_styles>
+
     <visual_reference>
       Refer to the conversation history for the page thumbnail and context.
       Use it to verify visual details like shadows, gradients, and spacing.
     </visual_reference>
-    <reusability_context>
-      - The \`figma_data\` may include an optional field \`componentName\`, which identifies this node as an instance of a reusable component (e.g. "TaskCard", "FeatureCard").
-      - The code generation pipeline will:
-        1) Generate the **reusable base component** for a given \`componentName\` exactly once using this prompt.
-        2) Generate **per-instance props objects** for each node that shares the same \`componentName\`, and pass them from Frame components.
-      - This prompt is responsible ONLY for defining the reusable base component API (props and JSX), not for generating instance-specific props objects.
-    </reusability_context>
   </input_context>
 
   <requirements>
     <req_1>
-      **High Fidelity & Responsive**:
+     **High Fidelity & Responsive**:
 ${STYLING_GUIDELINES}
-      - **CRITICAL**: Check <css_context> for exact design values (colors, spacing, font sizes, transitions, etc.).
-      - Use responsive utilities provided by the chosen libraries to ensure the component is adaptive.
-      - **Complex Styles**: For gradients or specific shadows not easily mapped to standard utility classes, use the values from \`css_context\` directly in the most appropriate way for the chosen stack (e.g. JIT classes, or CSS-in-JS/Modules).
-      - **Gradient Rounded Borders**: If you see a gradient round border in the design, CHECK \`global_styles\` for a mixin (e.g. \`.gradientBorder\`) and apply it if available.
+      - **CRITICAL**: Use exact design values from \`component_details.elements\` (colors, spacing, font sizes, gradients, shadows, etc.)
+      - Use responsive utilities provided by the chosen libraries
+      - For complex styles (gradients, shadows), use values from \`elements\` directly in CSS Modules or inline styles
+      - For gradient rounded borders, CHECK \`global_styles\` for \`.gradientBorder\` mixin
     </req_1>
 
     <req_2>
@@ -294,68 +294,22 @@ ${ASSETS_HANDLING}
     </req_6>
 
     <req_7>
-      **Reusable Component API (CRITICAL)**:
-      - Treat **${componentName}** as a reusable, generic component that can be instantiated multiple times in different Frames.
-      - Extract **all variable content** (titles, descriptions, labels, numbers, avatars, statuses, etc.) into **typed props**, instead of hardcoding the values inside the component.
-      - Define an explicit props type, e.g. \`type ${componentName}Props = { ... }\` or \`interface ${componentName}Props { ... }\`, and use it on the component signature.
+      **Component Type & Props (CRITICAL)**:
       
-      - **Props Naming Convention (EXTREMELY IMPORTANT)**:
-        - For image/icon props, ALWAYS use descriptive suffixes: \`iconSrc\`, \`imageSrc\`, \`avatarSrc\` (NOT just \`icon\`, \`image\`, \`avatar\`)
-        - This prevents confusion between imported asset variables and string paths.
-        - Example:
-          \`\`\`tsx
-          interface CardProps {
-            title: string;
-            iconSrc: string;    // CORRECT - clearly a source path
-            imageSrc: string;   // CORRECT
-            // NOT: icon: string   WRONG - ambiguous
-          }
-          \`\`\`
+      **IF \`component_details.componentName\` exists:**
+      - This is a **reusable component**
+      - Generate props interface from \`component_details.props\`: \`interface ${componentName}Props { ... }\`
+      - Reference props in JSX: \`{title}\`, \`<img src={iconSrc} />\` (NOT hardcoded values)
+      - Image props MUST use \`Src\` suffix: \`iconSrc\`, \`imageSrc\`, \`avatarSrc\`
       
-      - Use props values directly in JSX; do not perform data fetching or global state access inside this component.
-      - Assume that parent Frames will later pass concrete values via a \`properties\` object that maps 1:1 to \`${componentName}Props\`.
-      - If the design looks like a "Card" / "ListItem" that appears many times (e.g. FeatureCard1...FeatureCard12), design the component as **one generic card** driven entirely by props (e.g. \`title\`, \`description\`, \`iconSrc\`, \`tag\`), not as a grid of multiple cards.
-      - Do **NOT** repeat the same JSX structure multiple times inside this component to simulate a grid; the grid/list should be handled by the parent Frame using \`array.map\` and different props.
-      - When \`componentName\` is present in \`figma_data\`, treat this as defining the canonical reusable component for that name; any differences between instances (text, numbers, icons, etc.) MUST be modeled as props, not separate components.
+      **IF \`component_details.componentName\` does NOT exist:**
+      - This is a **regular component**
+      - Do NOT generate props interface
+      - Directly hardcode content from \`component_details.elements\` into JSX
+      
+      **Both types**: Do NOT repeat JSX to simulate grids; parent components handle iteration.
     </req_7>
 
-    <req_8>
-      **Child Components - DO NOT IMPORT (CRITICAL)**:
-      - **NEVER** import child components from other paths (e.g., \`import TimelineItem from '@/components/...'\`).
-      - Even if \`figma_data\` contains a \`children\` field with child component information, DO NOT generate import statements for them.
-      - This component should be **self-contained** and render all its UI using native HTML/React elements (div, span, img, etc.) and props.
-      - Child component composition is handled at a higher level (Frame components), NOT within individual reusable components.
-      - Example of what NOT to do:
-        ❌ WRONG:
-        \`\`\`tsx
-        import TimelineItem from '@/components/timeline-section/timeline-item';
-        
-        const TimelineList = () => {
-          return <div><TimelineItem /></div>;
-        };
-        \`\`\`
-      - Example of what to do:
-        ✅ CORRECT:
-        \`\`\`tsx
-        interface TimelineListProps {
-          items: Array<{ date: string; title: string }>;
-        }
-        
-        const TimelineList = ({ items }: TimelineListProps) => {
-          return (
-            <div>
-              {items.map((item, i) => (
-                <div key={i}>
-                  <span>{item.date}</span>
-                  <span>{item.title}</span>
-                </div>
-              ))}
-            </div>
-          );
-        };
-        \`\`\`
-    </req_8>
-    
     <req_9>
       **React Import**:
 ${REACT_IMPORT_RULE}
@@ -366,10 +320,6 @@ ${REACT_IMPORT_RULE}
 ${FILE_NAMING_CONVENTION}
     </req_10>
   </requirements>
-
-  <reuse_strategy>
-    - **Dynamic Collections**: If the design suggests repeated items (e.g., "Card", "ListItem"), use array data + \`array.map\` to render them **inside the parent Frame**, while keeping this component focused on a single item with props.
-  </reuse_strategy>
 
 ${OUTPUT_FORMAT}
 </system_instructions>
