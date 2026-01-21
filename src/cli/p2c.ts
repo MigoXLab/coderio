@@ -17,7 +17,7 @@ export const registerP2CCommand = (program: Command) => {
         .action(async (opts: { protocol: string }) => {
             try {
                 const protocolContent = await readFile(opts.protocol, 'utf-8');
-                const protocolData = JSON.parse(protocolContent) as FrameStructNode<Record<string, unknown>>;
+                const protocolData = JSON.parse(protocolContent) as FrameStructNode;
                 const workspace = initWorkspace(protocolData.id);
                 const state: GraphState = {
                     protocol: protocolData,

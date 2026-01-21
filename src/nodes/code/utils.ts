@@ -100,6 +100,26 @@ function flattenPostOrder(node: FrameStructNode): FrameStructNode[] {
 }
 
 /**
+ * Detect which rendering modes are used in this frame
+ */
+function detectRenderingModes(node: FrameStructNode): {
+    hasStates: boolean;
+    hasIndependentChildren: boolean;
+} {
+    const hasStates = !!node.data.states?.length;
+
+    let hasIndependentChildren = false;
+
+    (node.children || []).forEach(child => {
+        if (!child.data.componentName) {
+            hasIndependentChildren = true;
+        }
+    });
+
+    return { hasStates, hasIndependentChildren };
+}
+
+/**
  * Generate a frame/container component
  * Frames compose multiple child components based on layout
  */
@@ -109,19 +129,20 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
 
     // Build children imports information
     const childrenImports = (node.children || []).map(child => ({
-        name: child.data.componentName || child.data.name || '',
-        path: child.data.componentPath || child.data.path,
-        properties: child.data.componentProperties,
+        name: child.data.name || '',
+        path: child.data.path,
     }));
+
+    // Detect rendering modes
+    const renderingModes = detectRenderingModes(node);
 
     // Generate prompt
     const prompt = generateFramePrompt({
-        layoutData: JSON.stringify(node.data.layout || {}),
-        figmaData: JSON.stringify(node.data),
+        frameDetails: JSON.stringify(node.data),
         childrenImports: JSON.stringify(childrenImports),
-        cssContext: JSON.stringify(node.data.elements),
         styling: JSON.stringify(DEFAULT_STYLING),
         assetFiles: assetFilesList,
+        renderingModes,
     });
 
     // Call AI model
@@ -134,6 +155,7 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
     const componentPath = node.data.path || '';
     const filePath = resolveAppSrc(state.workspace, getComponentPathFromPath(componentPath));
     saveGeneratedCode(code, filePath);
+    logger.printSuccessLog(`Successfully generated frame: ${frameName}`);
 }
 
 /**
@@ -151,26 +173,10 @@ export async function generateComponent(
 
     logger.printInfoLog(`${progressInfo} 📦 Generating Component: ${componentName}`);
 
-    // Extract CSS context with full subtree
-    const cssContext = JSON.stringify(node.data.elements);
-
-    // Prepare Figma data with children info for context
-    const figmaDataObj = {
-        ...node.data,
-        children: (node.children || []).map(child => ({
-            id: child.id,
-            name: child.data.name,
-            componentName: child.data.componentName,
-            path: child.data.componentPath || child.data.path,
-            properties: child.data.componentProperties,
-        })),
-    };
-
     // Generate prompt
     const prompt = generateComponentPrompt({
         componentName,
-        figmaData: JSON.stringify(figmaDataObj),
-        cssContext,
+        componentDetails: JSON.stringify(node.data),
         styling: JSON.stringify(DEFAULT_STYLING),
         assetFiles: assetFilesList,
     });
@@ -184,6 +190,7 @@ export async function generateComponent(
     // Save generated files
     const filePath = resolveAppSrc(state.workspace, getComponentPathFromPath(componentPath));
     saveGeneratedCode(code, filePath);
+    logger.printSuccessLog(`Successfully generated component: ${componentName}`);
 }
 
 /**

@@ -1,5 +1,7 @@
 import path from 'node:path';
+import fs from 'node:fs';
 import { WorkspaceStructure } from '../types/workspace-types';
+import { logger } from './logger';
 
 /**
  * Defines the logical structure of the output workspace.
@@ -35,3 +37,24 @@ export const initWorkspace = (subPath: string, rootPath?: string, appName?: stri
 export const resolveAppSrc = (paths: WorkspaceStructure, srcSubPath: string): string => {
     return path.join(paths.app, 'src', srcSubPath);
 };
+
+/**
+ * Delete all files and directories inside the workspace
+ */
+export function deleteWorkspace(workspace: WorkspaceStructure): void {
+    try {
+        if (fs.existsSync(workspace.root)) {
+            // Read all entries in the workspace root
+            const entries = fs.readdirSync(workspace.root);
+
+            // Delete each entry
+            for (const entry of entries) {
+                const fullPath = path.join(workspace.root, entry);
+                fs.rmSync(fullPath, { recursive: true, force: true });
+            }
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.printWarnLog(`Failed to delete workspace: ${errorMessage}`);
+    }
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Auto-fix and re-stage modified files (only staged files)
+pnpm lint-staged
+
+# Type check (entire project)
+pnpm run typecheck
+
+# Compile (skip re-running lint/format checks to save time)
+pnpm exec tsup

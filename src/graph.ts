@@ -4,9 +4,9 @@ import { GraphStateAnnotation } from './state';
 import { initialProject } from './nodes/initial';
 import { generateProtocol } from './nodes/process';
 import { parseFigmaUrl } from './utils/url-parser';
-import { initWorkspace } from './utils/workspace';
+import { deleteWorkspace, initWorkspace } from './utils/workspace';
 import { generateCode } from './nodes/code';
-import { initializeSqliteSaver, clearThreadCheckpoint, promptCheckpointChoice } from './utils/checkpoint';
+import { initializeSqliteSaver, promptCheckpointChoice } from './utils/checkpoint';
 import { logger } from './utils/logger';
 
 export async function design2code(url: string): Promise<void> {
@@ -18,7 +18,7 @@ export async function design2code(url: string): Promise<void> {
     // Configure thread_id
     const threadId = urlInfo.projectName!;
     // Check if checkpoint exists and prompt user
-    const userChoice = await promptCheckpointChoice(checkpointer, threadId);
+    const resume = await promptCheckpointChoice(checkpointer, threadId);
     // Compile graph with checkpointer
     const graph = new StateGraph(GraphStateAnnotation)
         .addNode(GraphNode.INITIAL, initialProject)
@@ -36,13 +36,13 @@ export async function design2code(url: string): Promise<void> {
 
     // If resuming from checkpoint, pass null to let LangGraph resume from saved state
     // Otherwise, pass initial state to start fresh
-    if (userChoice === true) {
+    if (resume === true) {
         logger.printInfoLog('Resuming from cache...');
         // Resume from checkpoint - pass null (no new input) to continue from saved state
         // LangGraph will automatically load the last checkpoint for this thread_id
         await graph.invoke(null, config);
     } else {
-        await clearThreadCheckpoint(checkpointer, threadId);
+        deleteWorkspace(workspace);
         logger.printInfoLog('Starting fresh...');
         // Start fresh with initial state
         const initialState = {

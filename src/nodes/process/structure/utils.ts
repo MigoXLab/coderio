@@ -303,6 +303,7 @@ export function postProcessStructure(structure?: FrameStructNode | FrameStructNo
         if (node.data.componentName) {
             const componentKebabName = toKebabCase(node.data.componentName);
             node.data.componentPath = joinSegments(rootPath, componentKebabName);
+            node.data.path = node.data.componentPath;
         }
 
         node.data.path = currentPath;
@@ -417,12 +418,6 @@ export async function populateComponentProps(node: FrameStructNode, frames: Figm
                     }
 
                     node.children = newChildren;
-                } else {
-                    const props = parsed.state[0] ?? {};
-                    const child = group[0];
-                    if (child) {
-                        child.data.componentProperties = props;
-                    }
                 }
             }
         } catch (e) {
