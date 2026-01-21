@@ -6,21 +6,18 @@
  * - Internal utils may re-export from here via `utils/types.ts`
  */
 
-import type { FrameStructNode, FigmaFrameInfo, FigmaPositionAndSize } from '../../types/figma-types';
+import type { FrameStructNode } from '../../types/figma-types';
+import type { ElementMetadataRegistry, ValidationContext } from '../../types/validation-types';
 import type { ComponentAggregationData } from './utils/aggregate-elements';
-import type { ElementMetadataRegistry } from '../../nodes/validation/utils/extraction/extract-element-metadata';
-
-/**
- * Figma JSON input supports multiple shapes for compatibility.
- */
-export type FigmaJSONInput = FigmaFrameInfo | FigmaFrameInfo[] | { frames: FigmaFrameInfo[]; absoluteBoundingBox: FigmaPositionAndSize };
 
 /**
  * Input for capturing browser positions.
  */
 export interface BrowserPositionInput {
-    figmaJSON: FigmaJSONInput;
-    structure: FrameStructNode;
+    /** Protocol structure tree */
+    protocol: FrameStructNode;
+    /** Unified validation context containing all Figma data with normalized positions */
+    validationContext: ValidationContext;
     url: string;
     figmaThumbnailUrl: string;
     /**

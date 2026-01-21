@@ -6,7 +6,6 @@ import type { FrameStructNode, FigmaFrameInfo } from '../types/figma-types';
 import type { WorkspaceStructure } from '../types/workspace-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
-import { extractFigmaTreeFromProtocol } from '../nodes/validation/utils/extraction/extract-figma-tree.js';
 
 type ValCommandOptions = {
     workspace: string;
@@ -39,6 +38,30 @@ function normalizeProtocol(raw: unknown): FrameStructNode {
         return (raw as { protocol: FrameStructNode }).protocol;
     }
     return raw as FrameStructNode;
+}
+
+/**
+ * Extract thumbnail URL from protocol elements.
+ */
+function findThumbnailInProtocol(protocol: FrameStructNode): string | undefined {
+    const elements = protocol.data.elements as FigmaFrameInfo[] | undefined;
+    if (!elements) return undefined;
+
+    // Check root level
+    for (const element of elements) {
+        if (element.thumbnailUrl) {
+            return element.thumbnailUrl;
+        }
+        // Check first-level children
+        if (element.children) {
+            for (const child of element.children) {
+                if (child.thumbnailUrl) {
+                    return child.thumbnailUrl;
+                }
+            }
+        }
+    }
+    return undefined;
 }
 
 /**
@@ -78,10 +101,8 @@ export function registerValidateCommand(program: Command): void {
                 const rawProtocol = readJsonFile<unknown>(protocolPath);
                 const protocol = normalizeProtocol(rawProtocol);
 
-                // Extract Figma tree and thumbnail from protocol
-                const figmaJson = extractFigmaTreeFromProtocol(protocol);
-                const figmaThumbnailUrl =
-                    figmaJson.thumbnailUrl || (protocol.data.elements?.[0] as FigmaFrameInfo | undefined)?.thumbnailUrl;
+                // Extract thumbnail URL from protocol elements
+                const figmaThumbnailUrl = findThumbnailInProtocol(protocol);
 
                 if (!figmaThumbnailUrl) {
                     throw new Error('Missing thumbnailUrl in protocol. Ensure d2p/d2c generated protocol with thumbnail data.');

@@ -8,14 +8,12 @@ import * as path from 'path';
 
 import { logger } from '../../../utils/logger';
 import { PositionTool } from '../../../tools/position-tool';
-import type { BrowserPositionInput } from '../../../tools/position-tool/types';
 import { VisualizationTool } from '../../../tools/visualization-tool';
 import type { MisalignedComponentData } from '../../../tools/visualization-tool/types';
-import type { FigmaFrameInfo, FrameStructNode } from '../../../types/figma-types';
+import type { FrameStructNode } from '../../../types/figma-types';
 import type { MisalignedComponent, SkippedElement } from '../types';
 import { ReportTool } from '../../../tools/report-tool';
-import { extractMapFromRegistry } from '../utils/extraction/extract-element-metadata.js';
-import type { ElementMetadataRegistry } from '../utils/extraction/extract-element-metadata.js';
+import type { ValidationContext, ElementMetadataRegistry } from '../../../types/validation-types.js';
 
 /**
  * Configuration for validation iteration
@@ -23,13 +21,13 @@ import type { ElementMetadataRegistry } from '../utils/extraction/extract-elemen
 export interface ValidationIterationConfig {
     serverUrl: string;
     figmaThumbnailUrl: string;
-    figmaJson: FigmaFrameInfo;
-    structureTree: FrameStructNode;
+    protocol: FrameStructNode;
     iteration: number;
     positionThreshold: number;
     designOffset: [number, number];
     outputDir: string;
-    elementToComponentMap?: Map<string, { id: string; name: string; path: string }>;
+    /** Unified validation context containing all Figma data with normalized positions */
+    validationContext: ValidationContext;
     /** Unified element registry containing all element metadata (eliminates tree traversals) */
     elementRegistry: ElementMetadataRegistry;
     /** Pre-cached Figma thumbnail base64 data to avoid redundant downloads. */
@@ -113,12 +111,12 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
     const {
         serverUrl,
         figmaThumbnailUrl,
-        figmaJson,
-        structureTree,
+        protocol,
         iteration,
         positionThreshold,
         designOffset,
         outputDir,
+        validationContext,
         elementRegistry,
     } = config;
 
@@ -128,8 +126,8 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
 
     // Type assertion: captureBrowserPositions accepts flexible input types for compatibility
     const captureResult = await positionTool.capturePosition({
-        figmaJSON: figmaJson as unknown as BrowserPositionInput['figmaJSON'],
-        structure: structureTree as unknown as BrowserPositionInput['structure'],
+        protocol,
+        validationContext,
         url: serverUrl,
         figmaThumbnailUrl,
         positionThreshold,
@@ -137,8 +135,8 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
         elementRegistry,
     });
 
-    // Build element-to-component mapping (use cached if provided)
-    const elementToComponent = config.elementToComponentMap || extractMapFromRegistry(config.elementRegistry);
+    // Use element-to-component mapping from validation context
+    const elementToComponent = validationContext.elementToComponent;
 
     const aggregated = positionTool.aggregateElements(captureResult.positions, elementToComponent, positionThreshold);
     const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];

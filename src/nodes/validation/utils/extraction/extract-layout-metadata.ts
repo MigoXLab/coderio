@@ -1,11 +1,11 @@
 /**
  * Figma layout metadata extraction utilities.
  *
- * Extracts layout-related metadata from Figma JSON for agent reasoning.
+ * Extracts layout-related metadata from ValidationContext for agent reasoning.
  */
 
 import type { FigmaLayoutMetadata } from '../../types';
-import { findInTree, type Dict } from '../tree/tree-traversal';
+import type { ValidationContext, ElementInfo } from '../../../../types/validation-types.js';
 
 /** Layout quality scores for different node types */
 const LAYOUT_SCORES = {
@@ -15,111 +15,85 @@ const LAYOUT_SCORES = {
     DEFAULT: 1,
 } as const;
 
-function hasLayoutMode(node: Dict): boolean {
-    return node.layoutMode !== 'NONE' && node.layoutMode !== undefined;
+function hasLayoutMode(element: ElementInfo): boolean {
+    return element.layoutMode !== 'NONE' && element.layoutMode !== undefined;
 }
 
-function getLayoutScore(node: Dict): number {
-    if (node.type === 'FRAME' && hasLayoutMode(node)) {
+function getLayoutScore(element: ElementInfo): number {
+    if (element.type === 'FRAME' && hasLayoutMode(element)) {
         return LAYOUT_SCORES.FRAME_WITH_LAYOUT;
     }
-    if (hasLayoutMode(node)) {
+    if (hasLayoutMode(element)) {
         return LAYOUT_SCORES.NODE_WITH_LAYOUT;
     }
-    if (node.type === 'GROUP') {
+    if (element.type === 'GROUP') {
         return LAYOUT_SCORES.GROUP;
     }
     return LAYOUT_SCORES.DEFAULT;
 }
 
-function searchForLayoutInChildren(node: Dict): Dict | undefined {
-    const children = (node.children as Dict[]) || [];
-
-    for (const child of children) {
-        if (child.type === 'FRAME' && hasLayoutMode(child)) {
-            return child;
-        }
-    }
-
-    for (const child of children) {
-        const result = searchForLayoutInChildren(child);
-        if (result) {
-            return result;
-        }
-    }
-
-    return undefined;
-}
-
-function findBestLayoutNode(elementIds: string[], figmaJson: Dict): Dict | undefined {
-    let bestNode: Dict | undefined;
+function findBestLayoutElement(elementIds: string[], context: ValidationContext): ElementInfo | undefined {
+    let bestElement: ElementInfo | undefined;
     let bestScore = -1;
 
     for (const elemId of elementIds) {
-        const node = findInTree(figmaJson, elemId);
-        if (!node) continue;
+        const element = context.elements.get(elemId);
+        if (!element) continue;
 
-        const score = getLayoutScore(node);
+        const score = getLayoutScore(element);
         if (score > bestScore) {
             bestScore = score;
-            bestNode = node;
+            bestElement = element;
             if (score === LAYOUT_SCORES.FRAME_WITH_LAYOUT) break;
         }
     }
 
-    if (bestNode && bestNode.type === 'GROUP' && bestScore === LAYOUT_SCORES.GROUP) {
-        const layoutChild = searchForLayoutInChildren(bestNode);
-        if (layoutChild) {
-            return layoutChild;
-        }
-    }
-
-    return bestNode;
+    return bestElement;
 }
 
 /**
- * Extract layout metadata for a specific component from Figma JSON.
+ * Extract layout metadata from ValidationContext for a specific component.
  *
- * @param figmaJson - Complete Figma design data
- * @param componentId - Target component ID (from structure tree)
- * @param elementIds - Pre-extracted element IDs for this component (from element registry)
+ * @param context - Unified validation context
+ * @param _componentId - Target component ID (unused, kept for API compatibility)
+ * @param elementIds - Pre-extracted element IDs for this component
  */
-export function extractFigmaLayoutMetadata(figmaJson: Dict, componentId: string, elementIds: string[]): FigmaLayoutMetadata {
-    let node: Dict | undefined;
+export function extractLayoutFromContext(context: ValidationContext, _componentId: string, elementIds: string[]): FigmaLayoutMetadata {
+    // Find best layout element from element IDs
+    const element = elementIds.length > 0 ? findBestLayoutElement(elementIds, context) : undefined;
 
-    // Try direct lookup in figmaJson.nodes
-    const nodes = figmaJson.nodes as Record<string, Dict> | undefined;
-    node = nodes?.[componentId];
-
-    // If not found, find best layout node from element IDs
-    if (!node && elementIds.length > 0) {
-        node = findBestLayoutNode(elementIds, figmaJson);
+    if (!element) {
+        return {
+            layoutMode: 'NONE',
+            primaryAxisAlignItems: 'N/A',
+            counterAxisAlignItems: 'N/A',
+            itemSpacing: 0,
+            padding: { top: 0, right: 0, bottom: 0, left: 0 },
+            constraints: {},
+            absoluteBoundingBox: {},
+        };
     }
-
-    // Final fallback: generic tree search
-    if (!node) {
-        node = findInTree(figmaJson, componentId) || {};
-    }
-
-    const bbox = (node.absoluteBoundingBox as Dict) || {};
 
     return {
-        layoutMode: (node.layoutMode as string) || 'NONE',
-        primaryAxisAlignItems: (node.primaryAxisAlignItems as string) || 'N/A',
-        counterAxisAlignItems: (node.counterAxisAlignItems as string) || 'N/A',
-        itemSpacing: (node.itemSpacing as number) || 0,
+        layoutMode: element.layoutMode ?? 'NONE',
+        primaryAxisAlignItems: element.primaryAxisAlignItems ?? 'N/A',
+        counterAxisAlignItems: element.counterAxisAlignItems ?? 'N/A',
+        itemSpacing: element.itemSpacing ?? 0,
         padding: {
-            top: (node.paddingTop as number) || 0,
-            right: (node.paddingRight as number) || 0,
-            bottom: (node.paddingBottom as number) || 0,
-            left: (node.paddingLeft as number) || 0,
+            top: element.paddingTop ?? 0,
+            right: element.paddingRight ?? 0,
+            bottom: element.paddingBottom ?? 0,
+            left: element.paddingLeft ?? 0,
         },
-        constraints: (node.constraints as Record<string, unknown>) || {},
+        constraints: element.constraints ?? {},
         absoluteBoundingBox: {
-            x: bbox.x as number | undefined,
-            y: bbox.y as number | undefined,
-            width: bbox.width as number | undefined,
-            height: bbox.height as number | undefined,
+            x: element.position.x,
+            y: element.position.y,
+            width: element.position.w,
+            height: element.position.h,
         },
     };
 }
+
+// Keep backward-compatible export for any remaining usages
+export { extractLayoutFromContext as extractFigmaLayoutMetadata };

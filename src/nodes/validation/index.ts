@@ -12,7 +12,6 @@ import type { GraphState } from '../../state';
 import { METRIC_DECIMAL_PLACES } from '../../constants/validation';
 import { logger } from '../../utils/logger';
 import { validationLoop } from './core/validation-loop';
-import { extractFigmaTreeFromProtocol } from './utils/extraction/extract-figma-tree.js';
 import type { ValidationResult } from './types';
 
 /**
@@ -27,8 +26,6 @@ export const runValidation = async (state: GraphState, options?: { mode?: 'repor
         throw new Error('Missing Figma thumbnail URL (state.figmaInfo.thumbnail is missing).');
     }
 
-    const figmaTree = extractFigmaTreeFromProtocol(state.protocol);
-
     const workspaceDir = state.workspace.app;
     const outputDir = path.join(state.workspace.root, 'validation');
     if (!fs.existsSync(outputDir)) {
@@ -38,8 +35,7 @@ export const runValidation = async (state: GraphState, options?: { mode?: 'repor
     logger.printLog('Starting validation loop...');
 
     const result = await validationLoop({
-        figmaJson: figmaTree,
-        structureTree: state.protocol,
+        protocol: state.protocol,
         figmaThumbnailUrl: state.figmaInfo.thumbnail,
         outputDir,
         workspaceDir,

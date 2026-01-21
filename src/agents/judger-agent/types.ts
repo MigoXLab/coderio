@@ -14,20 +14,3 @@ export interface JudgerDiagnosis {
     refineInstructions: string[];
     toolsUsed: string[];
 }
-
-/**
- * Component history entry
- * Tracks position and fix across iterations for HistoryTool
- */
-export interface ComponentHistoryEntry {
-    iteration: number;
-    position: [number, number];
-    error: [number, number];
-    fixApplied: string[] | null;
-}
-
-/**
- * Component history map
- * Maps component IDs to their history entries
- */
-export type ComponentHistory = Record<string, ComponentHistoryEntry[]>;
