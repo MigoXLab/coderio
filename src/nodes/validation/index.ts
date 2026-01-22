@@ -9,16 +9,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import type { GraphState } from '../../state';
-import { METRIC_DECIMAL_PLACES } from '../../constants/validation';
+import { METRIC_DECIMAL_PLACES } from './constants';
 import { logger } from '../../utils/logger';
 import { validationLoop } from './core/validation-loop';
 import type { ValidationResult } from './types';
 
 /**
  * LangGraph node: run validation on the generated app and write a report into the workspace.
+ * Reads validation mode from state.config.validationMode (defaults to 'full').
  * Returns empty object for graph state (terminal node), but provides validation results for direct invocation.
  */
-export const runValidation = async (state: GraphState, options?: { mode?: 'reportOnly' | 'full' }): Promise<ValidationResult> => {
+export const runValidation = async (state: GraphState): Promise<ValidationResult> => {
     if (!state.protocol) {
         throw new Error('No protocol found for validation (state.protocol is missing).');
     }
@@ -26,20 +27,21 @@ export const runValidation = async (state: GraphState, options?: { mode?: 'repor
         throw new Error('Missing Figma thumbnail URL (state.figmaInfo.thumbnail is missing).');
     }
 
+    const mode = state.config?.validationMode ?? 'full';
     const workspaceDir = state.workspace.app;
     const outputDir = path.join(state.workspace.root, 'validation');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    logger.printLog('Starting validation loop...');
+    logger.printLog(`Starting validation loop (mode: ${mode})...`);
 
     const result = await validationLoop({
         protocol: state.protocol,
         figmaThumbnailUrl: state.figmaInfo.thumbnail,
         outputDir,
         workspaceDir,
-        config: options?.mode ? { mode: options.mode } : undefined,
+        config: { mode },
     });
 
     if (result.error) {

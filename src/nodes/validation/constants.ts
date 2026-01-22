@@ -1,7 +1,7 @@
 /**
- * Configuration constants for validation
- *
- * Centralized configuration for validation thresholds and settings.
+ * Validation node-specific configuration constants.
+ * These are static values specific to the validation orchestration logic.
+ * Not global - scoped to validation node only.
  */
 
 /**
