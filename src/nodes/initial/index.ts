@@ -5,6 +5,7 @@ import { logger } from '../../utils/logger';
 import { getModelConfig } from '../../utils/config';
 import { GraphState } from '../../state';
 import { MAX_OUTPUT_TOKENS, AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
+import { initialAgentInstruction } from '../../agents/initial-agent/instruction';
 
 /**
  * 'initial' node, responsible for initializing the empty project scaffold.
@@ -21,12 +22,13 @@ export const initialProject = async (state: GraphState) => {
     };
 
     const appPath = state.workspace.app;
+    const appName = state.urlInfo.name || '';
     if (!appPath) {
         throw new Error('Workspace application path is not defined.');
     }
 
-    const initialAgent = createInitialAgent({ modelConfig, appPath });
-    const result: unknown = await initialAgent.run(appPath);
+    const initialAgent = createInitialAgent(modelConfig);
+    const result: unknown = await initialAgent.run(initialAgentInstruction({ appPath, appName }));
 
     // Validate if essential files were created
     const essentialFiles = ['package.json', 'src', 'vite.config.ts', 'tsconfig.json', 'index.html', 'src/main.tsx', 'src/App.tsx'];
