@@ -4,6 +4,7 @@ import { Command } from 'commander';
 
 import type { FrameStructNode, FigmaFrameInfo } from '../types/figma-types';
 import type { WorkspaceStructure } from '../types/workspace-types';
+import type { GraphConfig } from '../types/graph-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
 
@@ -82,7 +83,6 @@ export function registerValidateCommand(program: Command): void {
             try {
                 const workspaceRoot = resolveWorkspaceRoot(opts.workspace);
                 const appName = opts.appName || 'my-app';
-                const mode: 'reportOnly' | 'full' = opts.reportonly ? 'reportOnly' : 'full';
 
                 const workspace: WorkspaceStructure = {
                     root: workspaceRoot,
@@ -108,18 +108,21 @@ export function registerValidateCommand(program: Command): void {
                     throw new Error('Missing thumbnailUrl in protocol. Ensure d2p/d2c generated protocol with thumbnail data.');
                 }
 
-                logger.printInfoLog(`Running validation (${mode}) using workspace: ${workspace.root}`);
+                // Build GraphConfig from CLI options
+                const config: GraphConfig = {
+                    validationMode: opts.reportonly ? 'reportOnly' : 'full',
+                };
 
-                const result = await runValidation(
-                    {
-                        urlInfo: { fileId: null, name: path.basename(workspaceRoot), nodeId: null, projectName: null },
-                        workspace,
-                        figmaInfo: { thumbnail: figmaThumbnailUrl },
-                        protocol,
-                        messages: [],
-                    },
-                    { mode }
-                );
+                logger.printInfoLog(`Running validation (${config.validationMode}) using workspace: ${workspace.root}`);
+
+                const result = await runValidation({
+                    urlInfo: { fileId: null, name: path.basename(workspaceRoot), nodeId: null, projectName: null },
+                    workspace,
+                    figmaInfo: { thumbnail: figmaThumbnailUrl },
+                    protocol,
+                    messages: [],
+                    config,
+                });
 
                 process.exit(result.validationPassed ? 0 : 1);
             } catch (error) {

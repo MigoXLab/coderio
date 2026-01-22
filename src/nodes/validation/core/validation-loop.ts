@@ -9,7 +9,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { DEFAULT_VALIDATION_LOOP_CONFIG } from '../../../constants/validation';
+import { DEFAULT_VALIDATION_LOOP_CONFIG } from '../constants';
 import { logger } from '../../../utils/logger';
 import { commit } from '../subnodes/commit/index.js';
 import { createJudgerAgent, formatJudgerInstruction } from '../../../agents/judger-agent';

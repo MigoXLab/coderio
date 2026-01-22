@@ -30,6 +30,7 @@ export const registerP2CCommand = (program: Command) => {
                         projectName: '',
                     },
                     messages: [],
+                    config: {},
                 };
                 await initialProject(state);
                 await generateCode(state);

@@ -2,7 +2,7 @@ import * as http from 'http';
 import * as net from 'net';
 import { spawn, type ChildProcess } from 'child_process';
 
-import { buildDevServerUrl, DEFAULT_PORT } from '../../../constants/validation';
+import { buildDevServerUrl, DEFAULT_PORT } from '../../../nodes/validation/constants';
 import { logger } from '../../../utils/logger';
 
 export interface DevServerHandle {

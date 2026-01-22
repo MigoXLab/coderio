@@ -2,7 +2,7 @@
 
 import { Browser, Page } from 'playwright';
 
-import { DEFAULT_TIMEOUT, DEFAULT_VIEWPORT, POSITION_THRESHOLD, SELECTOR_WAIT_TIMEOUT } from '../../../constants/validation';
+import { DEFAULT_TIMEOUT, DEFAULT_VIEWPORT, POSITION_THRESHOLD, SELECTOR_WAIT_TIMEOUT } from '../../../nodes/validation/constants';
 import { launchChromiumWithAutoInstall } from '../../../nodes/validation/utils/playwright/launcher';
 import { logger } from '../../../utils/logger';
 
