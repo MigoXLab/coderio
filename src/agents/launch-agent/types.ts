@@ -55,26 +55,3 @@ export interface LaunchOptions {
      */
     serverKey?: string;
 }
-
-export interface LaunchResult {
-    success: boolean;
-    repoPath: string;
-    serverUrl?: string;
-    port?: number;
-    pid?: number;
-    /** Server key for managed dev server (only set in full mode). Used to stop the server. */
-    serverKey?: string;
-    buildAgentIterations: number;
-    runtimeAgentIterations: number;
-    error?: string;
-}
-
-export type LaunchStage = 'build' | 'runtime';
-
-export interface LaunchAgentResult {
-    success: boolean;
-    summary: string[];
-    editsApplied: number;
-    touchedFiles: string[];
-    error?: string;
-}
