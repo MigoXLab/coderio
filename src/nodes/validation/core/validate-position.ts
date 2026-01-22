@@ -63,8 +63,6 @@ async function generateIterationScreenshot(
     }
 
     try {
-        logger.printTestLog(`Generating annotated screenshots for iteration ${iteration}`);
-
         const comparisonDir = path.join(outputDir, 'comparison_screenshots');
         if (!fs.existsSync(comparisonDir)) {
             fs.mkdirSync(comparisonDir, { recursive: true });
@@ -122,8 +120,6 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
 
     const positionTool = new PositionTool();
 
-    logger.printTestLog('validatePositions: Calling PositionTool.capturePosition...');
-
     // Type assertion: captureBrowserPositions accepts flexible input types for compatibility
     const captureResult = await positionTool.capturePosition({
         protocol,
@@ -142,7 +138,7 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
     const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
     const skippedElements = aggregated.skippedElements as unknown as SkippedElement[];
 
-    logger.printTestLog(`validatePositions: Found ${misalignedComponents.length} misaligned components`);
+    logger.printLog(`Found ${misalignedComponents.length} misaligned components`);
 
     // Generate iteration screenshot
     const comparisonScreenshotPath = await generateIterationScreenshot(
