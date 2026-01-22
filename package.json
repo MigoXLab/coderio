@@ -15,6 +15,7 @@
     ],
     "scripts": {
         "dev": "tsup --watch",
+        "prebuild:report": "npm --prefix src/report install",
         "build:report": "npm --prefix src/report run build",
         "build": "pnpm run check && pnpm run build:report && tsup",
         "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check",

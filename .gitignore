@@ -1,11 +1,11 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
 package-lock.json
 
 # Build output
 dist/
 *.tsbuildinfo
+src/report/dist
 
 # IDE
 .vscode/launch.json

@@ -4,7 +4,7 @@ import { Command } from 'commander';
 
 import type { FrameStructNode, FigmaFrameInfo } from '../types/figma-types';
 import type { WorkspaceStructure } from '../types/workspace-types';
-import type { GraphConfig } from '../types/graph-types';
+import type { ValidationConfig } from '../types/graph-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
 
@@ -77,7 +77,7 @@ export function registerValidateCommand(program: Command): void {
         .alias('val')
         .description('Validate position misalignment using an existing generated workspace')
         .requiredOption('-w, --workspace <path>', 'Workspace root path (contains process/ and generated app folder)')
-        .option('--appName <name>', 'Generated app folder name inside workspace root', 'my-app')
+        .option('--appName [name]', 'Generated app folder name inside workspace root', 'my-app')
         .option('--reportonly', 'Run report-only validation (no code edits)', false)
         .action(async (opts: ValCommandOptions) => {
             try {
@@ -108,8 +108,8 @@ export function registerValidateCommand(program: Command): void {
                     throw new Error('Missing thumbnailUrl in protocol. Ensure d2p/d2c generated protocol with thumbnail data.');
                 }
 
-                // Build GraphConfig from CLI options
-                const config: GraphConfig = {
+                // Build ValidationConfig from CLI options
+                const config: ValidationConfig = {
                     validationMode: opts.reportonly ? 'reportOnly' : 'full',
                 };
 

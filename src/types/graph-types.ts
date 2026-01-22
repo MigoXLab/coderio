@@ -12,10 +12,10 @@ export interface GlobalFigmaInfo {
 }
 
 /**
- * Graph-level configuration.
- * Contains configuration for various nodes in the workflow.
+ * Validation-specific configuration.
+ * Controls validation behavior in the workflow.
  */
-export interface GraphConfig {
+export interface ValidationConfig {
     /**
      * Validation execution mode.
      * - reportOnly: run a single validation pass and generate a report (no code edits)
