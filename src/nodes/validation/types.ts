@@ -28,7 +28,7 @@ export type {
 
 export type { JudgerDiagnosis } from '../../agents/judger-agent/types';
 export type { RefinerResult } from '../../agents/refiner-agent/types';
-export type { LaunchOptions, LaunchResult, LaunchStage, LaunchAgentResult } from '../../agents/launch-agent/types';
+export type { LaunchOptions } from '../../agents/launch-agent/types';
 export type { GitCommitOptions, GitCommitResult } from '../../agents/commit-agent/types';
 export type { BoundingBox, PositionError, Rectangle, ComponentAggregationData } from '../../tools/position-tool/types';
 
@@ -126,10 +126,6 @@ export interface ValidationLoopParams {
     outputDir: string;
     workspaceDir?: string;
     config?: Partial<ValidationLoopConfig>;
-    /** Dev server run command (e.g. "pnpm dev"). Required for launch orchestration. */
-    runCommand?: string;
-    /** Build command (e.g. "pnpm build"). Required for launch orchestration. */
-    buildCommand?: string;
 }
 
 /**

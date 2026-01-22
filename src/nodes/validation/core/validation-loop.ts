@@ -14,7 +14,7 @@ import { logger } from '../../../utils/logger';
 import { commit } from '../subnodes/commit/index.js';
 import { createJudgerAgent, formatJudgerInstruction } from '../../../agents/judger-agent';
 import { createRefinerAgent, formatRefinerInstruction } from '../../../agents/refiner-agent';
-import { launch } from '../subnodes/launch/index.js';
+import { checkAndFix } from '../subnodes/launch/index.js';
 import type {
     ComponentCorrectionLog,
     ComponentHistory,
@@ -181,82 +181,12 @@ async function downloadFigmaThumbnail(figmaThumbnailUrl: string): Promise<string
     return base64;
 }
 
-/**
- * Run initial full-mode launch before validation begins.
- * Starts the dev server and ensures it's ready for position capture.
- * BLOCKING: Returns failure if max attempts exceeded.
- */
-async function runInitialLaunch(params: {
-    workspaceDir: string;
-    runCommand: string;
-    buildCommand: string;
-    maxBuildAttempts: number;
-    maxRuntimeAttempts: number;
-}): Promise<{ success: true; serverUrl: string; port: number; serverKey: string } | { success: false; error: string }> {
-    const { workspaceDir, runCommand, buildCommand, maxBuildAttempts, maxRuntimeAttempts } = params;
-
-    logger.printLog('Running initial launch (full mode) before validation...');
-
-    const result = await launch({
-        repoPath: workspaceDir,
-        runCommand,
-        buildCommand,
-        mode: 'full',
-        maxBuildAttempts,
-        maxRuntimeAttempts,
-    });
-
-    if (result.success && result.serverUrl && result.port && result.serverKey) {
-        logger.printLog(`Initial launch succeeded. Server: ${result.serverUrl}`);
-        return { success: true, serverUrl: result.serverUrl, port: result.port, serverKey: result.serverKey };
-    }
-
-    const errorMsg = result.error ?? 'Unknown launch failure';
-    const enrichedError = `${errorMsg}\n(Build attempts: ${result.buildAgentIterations}, Runtime attempts: ${result.runtimeAgentIterations})`;
-    logger.printErrorLog(`Initial launch failed: ${enrichedError}`);
-    return { success: false, error: enrichedError };
-}
-
-/**
- * Run build-only check after judger-refiner fixes.
- * When serverKey is provided, also restarts the dev server and validates runtime.
- * BLOCKING: Returns failure if max attempts exceeded.
- */
-async function runBuildCheckBeforeCommit(params: {
-    workspaceDir: string;
-    buildCommand: string;
-    maxBuildAttempts: number;
-    iteration: number;
-    serverKey: string;
-}): Promise<{ success: boolean; serverUrl?: string; port?: number; error?: string }> {
-    const { workspaceDir, buildCommand, maxBuildAttempts, iteration, serverKey } = params;
-
-    logger.printLog(`Running build check before end iteration ${iteration} commit...`);
-
-    const result = await launch({
-        repoPath: workspaceDir,
-        buildCommand,
-        mode: 'buildOnly',
-        maxBuildAttempts,
-        serverKey,
-    });
-
-    if (!result.success) {
-        const errorMsg = result.error ?? 'Build check failed';
-        logger.printErrorLog(errorMsg);
-        return { success: false, error: errorMsg };
-    }
-
-    logger.printLog(`Build check passed (iteration ${iteration}).`);
-    return {
-        success: true,
-        serverUrl: result.serverUrl,
-        port: result.port,
-    };
-}
-
 export async function validationLoop(params: ValidationLoopParams): Promise<ValidationLoopResult> {
     const { protocol, figmaThumbnailUrl, outputDir, workspaceDir } = params;
+
+    if (!protocol || !figmaThumbnailUrl || !outputDir || !workspaceDir) {
+        throw new Error('Something wrong in validation loop, missing required parameters...');
+    }
 
     const config: ValidationLoopConfig = {
         ...DEFAULT_VALIDATION_LOOP_CONFIG,
@@ -264,98 +194,34 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     };
     const mode: 'reportOnly' | 'full' = config.mode ?? 'full';
     const maxIterations = mode === 'reportOnly' ? 1 : config.maxIterations;
-
     const launchTool = new LaunchTool();
-
-    // Resolve commands: prefer params, fallback to auto-detection
-    let runCommand = params.runCommand;
-    let buildCommand = params.buildCommand;
-    if (!runCommand || !buildCommand) {
-        if (!workspaceDir) {
-            logger.printWarnLog(
-                'workspaceDir not provided; cannot auto-detect run/build commands. Defaulting to "npm run dev" / "npm run build".'
-            );
-            runCommand = runCommand ?? 'npm run dev';
-            buildCommand = buildCommand ?? 'npm run build';
-        } else {
-            const detected = await launchTool.detectCommands(workspaceDir);
-            runCommand = runCommand ?? detected.runCommand;
-            buildCommand = buildCommand ?? detected.buildCommand;
-        }
-    }
-
-    // Create single ReportTool instance for reuse throughout validation loop
     const reportTool = new ReportTool();
 
-    // Track current server URL (may be provided or obtained from initial launch)
-    let currentServerUrl = params.serverUrl;
-    let serverKey: string | undefined;
+    const preCommit = await commit({
+        repoPath: workspaceDir,
+        commitMessage: `start validation loop`,
+        allowEmpty: true,
+    });
+    if (!preCommit.success) {
+        logger.printWarnLog(`Git commit (start validation loop) failed: ${preCommit.message}`);
+    } else {
+        logger.printSuccessLog(`Initial project has been committed successfully, starting validation loop...`);
+    }
+
+    const result = await checkAndFix(workspaceDir);
+    if (!result.success) {
+        throw new Error(result.error);
+    }
+
+    const serverRes = await launchTool.startDevServer(workspaceDir, 'npm run dev', 60000);
+    if (!serverRes.success || !serverRes.url || !serverRes.port || !serverRes.serverKey) {
+        throw new Error(serverRes.error ?? 'Failed to start dev server.');
+    }
+
+    const currentServerUrl = serverRes.url;
+    const serverKey = serverRes.serverKey;
 
     try {
-        // Initial launch (full mode) before any validation iteration
-        if (workspaceDir && runCommand && buildCommand) {
-            const launchResult = await runInitialLaunch({
-                workspaceDir,
-                runCommand,
-                buildCommand,
-                maxBuildAttempts: config.maxLaunchBuildAttempts,
-                maxRuntimeAttempts: config.maxLaunchRuntimeAttempts,
-            });
-
-            if (!launchResult.success) {
-                // Launch failed after max attempts - halt validation
-                return {
-                    reportGenerated: false,
-                    validationPassed: false,
-                    finalMae: -1,
-                    finalSae: 0,
-                    totalIterations: 0,
-                    processedOutput: {
-                        iterations: [],
-                        finalResult: { success: false, finalMae: -1, finalSae: 0, totalIterations: 0, misalignedCount: 0 },
-                    },
-                    error: launchResult.error,
-                    userReport: reportTool.createMinimalReport({
-                        serverUrl: currentServerUrl ?? 'unknown',
-                        figmaThumbnailUrl,
-                        mae: -1,
-                        sae: 0,
-                    }),
-                };
-            }
-
-            // Update serverUrl and serverKey from successful launch
-            currentServerUrl = launchResult.serverUrl;
-            serverKey = launchResult.serverKey;
-            if (!serverKey) {
-                throw new Error('Launch succeeded but serverKey missing - server cannot be cleaned up');
-            }
-        }
-
-        // Ensure we have a server URL for validation
-        if (!currentServerUrl) {
-            const errorMsg = 'No serverUrl available for validation. Provide serverUrl in params or workspaceDir with commands for launch.';
-            logger.printErrorLog(errorMsg);
-            return {
-                reportGenerated: false,
-                validationPassed: false,
-                finalMae: -1,
-                finalSae: 0,
-                totalIterations: 0,
-                processedOutput: {
-                    iterations: [],
-                    finalResult: { success: false, finalMae: -1, finalSae: 0, totalIterations: 0, misalignedCount: 0 },
-                },
-                error: errorMsg,
-                userReport: reportTool.createMinimalReport({
-                    serverUrl: 'unknown',
-                    figmaThumbnailUrl,
-                    mae: -1,
-                    sae: 0,
-                }),
-            };
-        }
-
         // Extract unified validation context from protocol (single traversal)
         const validationContext = extractValidationContext(protocol);
         const designOffset: [number, number] = [validationContext.offset.x, validationContext.offset.y];
@@ -478,44 +344,10 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                     },
                 });
 
-                if (workspaceDir && buildCommand && serverKey) {
-                    const buildCheck = await runBuildCheckBeforeCommit({
-                        workspaceDir,
-                        buildCommand,
-                        maxBuildAttempts: config.maxLaunchBuildAttempts,
-                        iteration,
-                        serverKey,
-                    });
+                if (workspaceDir && serverKey) {
+                    const buildCheck = await checkAndFix(workspaceDir);
                     if (!buildCheck.success) {
-                        // Build failed after max attempts - halt validation
-                        return {
-                            reportGenerated: false,
-                            validationPassed: false,
-                            finalMae: currentMae,
-                            finalSae: currentSae,
-                            totalIterations: iteration,
-                            processedOutput: {
-                                iterations,
-                                finalResult: {
-                                    success: false,
-                                    finalMae: currentMae,
-                                    finalSae: currentSae,
-                                    totalIterations: iteration,
-                                    misalignedCount: misaligned.length,
-                                },
-                            },
-                            error: buildCheck.error,
-                            userReport: reportTool.createMinimalReport({
-                                serverUrl: currentServerUrl,
-                                figmaThumbnailUrl,
-                                mae: currentMae,
-                                sae: currentSae,
-                            }),
-                        };
-                    }
-                    // Update server URL if changed after restart
-                    if (buildCheck.serverUrl) {
-                        currentServerUrl = buildCheck.serverUrl;
+                        throw new Error(buildCheck.error);
                     }
                     const endCommit = await commit({
                         repoPath: workspaceDir,
@@ -564,44 +396,10 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 },
             });
 
-            if (workspaceDir && buildCommand && serverKey) {
-                const buildCheck = await runBuildCheckBeforeCommit({
-                    workspaceDir,
-                    buildCommand,
-                    maxBuildAttempts: config.maxLaunchBuildAttempts,
-                    iteration,
-                    serverKey,
-                });
+            if (workspaceDir && serverKey) {
+                const buildCheck = await checkAndFix(workspaceDir);
                 if (!buildCheck.success) {
-                    // Build failed after max attempts - halt validation
-                    return {
-                        reportGenerated: false,
-                        validationPassed: false,
-                        finalMae: currentMae,
-                        finalSae: currentSae,
-                        totalIterations: iteration,
-                        processedOutput: {
-                            iterations,
-                            finalResult: {
-                                success: false,
-                                finalMae: currentMae,
-                                finalSae: currentSae,
-                                totalIterations: iteration,
-                                misalignedCount: misaligned.length,
-                            },
-                        },
-                        error: buildCheck.error,
-                        userReport: reportTool.createMinimalReport({
-                            serverUrl: currentServerUrl,
-                            figmaThumbnailUrl,
-                            mae: currentMae,
-                            sae: currentSae,
-                        }),
-                    };
-                }
-                // Update server URL if changed after restart
-                if (buildCheck.serverUrl) {
-                    currentServerUrl = buildCheck.serverUrl;
+                    throw new Error(buildCheck.error);
                 }
                 const endCommit = await commit({
                     repoPath: workspaceDir,

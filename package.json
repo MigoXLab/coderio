@@ -15,9 +15,7 @@
     ],
     "scripts": {
         "dev": "tsup --watch",
-        "prebuild:report": "npm --prefix src/report install",
-        "build:report": "npm --prefix src/report run build",
-        "build": "pnpm run check && pnpm run build:report && tsup",
+        "build": "pnpm run check && tsup",
         "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
