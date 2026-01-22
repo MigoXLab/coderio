@@ -15,10 +15,9 @@ export async function design2code(url: string): Promise<void> {
 
     // Initialize SqliteSaver with the database path
     const checkpointer = initializeSqliteSaver(workspace.db);
-    // Configure thread_id
     const threadId = urlInfo.projectName!;
-    // Check if checkpoint exists and prompt user
     const resume = await promptCheckpointChoice(checkpointer, threadId);
+
     // Compile graph with checkpointer
     const graph = new StateGraph(GraphStateAnnotation)
         .addNode(GraphNode.INITIAL, initialProject)
@@ -38,13 +37,10 @@ export async function design2code(url: string): Promise<void> {
     // Otherwise, pass initial state to start fresh
     if (resume === true) {
         logger.printInfoLog('Resuming from cache...');
-        // Resume from checkpoint - pass null (no new input) to continue from saved state
-        // LangGraph will automatically load the last checkpoint for this thread_id
         await graph.invoke(null, config);
     } else {
         deleteWorkspace(workspace);
         logger.printInfoLog('Starting fresh...');
-        // Start fresh with initial state
         const initialState = {
             messages: [],
             urlInfo,
