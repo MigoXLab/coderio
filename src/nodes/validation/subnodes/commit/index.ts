@@ -24,14 +24,14 @@ export async function commit(options?: GitCommitOptions): Promise<GitCommitResul
 
         await agent.run(instruction);
 
-        logger.printSuccessLog('✅ Commit completed!');
+        logger.printSuccessLog('Commit completed!');
         return {
             success: true,
             message: 'Commit workflow completed',
         };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.printErrorLog(`❌ Commit failed: ${errorMessage}`);
+        logger.printErrorLog(`Commit failed: ${errorMessage}`);
         return {
             success: false,
             message: errorMessage,

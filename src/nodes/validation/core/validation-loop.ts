@@ -102,9 +102,9 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
         const refinerResult = (await refiner.run(refinerInstruction)) as RefinerResult;
 
         if (refinerResult.success) {
-            logger.printSuccessLog(`  ${comp.name}: ${refinerResult.editsApplied} edits applied`);
+            logger.printSuccessLog(`${comp.name}: ${refinerResult.editsApplied} edits applied`);
         } else {
-            logger.printWarnLog(`  ${comp.name}: ${refinerResult.editsApplied} edits applied`);
+            logger.printWarnLog(`${comp.name}: ${refinerResult.editsApplied} edits applied`);
         }
 
         const history = componentHistory[comp.componentId];
