@@ -11,10 +11,12 @@ import * as path from 'path';
 
 import { DEFAULT_VALIDATION_LOOP_CONFIG } from '../constants';
 import { logger } from '../../../utils/logger';
-import { commit } from '../subnodes/commit/index.js';
+import { resolveAppSrc } from '../../../utils/workspace';
+import type { WorkspaceStructure } from '../../../types/workspace-types';
+import { commit } from '../subnodes/commit/index';
 import { createJudgerAgent, formatJudgerInstruction } from '../../../agents/judger-agent';
 import { createRefinerAgent, formatRefinerInstruction } from '../../../agents/refiner-agent';
-import { checkAndFix } from '../subnodes/launch/index.js';
+import { launch } from '../subnodes/launch/index';
 import type {
     ComponentCorrectionLog,
     ComponentHistory,
@@ -27,21 +29,17 @@ import type {
     ValidationLoopParams,
     ValidationLoopResult,
 } from '../types';
-import { extractLayoutFromContext } from '../utils/extraction/extract-layout-metadata.js';
-import { report } from '../subnodes/report/index.js';
+import { extractLayoutFromContext } from '../utils/extraction/extract-layout-metadata';
+import { report } from '../subnodes/report/index';
 import { ReportTool } from '../../../tools/report-tool';
 import { LaunchTool } from '../../../tools/launch-tool';
-import { type Dict } from '../utils/tree/tree-traversal.js';
-import {
-    extractValidationContext,
-    extractComponentPaths,
-    toElementMetadataRegistry,
-} from '../utils/extraction/extract-protocol-context.js';
-import type { ValidationContext } from '../../../types/validation-types.js';
+import { type Dict } from '../utils/tree/tree-traversal';
+import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';
+import type { ValidationContext } from '../../../types/validation-types';
 import { validatePositions } from './validate-position';
 
 interface RefinementContext {
-    workspaceDir?: string;
+    workspace: WorkspaceStructure;
     structureTree: Dict;
     componentPaths: Record<string, string>;
     componentHistory: ComponentHistory;
@@ -76,20 +74,21 @@ function recordComponentPosition(comp: MisalignedComponent, iteration: number, c
 
 /**
  * Resolve component paths from @/components aliases to absolute filesystem paths.
- * All components follow the pattern: {workspaceDir}/src/components/{name}/index.tsx
+ * Uses workspace structure for consistent path resolution across the codebase.
+ * All components follow the pattern: {workspace.app}/src/components/{name}/index.tsx
  */
-function resolveComponentPaths(componentPaths: Record<string, string>, workspaceDir: string): Record<string, string> {
+function resolveComponentPaths(componentPaths: Record<string, string>, workspace: WorkspaceStructure): Record<string, string> {
     const resolved: Record<string, string> = {};
 
     for (const [componentId, aliasPath] of Object.entries(componentPaths)) {
-        // Convert @/components/name → src/components/name
-        const srcRelativePath = aliasPath.replace(/^@\//, 'src/');
+        // Convert @/components/name → components/name
+        const relativePath = aliasPath.replace(/^@\/components\//, 'components/');
 
         // Append index.tsx (all components follow this pattern)
-        const fullRelativePath = `${srcRelativePath}/index.tsx`;
+        const fullRelativePath = `${relativePath}/index.tsx`;
 
-        // Resolve to absolute path
-        const absolutePath = path.join(workspaceDir, fullRelativePath);
+        // Use resolveAppSrc utility for consistent path resolution
+        const absolutePath = resolveAppSrc(workspace, fullRelativePath);
 
         resolved[componentId] = absolutePath;
     }
@@ -98,7 +97,7 @@ function resolveComponentPaths(componentPaths: Record<string, string>, workspace
 }
 
 async function refineComponent(comp: MisalignedComponent, context: RefinementContext): Promise<ComponentCorrectionLog> {
-    const { workspaceDir, structureTree, componentPaths, componentHistory, validationContext, previousScreenshotPath } = context;
+    const { workspace, structureTree, componentPaths, componentHistory, validationContext, previousScreenshotPath } = context;
 
     try {
         // Extract element IDs from context for this component
@@ -110,7 +109,7 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
 
         logger.printLog(`  Analyzing ${comp.name}...`);
         const judger = createJudgerAgent({
-            workspaceDir,
+            workspaceDir: workspace.app,
             structureTree,
             componentPaths,
             history: componentHistory,
@@ -123,8 +122,8 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
         logger.printLog(`     Fix instructions: ${diagnosis.refineInstructions?.length || 0}`);
 
         logger.printLog(`  Applying fixes to ${comp.name}...`);
-        const refiner = createRefinerAgent(workspaceDir);
-        const refinerInstruction = formatRefinerInstruction(comp, diagnosis);
+        const refiner = createRefinerAgent(workspace.app);
+        const refinerInstruction = formatRefinerInstruction(comp, diagnosis, componentPaths);
         const refinerResult = (await refiner.run(refinerInstruction)) as RefinerResult;
 
         const status = refinerResult.success ? 'SUCCESS' : 'FAILED';
@@ -182,9 +181,9 @@ async function downloadFigmaThumbnail(figmaThumbnailUrl: string): Promise<string
 }
 
 export async function validationLoop(params: ValidationLoopParams): Promise<ValidationLoopResult> {
-    const { protocol, figmaThumbnailUrl, outputDir, workspaceDir } = params;
+    const { protocol, figmaThumbnailUrl, outputDir, workspace } = params;
 
-    if (!protocol || !figmaThumbnailUrl || !outputDir || !workspaceDir) {
+    if (!protocol || !figmaThumbnailUrl || !outputDir || !workspace) {
         throw new Error('Something wrong in validation loop, missing required parameters...');
     }
 
@@ -198,7 +197,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     const reportTool = new ReportTool();
 
     const preCommit = await commit({
-        repoPath: workspaceDir,
+        repoPath: workspace.app,
         commitMessage: `start validation loop`,
         allowEmpty: true,
     });
@@ -208,12 +207,12 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         logger.printSuccessLog(`Initial project has been committed successfully, starting validation loop...`);
     }
 
-    const result = await checkAndFix(workspaceDir);
+    const result = await launch(workspace.app);
     if (!result.success) {
         throw new Error(result.error);
     }
 
-    const serverRes = await launchTool.startDevServer(workspaceDir, 'npm run dev', 60000);
+    const serverRes = await launchTool.startDevServer(workspace.app, 'npm run dev', 60000);
     if (!serverRes.success || !serverRes.url || !serverRes.port || !serverRes.serverKey) {
         throw new Error(serverRes.error ?? 'Failed to start dev server.');
     }
@@ -232,8 +231,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         // Extract component paths from context
         const componentPaths = extractComponentPaths(validationContext);
 
-        // Resolve alias paths to absolute filesystem paths when workspaceDir available
-        const resolvedComponentPaths = workspaceDir ? resolveComponentPaths(componentPaths, workspaceDir) : componentPaths;
+        // Resolve alias paths to absolute filesystem paths using workspace structure
+        const resolvedComponentPaths = resolveComponentPaths(componentPaths, workspace);
 
         // Build element registry for compatibility with existing APIs
         const elementRegistry = toElementMetadataRegistry(validationContext);
@@ -254,17 +253,13 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printLog(`${'='.repeat(60)}`);
 
             if (mode === 'full') {
-                if (workspaceDir) {
-                    const startCommit = await commit({
-                        repoPath: workspaceDir,
-                        commitMessage: `start iteration ${iteration}`,
-                        allowEmpty: true,
-                    });
-                    if (!startCommit.success) {
-                        logger.printWarnLog(`Git commit (start iteration ${iteration}) failed: ${startCommit.message}`);
-                    }
-                } else {
-                    logger.printWarnLog('workspaceDir not provided; skipping git commit markers for this iteration');
+                const startCommit = await commit({
+                    repoPath: workspace.app,
+                    commitMessage: `start iteration ${iteration}`,
+                    allowEmpty: true,
+                });
+                if (!startCommit.success) {
+                    logger.printWarnLog(`Git commit (start iteration ${iteration}) failed: ${startCommit.message}`);
                 }
             }
 
@@ -279,6 +274,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 validationContext,
                 elementRegistry,
                 cachedFigmaThumbnailBase64,
+                resolvedComponentPaths,
             });
 
             currentMae = validationResult.mae;
@@ -344,13 +340,13 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                     },
                 });
 
-                if (workspaceDir && serverKey) {
-                    const buildCheck = await checkAndFix(workspaceDir);
+                if (serverKey) {
+                    const buildCheck = await launch(workspace.app);
                     if (!buildCheck.success) {
                         throw new Error(buildCheck.error);
                     }
                     const endCommit = await commit({
-                        repoPath: workspaceDir,
+                        repoPath: workspace.app,
                         commitMessage: `end iteration ${iteration}`,
                         allowEmpty: true,
                     });
@@ -364,7 +360,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printLog(`Refining ${misalignedToFix.length} components...`);
 
             const refinementContext: RefinementContext = {
-                workspaceDir,
+                workspace,
                 structureTree: protocol as unknown as Dict,
                 componentPaths: resolvedComponentPaths,
                 componentHistory,
@@ -396,13 +392,13 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 },
             });
 
-            if (workspaceDir && serverKey) {
-                const buildCheck = await checkAndFix(workspaceDir);
+            if (serverKey) {
+                const buildCheck = await launch(workspace.app);
                 if (!buildCheck.success) {
                     throw new Error(buildCheck.error);
                 }
                 const endCommit = await commit({
-                    repoPath: workspaceDir,
+                    repoPath: workspace.app,
                     commitMessage: `end iteration ${iteration}`,
                     allowEmpty: true,
                 });

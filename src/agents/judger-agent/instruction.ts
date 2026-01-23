@@ -18,7 +18,11 @@ Absolute Error: (${vr.absoluteError[0].toFixed(1)}, ${vr.absoluteError[1].toFixe
     const itemSpacing = typeof figmaMetadata.itemSpacing === 'number' ? figmaMetadata.itemSpacing : 0;
     const primaryAxisAlignItems = typeof figmaMetadata.primaryAxisAlignItems === 'string' ? figmaMetadata.primaryAxisAlignItems : 'N/A';
     const counterAxisAlignItems = typeof figmaMetadata.counterAxisAlignItems === 'string' ? figmaMetadata.counterAxisAlignItems : 'N/A';
-    const resolvedPath = componentPaths?.[component.componentId] || component.path;
+    // componentPaths should always be provided with absolute filesystem paths
+    const resolvedPath = componentPaths?.[component.componentId];
+    if (!resolvedPath) {
+        throw new Error(`Component ${component.componentId} not found in componentPaths mapping`);
+    }
 
     return `Component ID: ${component.componentId}
 Element IDs: ${JSON.stringify(component.elementIds)}
@@ -42,7 +46,7 @@ TASK:
 
 IMPORTANT:
 - Use FileEditor.read("${resolvedPath}") to read the component code
-- The path is already absolute and points to the actual file location
+- The path is an absolute filesystem path (e.g., /workspace/src/components/button/index.tsx)
 - When using HierarchyTool.lookup or related tools, use the Component ID: ${component.componentId}
 
 Remember: Use exact code strings and line numbers in refine_instructions.

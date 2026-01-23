@@ -10,30 +10,64 @@ import type { ModelConfig } from 'evoltagent';
 
 import { HistoryTool } from '../../tools/history-tool';
 import { HierarchyTool } from '../../tools/hierarchy-tool';
-import type { ComponentHistory } from '../../types/validation-types.js';
+import type { ComponentHistory } from '../../types/validation-types';
 import type { JudgerDiagnosis } from './types';
 import type { Dict } from '../../nodes/validation/utils/tree/tree-traversal';
-import { JUDGER_PROMPT } from './system-prompt';
+import { JUDGER_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
-import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
-export { formatJudgerInstruction } from './judger-instruction';
+import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
+import { logger } from '../../utils/logger';
+export { formatJudgerInstruction } from './instruction';
 
 /**
  * Extract JSON diagnosis from agent response.
- *
- * @param response - Agent response text
+ * @param response - Agent response text (with TaskCompletion tags already stripped)
  * @returns Parsed JudgerDiagnosis object
  */
 export function parseDiagnosisJson(response: string): Promise<JudgerDiagnosis> {
-    // Extract content from <TaskCompletion> tags
-    const taskMatch = response.match(/<TaskCompletion>([\s\S]*?)<\/TaskCompletion>/);
-    const taskContent = taskMatch?.[1] ?? response;
+    try {
+        // Check for empty response (agent may have hit limits or errors)
+        if (!response || response.trim().length === 0) {
+            logger.printErrorLog(`[JudgerAgent] Agent returned empty response`);
+            logger.printErrorLog(`This usually means:`);
+            logger.printErrorLog(`  1. Agent made tool calls but never generated final output`);
+            logger.printErrorLog(`  2. Context window exhausted after tool results added`);
+            logger.printErrorLog(`  3. Model timeout or API error`);
+            logger.printErrorLog(`  4. Max output tokens too small for response`);
+            throw new Error('Agent returned empty response after tool execution');
+        }
 
-    // Extract JSON from markdown code block
-    const jsonMatch = taskContent.match(/```json\n([\s\S]*?)\n```/);
-    const jsonStr = jsonMatch?.[1] ?? taskContent;
+        // Extract JSON from markdown code block
+        // The evoltagent library strips <TaskCompletion> tags before calling postProcessor
+        const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
 
-    return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
+        if (!jsonMatch) {
+            logger.printErrorLog(`[JudgerAgent] No JSON code block found in response`);
+            logger.printErrorLog(`Response preview (first 500 chars):\n${response.substring(0, 500)}`);
+            if (response.length > 500) {
+                logger.printErrorLog(`Last 500 chars:\n${response.substring(Math.max(0, response.length - 500))}`);
+            }
+            throw new Error('No JSON code block found in agent response. Expected format: ```json\\n{...}\\n```');
+        }
+
+        const jsonStr = jsonMatch[1];
+
+        if (!jsonStr || jsonStr.trim().length === 0) {
+            logger.printErrorLog(`[JudgerAgent] Empty JSON content in code block`);
+            throw new Error('Empty JSON content in code block');
+        }
+
+        return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
+    } catch (error) {
+        // Provide detailed error context for debugging
+        logger.printErrorLog(`[JudgerAgent] Failed to parse diagnosis JSON`);
+        logger.printErrorLog(`Response length: ${response.length} characters`);
+
+        if (error instanceof Error) {
+            throw new Error(`Post-processor failed: ${error.message}`);
+        }
+        throw new Error(`Post-processor failed: ${String(error)}`);
+    }
 }
 
 /**
@@ -117,28 +151,28 @@ export function createJudgerAgent(options: {
         const hierarchyToolNames = updateToolContext(
             hierarchyTool as unknown as Record<string, (...args: unknown[]) => Promise<string>>,
             'HierarchyTool',
-            ['lookup', 'getSiblings', 'getSharedInstances']
+            ['lookup', 'getSharedInstances']
         );
         systemTools.push(...hierarchyToolNames);
     }
 
-    // Update HistoryTool instance context if history provided
-    // Tools are already registered via @tools decorator - just update execute methods
-    if (history) {
-        const historyTool = new HistoryTool();
-        historyTool.setContext(history);
+    // Always register HistoryTool (even with empty history in iteration 1)
+    // The tool handles empty history gracefully and the prompt references it
+    const historyTool = new HistoryTool();
+    historyTool.setContext(history || {});
 
-        const historyToolNames = updateToolContext(
-            historyTool as unknown as Record<string, (...args: unknown[]) => Promise<string>>,
-            'HistoryTool',
-            ['getComponentHistory', 'getIterationSummary']
-        );
-        systemTools.push(...historyToolNames);
-    }
+    const historyToolNames = updateToolContext(
+        historyTool as unknown as Record<string, (...args: unknown[]) => Promise<string>>,
+        'HistoryTool',
+        ['getComponentHistory', 'getIterationSummary']
+    );
+    systemTools.push(...historyToolNames);
 
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
         contextWindowTokens: AGENT_CONTEXT_WINDOW_TOKENS,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        stream: true,
     };
 
     return new Agent({
@@ -148,6 +182,6 @@ export function createJudgerAgent(options: {
         tools: systemTools,
         modelConfig,
         postProcessor: parseDiagnosisJson,
-        verbose: 1,
+        verbose: 2,
     });
 }

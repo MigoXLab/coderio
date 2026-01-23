@@ -31,14 +31,6 @@ function makeServerKey(repoPath: string): string {
         params: [{ name: 'serverKey', type: 'string', description: 'Server key returned by startDevServer()' }],
         returns: { type: 'object', description: 'StopDevServerResult' },
     },
-    restartDevServer: {
-        description: 'Restart a previously started dev server by serverKey.',
-        params: [
-            { name: 'serverKey', type: 'string', description: 'Server key returned by startDevServer()' },
-            { name: 'timeoutMs', type: 'number', description: 'Timeout in milliseconds', optional: true },
-        ],
-        returns: { type: 'object', description: 'StartDevServerResult (new pid/port may change).' },
-    },
 })
 export class LaunchTool {
     private static readonly serverManagers = new Map<string, { manager: DevServerManager; repoPath: string }>();
@@ -76,26 +68,6 @@ export class LaunchTool {
             return { success: true, serverKey };
         } catch (error) {
             return { success: false, serverKey, error: error instanceof Error ? error.message : String(error) };
-        }
-    }
-
-    async restartDevServer(serverKey: string, timeoutMs: number = 60_000): Promise<StartDevServerResult> {
-        const entry = LaunchTool.serverManagers.get(serverKey);
-        if (!entry) {
-            return { success: false, error: `Unknown serverKey: ${serverKey}` };
-        }
-        try {
-            const handle = await entry.manager.restart({ timeoutMs });
-            return {
-                success: true,
-                serverKey,
-                url: handle.url,
-                port: handle.port,
-                pid: handle.child.pid ?? undefined,
-                outputTail: handle.outputTail(),
-            };
-        } catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : String(error) };
         }
     }
 }

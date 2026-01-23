@@ -11,14 +11,14 @@
  * Core principle: Protocol is the single source of truth. Extract once, use everywhere.
  */
 
-import type { FigmaFrameInfo, FrameStructNode } from '../../../../types/figma-types.js';
+import type { FigmaFrameInfo, FrameStructNode } from '../../../../types/figma-types';
 import type {
     ComponentInfo,
     ElementInfo,
     ElementMetadataRegistry,
     FigmaPosition,
     ValidationContext,
-} from '../../../../types/validation-types.js';
+} from '../../../../types/validation-types';
 
 /**
  * Extract unified validation context from protocol.

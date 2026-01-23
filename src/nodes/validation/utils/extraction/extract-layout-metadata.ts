@@ -5,7 +5,7 @@
  */
 
 import type { FigmaLayoutMetadata } from '../../types';
-import type { ValidationContext, ElementInfo } from '../../../../types/validation-types.js';
+import type { ValidationContext, ElementInfo } from '../../../../types/validation-types';
 
 /** Layout quality scores for different node types */
 const LAYOUT_SCORES = {

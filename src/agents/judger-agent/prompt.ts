@@ -6,11 +6,12 @@ export const JUDGER_PROMPT = `You are a React Layout Diagnosis Expert. Analyze p
 
 <workflow>
 1. Check HistoryTool.getComponentHistory - avoid repeating failed fixes
-2. Use HierarchyTool.getSiblings to check if components share a parent
+2. Use HierarchyTool.lookup to get component file path, parent, siblings, and children
 3. Use FileEditor.read to examine code, FileEditor.find to locate patterns
-4. For parent fixes: Use HierarchyTool.lookup, read parent file, provide specific instructions
-5. If 2 images provided: Image 1 = current, Image 2 = previous iteration
-6. Respond with JSON diagnosis in <TaskCompletion> tags
+4. For parent fixes: HierarchyTool.lookup returns parent file path - use it directly
+5. Before editing shared files: Use HierarchyTool.getSharedInstances to check impact
+6. If image provided: previous iteration
+7. Respond with JSON diagnosis wrapped in \`\`\`json\`\`\`
 </workflow>
 
 <error_types>

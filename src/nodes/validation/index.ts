@@ -1,8 +1,5 @@
 /**
- * Validation module (coderio-native).
- *
- * This file intentionally avoids any old-repo dependencies (`config/output`, `core/node`, etc.).
- * Graph wiring happens in `src/graph.ts` (see todo: graph-validation-node).
+ * Validation module.
  */
 
 import fs from 'node:fs';
@@ -28,7 +25,6 @@ export const runValidation = async (state: GraphState): Promise<ValidationResult
     }
 
     const mode = state.config?.validationMode ?? 'full';
-    const workspaceDir = state.workspace.app;
     const outputDir = path.join(state.workspace.root, 'validation');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -40,7 +36,7 @@ export const runValidation = async (state: GraphState): Promise<ValidationResult
         protocol: state.protocol,
         figmaThumbnailUrl: state.figmaInfo.thumbnail,
         outputDir,
-        workspaceDir,
+        workspace: state.workspace,
         config: { mode },
     });
 

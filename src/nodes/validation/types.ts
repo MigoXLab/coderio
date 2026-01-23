@@ -7,6 +7,7 @@
 
 import type { FrameStructNode } from '../../types/figma-types';
 import type { ComponentHistoryEntry, UserReport, ValidationReport } from '../../types/validation-types';
+import type { WorkspaceStructure } from '../../types/workspace-types';
 
 import type { JudgerDiagnosis } from '../../agents/judger-agent/types';
 import type { RefinerResult } from '../../agents/refiner-agent/types';
@@ -28,13 +29,45 @@ export type {
 
 export type { JudgerDiagnosis } from '../../agents/judger-agent/types';
 export type { RefinerResult } from '../../agents/refiner-agent/types';
-export type { LaunchOptions } from '../../agents/launch-agent/types';
-export type { GitCommitOptions, GitCommitResult } from '../../agents/commit-agent/types';
 export type { BoundingBox, PositionError, Rectangle, ComponentAggregationData } from '../../tools/position-tool/types';
 
 // ============================================================================
 // Validation Node-Specific Types
 // ============================================================================
+
+/**
+ * Git commit options for commit subnode
+ */
+export interface GitCommitOptions {
+    /**
+     * Absolute path to the git repository to commit.
+     * Defaults to the generated app directory.
+     */
+    repoPath?: string;
+
+    /**
+     * Optional commit message "suffix".
+     * If provided, the agent MUST commit with:
+     *   "Commit by CodeRio - ${commitMessage}"
+     *
+     * Example: "start iteration 1"
+     */
+    commitMessage?: string;
+
+    /**
+     * Whether to allow empty commits.
+     * Useful for creating deterministic marker commits (e.g. iteration boundaries).
+     */
+    allowEmpty?: boolean;
+}
+
+/**
+ * Git commit result from commit subnode
+ */
+export interface GitCommitResult {
+    success: boolean;
+    message: string;
+}
 
 /**
  * Single component's correction log
@@ -124,7 +157,7 @@ export interface ValidationLoopParams {
     serverUrl?: string;
     figmaThumbnailUrl: string;
     outputDir: string;
-    workspaceDir?: string;
+    workspace: WorkspaceStructure;
     config?: Partial<ValidationLoopConfig>;
 }
 

@@ -13,7 +13,7 @@ import type { MisalignedComponentData } from '../../../tools/visualization-tool/
 import type { FrameStructNode } from '../../../types/figma-types';
 import type { MisalignedComponent, SkippedElement } from '../types';
 import { ReportTool } from '../../../tools/report-tool';
-import type { ValidationContext, ElementMetadataRegistry } from '../../../types/validation-types.js';
+import type { ValidationContext, ElementMetadataRegistry } from '../../../types/validation-types';
 
 /**
  * Configuration for validation iteration
@@ -32,6 +32,8 @@ export interface ValidationIterationConfig {
     elementRegistry: ElementMetadataRegistry;
     /** Pre-cached Figma thumbnail base64 data to avoid redundant downloads. */
     cachedFigmaThumbnailBase64?: string;
+    /** Resolved component paths (componentId -> absolute filesystem path) */
+    resolvedComponentPaths: Record<string, string>;
 }
 
 /**
@@ -116,6 +118,7 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
         outputDir,
         validationContext,
         elementRegistry,
+        resolvedComponentPaths,
     } = config;
 
     const positionTool = new PositionTool();
@@ -131,10 +134,19 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
         elementRegistry,
     });
 
-    // Use element-to-component mapping from validation context
-    const elementToComponent = validationContext.elementToComponent;
+    // Create resolved elementToComponent mapping with absolute paths
+    // Replace alias paths with absolute filesystem paths from resolvedComponentPaths
+    const resolvedElementToComponent = new Map<string, { id: string; name: string; path: string }>();
+    for (const [elementId, componentInfo] of validationContext.elementToComponent) {
+        const resolvedPath = resolvedComponentPaths[componentInfo.id] || componentInfo.path;
+        resolvedElementToComponent.set(elementId, {
+            id: componentInfo.id,
+            name: componentInfo.name,
+            path: resolvedPath,
+        });
+    }
 
-    const aggregated = positionTool.aggregateElements(captureResult.positions, elementToComponent, positionThreshold);
+    const aggregated = positionTool.aggregateElements(captureResult.positions, resolvedElementToComponent, positionThreshold);
     const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
     const skippedElements = aggregated.skippedElements as unknown as SkippedElement[];
 
