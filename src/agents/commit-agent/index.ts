@@ -1,18 +1,18 @@
 import { Agent } from 'evoltagent';
 import type { ModelConfig } from 'evoltagent';
 
-import { COMMIT_AGENT_SYSTEM_PROMPT } from './system-prompt';
+import { COMMIT_AGENT_SYSTEM_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
-import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
+import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
 
-export type { GitCommitOptions, GitCommitResult } from './types';
-export { COMMIT_AGENT_SYSTEM_PROMPT } from './system-prompt';
-export { formatGitCommitInstruction } from './commit-instruction';
+export { COMMIT_AGENT_SYSTEM_PROMPT } from './prompt';
+export { formatGitCommitInstruction } from './instruction';
 
 export function createCommitAgent(): Agent {
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
         contextWindowTokens: AGENT_CONTEXT_WINDOW_TOKENS,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
     };
 
     return new Agent({

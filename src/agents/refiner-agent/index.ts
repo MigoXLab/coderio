@@ -9,21 +9,19 @@ import { Agent } from 'evoltagent';
 import type { ModelConfig } from 'evoltagent';
 
 import type { RefinerResult } from './types';
-import { REFINER_PROMPT } from './system-prompt';
+import { REFINER_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
-import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
-export { formatRefinerInstruction } from './refiner-instruction';
+import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
+export { formatRefinerInstruction } from './instruction';
 
 /**
  * Extract refiner result from agent response.
- *
- * @param response - Agent response text
+ * @param response - Agent response text (with TaskCompletion tags already stripped)
  * @returns Parsed RefinerResult object
  */
 export function parseRefinerResult(response: string): Promise<RefinerResult> {
-    // Extract content from <TaskCompletion> tags
-    const taskMatch = response.match(/<TaskCompletion>([\s\S]*?)<\/TaskCompletion>/);
-    const fullResponse = taskMatch?.[1]?.trim() ?? response;
+    // The evoltagent library strips <TaskCompletion> tags before calling postProcessor
+    const fullResponse = response.trim();
 
     // Extract summary lines (Successfully applied, Failed to apply, Skipped)
     const lines = fullResponse.split('\n');
@@ -70,6 +68,8 @@ export function createRefinerAgent(workspaceDir?: string): Agent {
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
         contextWindowTokens: AGENT_CONTEXT_WINDOW_TOKENS,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        stream: true,
     };
 
     return new Agent({
@@ -79,6 +79,6 @@ export function createRefinerAgent(workspaceDir?: string): Agent {
         tools: ['FileEditor.read', 'FileEditor.find', 'FileEditor.findAndReplace'],
         modelConfig,
         postProcessor: parseRefinerResult,
-        verbose: 1,
+        verbose: 2,
     });
 }

@@ -1,7 +1,7 @@
 import { createLaunchAgent } from '../../../../agents/launch-agent';
 import { launchAgentInstruction } from '../../../../agents/launch-agent/instruction';
 
-export const checkAndFix = async (appPath: string) => {
+export const launch = async (appPath: string) => {
     if (!appPath) {
         throw new Error('appPath is required');
     }

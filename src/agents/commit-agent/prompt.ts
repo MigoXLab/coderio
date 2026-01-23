@@ -30,7 +30,7 @@ Input format (provided by the caller):
    - Else:
      - Decide a brief description based on GitTool.status output (files changed / nature of change).
      - Commit message MUST start with: "Commit by CodeRio - " followed by that brief description.
-   - Commit using a temporary identity via config (do NOT modify global git config):
+   - Commit using a temporary identity via config, quote name and email using double quotes (do NOT modify global git config):
      - user.name = "CodeRio"
      - user.email = "coderio@pjlab.org.cn"
    - Run GitTool.commit(message, cwd=repoPath, allowEmpty=allowEmpty, config={...}).

@@ -3,10 +3,10 @@ import * as path from 'node:path';
 import { Command } from 'commander';
 
 import type { FrameStructNode, FigmaFrameInfo } from '../types/figma-types';
-import type { WorkspaceStructure } from '../types/workspace-types';
 import type { ValidationConfig } from '../types/graph-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
+import { initWorkspace } from '../utils/workspace';
 
 type ValCommandOptions = {
     workspace: string;
@@ -17,28 +17,6 @@ type ValCommandOptions = {
 function readJsonFile<T>(absolutePath: string): T {
     const raw = fs.readFileSync(absolutePath, 'utf-8');
     return JSON.parse(raw) as T;
-}
-
-function resolveWorkspaceRoot(input: string): string {
-    if (input.startsWith('~')) {
-        const home = process.env.HOME;
-        if (!home) {
-            throw new Error(
-                'HOME environment variable is not set. Cannot resolve ~ in workspace path. ' +
-                    'Please use an absolute path or set the HOME environment variable.'
-            );
-        }
-        return path.resolve(path.join(home, input.slice(1)));
-    }
-    return path.resolve(input);
-}
-
-function normalizeProtocol(raw: unknown): FrameStructNode {
-    // Backward compatibility: some past versions may have written { protocol: { ... } }
-    if (raw && typeof raw === 'object' && 'protocol' in (raw as Record<string, unknown>)) {
-        return (raw as { protocol: FrameStructNode }).protocol;
-    }
-    return raw as FrameStructNode;
 }
 
 /**
@@ -81,25 +59,15 @@ export function registerValidateCommand(program: Command): void {
         .option('--reportonly', 'Run report-only validation (no code edits)', false)
         .action(async (opts: ValCommandOptions) => {
             try {
-                const workspaceRoot = resolveWorkspaceRoot(opts.workspace);
-                const appName = opts.appName || 'my-app';
-
-                const workspace: WorkspaceStructure = {
-                    root: workspaceRoot,
-                    app: path.join(workspaceRoot, appName),
-                    process: path.join(workspaceRoot, 'process'),
-                    reports: path.join(workspaceRoot, 'reports.html'),
-                    db: path.join(workspaceRoot, 'coderio-cli.db'),
-                    checkpoint: path.join(workspaceRoot, 'checkpoint.json'),
-                };
+                const projectName = path.basename(path.resolve(opts.workspace));
+                const workspace = initWorkspace(projectName, undefined, opts.appName);
                 const protocolPath = path.join(workspace.process, 'protocol.json');
 
                 if (!fs.existsSync(protocolPath)) {
                     throw new Error(`Missing protocol at: ${protocolPath}. Run d2p/d2c first to generate process/protocol.json.`);
                 }
 
-                const rawProtocol = readJsonFile<unknown>(protocolPath);
-                const protocol = normalizeProtocol(rawProtocol);
+                const protocol = readJsonFile<FrameStructNode>(protocolPath);
 
                 // Extract thumbnail URL from protocol elements
                 const figmaThumbnailUrl = findThumbnailInProtocol(protocol);
@@ -116,7 +84,7 @@ export function registerValidateCommand(program: Command): void {
                 logger.printInfoLog(`Running validation (${config.validationMode}) using workspace: ${workspace.root}`);
 
                 const result = await runValidation({
-                    urlInfo: { fileId: null, name: path.basename(workspaceRoot), nodeId: null, projectName: null },
+                    urlInfo: { fileId: null, name: projectName, nodeId: null, projectName: null },
                     workspace,
                     figmaInfo: { thumbnail: figmaThumbnailUrl },
                     protocol,

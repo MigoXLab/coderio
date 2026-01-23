@@ -17,28 +17,19 @@ import type { ComponentPaths, HierarchyNode, ParentInfo } from './types';
  */
 @tools({
     lookup: {
-        description: 'Get parent, siblings, and children for a component',
+        description:
+            'Get file path, parent, siblings, and children for a component. Use this to find the correct file path before reading component files.',
         params: [{ name: 'componentId', type: 'string', description: 'Component ID to look up' }],
-        returns: { type: 'string', description: 'Formatted string with parent, siblings, and children information' },
+        returns: { type: 'string', description: 'Formatted string with file path, parent (with its file path), siblings, and children' },
         examples: [
             `<HierarchyTool.lookup>
 <componentId>HeroSection</componentId>
 </HierarchyTool.lookup>`,
         ],
     },
-    getSiblings: {
-        description: 'Get components sharing the same parent',
-        params: [{ name: 'componentId', type: 'string', description: 'Component ID to find siblings for' }],
-        returns: { type: 'string', description: 'Formatted string with sibling component information' },
-        examples: [
-            `<HierarchyTool.getSiblings>
-<componentId>HeroSection</componentId>
-</HierarchyTool.getSiblings>`,
-        ],
-    },
     getSharedInstances: {
         description:
-            'Find all component instances using a specific file path. Useful for identifying which components share the same implementation file (e.g., StartButton and ApiButton both using button/index.tsx)',
+            'Find all component instances using a specific file path. Useful for identifying which components share the same implementation file (e.g., StartButton and ApiButton both using button/index.tsx). ALWAYS check this before editing a shared file.',
         params: [{ name: 'filePath', type: 'string', description: 'Filesystem path to search for (can be relative or absolute)' }],
         returns: { type: 'string', description: 'Formatted string with all component instances using the file' },
         examples: [
@@ -74,6 +65,10 @@ export class HierarchyTool {
         const parentInfo = this._findParent(this._structureTree, componentId);
         const parentStr = parentInfo ? `Parent: ${parentInfo.id}` : 'Parent: None (root component)';
 
+        // Include parent file path if available (helps agent read parent files without guessing paths)
+        const parentPathStr =
+            parentInfo && this._componentPaths[parentInfo.id] ? `Parent File: ${this._componentPaths[parentInfo.id]}` : '';
+
         let siblings: string[] = [];
         if (parentInfo) {
             const parentNode = findInTree(this._structureTree, parentInfo.id);
@@ -88,38 +83,13 @@ export class HierarchyTool {
         const children = nodeChildren.map(child => getNodeId(child)).filter((id): id is string => id !== undefined);
         const childrenStr = children.length > 0 ? `Children: ${children.join(', ')}` : 'Children: None';
 
-        return `Component: ${componentId}
-${parentStr}
-${siblingsStr}
-${childrenStr}`;
-    }
+        // Include file path for this component
+        const filePath = this._componentPaths[componentId];
+        const fileStr = filePath ? `File: ${filePath}` : '';
 
-    getSiblings(componentId: string): string {
-        const parentInfo = this._findParent(this._structureTree, componentId);
-        if (!parentInfo) {
-            return `Component '${componentId}' has no parent (root component)`;
-        }
+        const lines = [`Component: ${componentId}`, fileStr, parentStr, parentPathStr, siblingsStr, childrenStr].filter(Boolean);
 
-        const parentNode = findInTree(this._structureTree, parentInfo.id);
-        if (!parentNode) {
-            return `Parent node not found for component '${componentId}'`;
-        }
-
-        const siblings: string[] = [];
-        const children = (parentNode.children as HierarchyNode[]) || [];
-        for (const child of children) {
-            const childId = getNodeId(child);
-            if (childId && childId !== componentId) {
-                siblings.push(childId);
-            }
-        }
-
-        if (siblings.length === 0) {
-            return `Component '${componentId}' has no siblings`;
-        }
-
-        const siblingsList = siblings.map(sib => `  - ${sib}`).join('\n');
-        return `Siblings of ${componentId}:\n${siblingsList}`;
+        return lines.join('\n');
     }
 
     getSharedInstances(filePath: string): string {

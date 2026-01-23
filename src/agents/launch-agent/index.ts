@@ -2,12 +2,13 @@ import { Agent } from 'evoltagent';
 import type { ModelConfig } from 'evoltagent';
 import { LAUNCH_AGENT_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
-import { AGENT_CONTEXT_WINDOW_TOKENS } from '../../constants';
+import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
 
 export function createLaunchAgent(): Agent {
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
         contextWindowTokens: AGENT_CONTEXT_WINDOW_TOKENS,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
     };
 
     return new Agent({
@@ -23,6 +24,6 @@ export function createLaunchAgent(): Agent {
             'ThinkTool.execute',
         ],
         modelConfig,
-        verbose: 1,
+        verbose: 2,
     });
 }

@@ -1,6 +1,6 @@
 import { createCommitAgent, formatGitCommitInstruction } from '../../../../agents/commit-agent';
 import { logger } from '../../../../utils/logger';
-import type { GitCommitOptions, GitCommitResult } from '../../../../agents/commit-agent/types';
+import type { GitCommitOptions, GitCommitResult } from '../../types';
 import path from 'path';
 
 export type { GitCommitOptions, GitCommitResult };
