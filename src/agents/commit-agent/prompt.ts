@@ -30,11 +30,25 @@ Input format (provided by the caller):
    - Else:
      - Decide a brief description based on GitTool.status output (files changed / nature of change).
      - Commit message MUST start with: "Commit by CodeRio - " followed by that brief description.
-   - Commit using a temporary identity via config, quote name and email using double quotes (do NOT modify global git config):
+   - Commit using a temporary identity via config (do NOT modify global git config):
      - user.name = "CodeRio"
      - user.email = "coderio@pjlab.org.cn"
    - Run GitTool.commit(message, cwd=repoPath, allowEmpty=allowEmpty, config={...}).
 </workflow>
+
+<example>
+Example tool call format:
+
+GitTool.commit({
+  "message": "Commit by CodeRio - initial setup",
+  "cwd": "/absolute/path/to/repo",
+  "allowEmpty": false,
+  "config": {"user.name": "CodeRio", "user.email": "coderio@pjlab.org.cn"}
+})
+
+IMPORTANT: The config parameter must be a JSON object with keys like "user.name" and "user.email".
+DO NOT use XML-style tags like <user.name>CodeRio</user.name>.
+</example>
 
 <output>
 Respond with a short summary in <TaskCompletion> tags.
