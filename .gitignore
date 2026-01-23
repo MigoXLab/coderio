@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-pnpm-lock.json
 
 # Build output
 dist/
