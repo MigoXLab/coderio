@@ -1,8 +1,5 @@
 /**
  * Generic tree traversal utilities for nested dict/list structures.
- *
- * NOTE: This module lives in `src/nodes/validation/utils/general/` as part of the
- * validation subsystem's shared utilities.
  */
 
 /**
@@ -50,26 +47,4 @@ export function findInTree(data: unknown, targetId: string, idKeys: string[] = [
     }
 
     return undefined;
-}
-
-/**
- * Generic tree traversal with callback function.
- */
-export function traverseTree(node: Dict, callback: (node: Dict) => void, childrenKey: string = 'children'): void {
-    callback(node);
-    const children = node[childrenKey] as Dict[] | undefined;
-    if (children && Array.isArray(children)) {
-        for (const child of children) {
-            traverseTree(child, callback, childrenKey);
-        }
-    }
-}
-
-/**
- * Component information extracted from a structure tree.
- */
-export interface ComponentInfo {
-    id: string;
-    name: string;
-    path: string;
 }

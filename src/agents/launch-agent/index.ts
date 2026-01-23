@@ -4,6 +4,8 @@ import { LAUNCH_AGENT_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
 import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
 
+export { launchAgentInstruction } from './instruction';
+
 export function createLaunchAgent(): Agent {
     const modelConfig: ModelConfig = {
         ...getModelConfig(),

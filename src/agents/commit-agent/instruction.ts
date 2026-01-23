@@ -1,4 +1,6 @@
-export function formatGitCommitInstruction(params: { repoPath: string; commitMessage?: string; allowEmpty?: boolean }): string {
+import type { CommitAgentParams } from './types';
+
+export function formatGitCommitInstruction(params: CommitAgentParams): string {
     const commitMessage = (params.commitMessage ?? '').trim();
     const allowEmpty = params.allowEmpty ?? false;
 

@@ -30,7 +30,7 @@ export const runValidation = async (state: GraphState): Promise<ValidationResult
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    logger.printLog(`Starting validation loop (mode: ${mode})...`);
+    logger.printInfoLog(`Starting validation loop (mode: ${mode})...`);
 
     const result = await validationLoop({
         protocol: state.protocol,
@@ -45,10 +45,12 @@ export const runValidation = async (state: GraphState): Promise<ValidationResult
     }
 
     const reportHtmlPath = path.join(outputDir, 'index.html');
-    logger.printLog(
-        `Validation complete: ${result.validationPassed ? 'PASSED' : 'FAILED'} (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`
-    );
-    logger.printLog(`Validation report: ${reportHtmlPath}`);
+    if (result.validationPassed) {
+        logger.printSuccessLog(`Validation PASSED (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`);
+    } else {
+        logger.printWarnLog(`Validation FAILED (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`);
+    }
+    logger.printInfoLog(`Validation report: ${reportHtmlPath}`);
 
     return {
         validationPassed: result.validationPassed,

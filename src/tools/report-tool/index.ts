@@ -55,7 +55,7 @@ export class ReportTool {
      * Captures positions, generates annotated screenshots, and builds userReport structure.
      */
     async buildUserReport(request: FinalReportRequest): Promise<FinalReportResult> {
-        logger.printLog('\nGenerating final validation report...');
+        logger.printInfoLog('\nGenerating final validation report...');
 
         const positionTool = new PositionTool();
         const visualizationTool = new VisualizationTool();
@@ -75,7 +75,7 @@ export class ReportTool {
         const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
         const misalignedData = this.formatMisalignedData(misalignedComponents);
 
-        logger.printLog(`Final misaligned components: ${misalignedData.length}`);
+        logger.printInfoLog(`Final misaligned components: ${misalignedData.length}`);
 
         const comparisonDir = path.join(request.outputDir, 'comparison_screenshots');
         if (!fs.existsSync(comparisonDir)) {
@@ -101,7 +101,7 @@ export class ReportTool {
         const finalScreenshotPath = path.join(comparisonDir, 'final.webp');
         await visualizationTool.combine(screenshots.renderMarked, screenshots.targetMarked, finalScreenshotPath);
 
-        logger.printLog(`Saved final comparison screenshot: ${path.basename(finalScreenshotPath)}`);
+        logger.printSuccessLog(`Saved final comparison screenshot: ${path.basename(finalScreenshotPath)}`);
 
         let heatmap = '';
         try {
@@ -115,11 +115,11 @@ export class ReportTool {
                 }
                 const buffer = Buffer.from(base64Data, 'base64');
                 await fs.promises.writeFile(heatmapPath, buffer);
-                logger.printLog(`Saved pixel difference heatmap: ${path.basename(heatmapPath)}`);
+                logger.printSuccessLog(`Saved pixel difference heatmap: ${path.basename(heatmapPath)}`);
             }
         } catch (heatmapError) {
             const errorMsg = heatmapError instanceof Error ? heatmapError.message : 'Unknown error';
-            logger.printLog(`⚠️  Failed to generate pixel difference heatmap: ${errorMsg}. Continuing without heatmap.`);
+            logger.printWarnLog(`Failed to generate pixel difference heatmap: ${errorMsg}. Continuing without heatmap.`);
         }
 
         const userReport = this.buildUserReportStructure(
@@ -133,7 +133,7 @@ export class ReportTool {
             misalignedData
         );
 
-        logger.printLog('Final validation report generated successfully');
+        logger.printSuccessLog('Final validation report generated successfully');
 
         return {
             userReport,
@@ -208,8 +208,8 @@ export class ReportTool {
     async generateHtml(userReport: UserReport, outputDir: string): Promise<GenerateHtmlResult> {
         const reportDistDir = this.getReportDistDir();
         const reportIndexHtml = path.join(reportDistDir, 'index.html');
-        logger.printLog(`[ReportTool] Using template: ${reportIndexHtml}`);
-        logger.printLog(`[ReportTool] Output directory: ${outputDir}`);
+        logger.printInfoLog(`[ReportTool] Using template: ${reportIndexHtml}`);
+        logger.printInfoLog(`[ReportTool] Output directory: ${outputDir}`);
 
         try {
             // Check if template exists

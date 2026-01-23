@@ -8,13 +8,6 @@ import { combineSideBySide } from './utils/combine';
 import { captureAsWebP } from './utils/image-converter';
 import { generatePixelDiffHeatmap } from './utils/pixel-diff-heatmap';
 
-export { browserManagement } from './utils/browser-management';
-export { captureAsWebP, bufferToWebPDataUri, SCREENSHOT_WEBP_QUALITY } from './utils/image-converter';
-export { annotateRenderWithPlaywright } from './utils/annotate-render';
-export { annotateTargetWithPlaywright } from './utils/annotate-target';
-export { combineSideBySide } from './utils/combine';
-export { generatePixelDiffHeatmap } from './utils/pixel-diff-heatmap';
-
 @tools({
     annotateRender: {
         description:

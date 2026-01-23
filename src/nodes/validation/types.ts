@@ -179,10 +179,6 @@ export interface ValidationLoopConfig {
      * - full: run iterative actor-critic refinement loop (may edit code + commit markers).
      */
     mode?: 'reportOnly' | 'full';
-    /** Max build attempts with LaunchAgent assistance during validation. */
-    maxLaunchBuildAttempts: number;
-    /** Max runtime check attempts with LaunchAgent assistance. */
-    maxLaunchRuntimeAttempts: number;
 }
 
 /**

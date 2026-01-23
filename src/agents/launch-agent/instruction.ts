@@ -1,4 +1,6 @@
-export function launchAgentInstruction(params: { appPath: string }): string {
+import type { LaunchAgentParams } from './types';
+
+export function launchAgentInstruction(params: LaunchAgentParams): string {
     return `appPath: ${params.appPath}
 
 TASK:

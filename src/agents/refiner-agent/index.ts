@@ -19,7 +19,7 @@ export { formatRefinerInstruction } from './instruction';
  * @param response - Agent response text (with TaskCompletion tags already stripped)
  * @returns Parsed RefinerResult object
  */
-export function parseRefinerResult(response: string): Promise<RefinerResult> {
+function parseRefinerResult(response: string): Promise<RefinerResult> {
     // The evoltagent library strips <TaskCompletion> tags before calling postProcessor
     const fullResponse = response.trim();
 
