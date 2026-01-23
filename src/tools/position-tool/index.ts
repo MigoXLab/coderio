@@ -16,12 +16,6 @@ import type {
 } from './types';
 import { toRect } from './utils/rect';
 
-export { fetchThumbnailDimensions } from './utils/fetch-thumbnail-dimensions';
-
-export { captureBrowserPositions } from './utils/capture-position';
-export { calculatePositionMetrics } from './utils/position-metrics';
-export { calculateAggregateBoundingBox, calculateComponentMetrics, calculatePositionError } from './utils/aggregate-elements';
-
 @tools({
     capturePosition: {
         description:

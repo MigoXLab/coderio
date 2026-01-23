@@ -11,7 +11,6 @@ import * as path from 'path';
 
 import { DEFAULT_VALIDATION_LOOP_CONFIG } from '../constants';
 import { logger } from '../../../utils/logger';
-import { resolveAppSrc } from '../../../utils/workspace';
 import type { WorkspaceStructure } from '../../../types/workspace-types';
 import { commit } from '../subnodes/commit/index';
 import { createJudgerAgent, formatJudgerInstruction } from '../../../agents/judger-agent';
@@ -72,30 +71,6 @@ function recordComponentPosition(comp: MisalignedComponent, iteration: number, c
     componentHistory[comp.componentId] = history;
 }
 
-/**
- * Resolve component paths from @/components aliases to absolute filesystem paths.
- * Uses workspace structure for consistent path resolution across the codebase.
- * All components follow the pattern: {workspace.app}/src/components/{name}/index.tsx
- */
-function resolveComponentPaths(componentPaths: Record<string, string>, workspace: WorkspaceStructure): Record<string, string> {
-    const resolved: Record<string, string> = {};
-
-    for (const [componentId, aliasPath] of Object.entries(componentPaths)) {
-        // Convert @/components/name → components/name
-        const relativePath = aliasPath.replace(/^@\/components\//, 'components/');
-
-        // Append index.tsx (all components follow this pattern)
-        const fullRelativePath = `${relativePath}/index.tsx`;
-
-        // Use resolveAppSrc utility for consistent path resolution
-        const absolutePath = resolveAppSrc(workspace, fullRelativePath);
-
-        resolved[componentId] = absolutePath;
-    }
-
-    return resolved;
-}
-
 async function refineComponent(comp: MisalignedComponent, context: RefinementContext): Promise<ComponentCorrectionLog> {
     const { workspace, structureTree, componentPaths, componentHistory, validationContext, previousScreenshotPath } = context;
 
@@ -105,7 +80,7 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
             .filter(e => e.parentComponentId === comp.componentId)
             .map(e => e.id);
 
-        const figmaMetadata = extractLayoutFromContext(validationContext, comp.componentId, elementIds);
+        const figmaMetadata = extractLayoutFromContext(validationContext, elementIds);
 
         logger.printLog(`  Analyzing ${comp.name}...`);
         const judger = createJudgerAgent({
@@ -126,8 +101,11 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
         const refinerInstruction = formatRefinerInstruction(comp, diagnosis, componentPaths);
         const refinerResult = (await refiner.run(refinerInstruction)) as RefinerResult;
 
-        const status = refinerResult.success ? 'SUCCESS' : 'FAILED';
-        logger.printLog(`  ${status} ${comp.name}: ${refinerResult.editsApplied} edits applied`);
+        if (refinerResult.success) {
+            logger.printSuccessLog(`  ${comp.name}: ${refinerResult.editsApplied} edits applied`);
+        } else {
+            logger.printWarnLog(`  ${comp.name}: ${refinerResult.editsApplied} edits applied`);
+        }
 
         const history = componentHistory[comp.componentId];
         const last = history?.at(-1);
@@ -164,7 +142,7 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
 function saveProcessedJson(outputDir: string, processedOutput: ProcessedOutput): void {
     const processedJsonPath = path.join(outputDir, 'processed.json');
     fs.writeFileSync(processedJsonPath, JSON.stringify(processedOutput, null, 2));
-    logger.printLog('Saved processed.json');
+    logger.printInfoLog('Saved processed.json');
 }
 
 /**
@@ -172,11 +150,11 @@ function saveProcessedJson(outputDir: string, processedOutput: ProcessedOutput):
  * This prevents redundant downloads during the validation loop.
  */
 async function downloadFigmaThumbnail(figmaThumbnailUrl: string): Promise<string> {
-    logger.printLog('Downloading Figma thumbnail (will be cached for all iterations)...');
+    logger.printInfoLog('Downloading Figma thumbnail (will be cached for all iterations)...');
     const axios = (await import('axios')).default;
     const response = await axios.get(figmaThumbnailUrl, { responseType: 'arraybuffer', timeout: 30000 });
     const base64 = Buffer.from(response.data).toString('base64');
-    logger.printLog('Figma thumbnail cached successfully');
+    logger.printSuccessLog('Figma thumbnail cached successfully');
     return base64;
 }
 
@@ -225,14 +203,11 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         const validationContext = extractValidationContext(protocol);
         const designOffset: [number, number] = [validationContext.offset.x, validationContext.offset.y];
         if (Math.abs(designOffset[0]) >= 1 || Math.abs(designOffset[1]) >= 1) {
-            logger.printLog(`Design offset: (${designOffset[0].toFixed(0)}, ${designOffset[1].toFixed(0)} px)`);
+            logger.printInfoLog(`Design offset: (${designOffset[0].toFixed(0)}, ${designOffset[1].toFixed(0)} px)`);
         }
 
-        // Extract component paths from context
-        const componentPaths = extractComponentPaths(validationContext);
-
-        // Resolve alias paths to absolute filesystem paths using workspace structure
-        const resolvedComponentPaths = resolveComponentPaths(componentPaths, workspace);
+        // Extract component paths from context (already resolved to absolute filesystem paths)
+        const resolvedComponentPaths = extractComponentPaths(validationContext, workspace);
 
         // Build element registry for compatibility with existing APIs
         const elementRegistry = toElementMetadataRegistry(validationContext);
@@ -282,12 +257,12 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             lastMisalignedCount = misaligned.length;
             currentSae = calculateSae(misaligned);
 
-            logger.printLog(`MAE: ${currentMae.toFixed(2)}px (target: <=${config.targetMae}px)`);
-            logger.printLog(`SAE: ${currentSae.toFixed(2)}px`);
-            logger.printLog(`Misaligned: ${misaligned.length}`);
+            logger.printInfoLog(`MAE: ${currentMae.toFixed(2)}px (target: <=${config.targetMae}px)`);
+            logger.printInfoLog(`SAE: ${currentSae.toFixed(2)}px`);
+            logger.printInfoLog(`Misaligned: ${misaligned.length}`);
 
             const misalignedToFix = filterComponentsToFix(misaligned, config.positionThreshold);
-            logger.printLog(
+            logger.printInfoLog(
                 `Skipping ${misaligned.length - misalignedToFix.length} components with error <= ${config.positionThreshold}px`
             );
 
@@ -298,7 +273,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             const componentLogs: ComponentCorrectionLog[] = [];
 
             if (mode === 'reportOnly') {
-                logger.printLog('Report-only mode enabled: skipping judger/refiner iterations and code edits.');
+                logger.printInfoLog('Report-only mode enabled: skipping judger/refiner iterations and code edits.');
 
                 iterations.push({
                     iteration,
@@ -321,7 +296,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             }
 
             if (currentMae <= config.targetMae) {
-                logger.printLog('Validation passed!');
+                logger.printSuccessLog('Validation passed!');
                 iterations.push({
                     iteration,
                     metrics: { mae: currentMae, sae: currentSae, misalignedCount: misaligned.length },
@@ -357,7 +332,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 break;
             }
 
-            logger.printLog(`Refining ${misalignedToFix.length} components...`);
+            logger.printInfoLog(`Refining ${misalignedToFix.length} components...`);
 
             const refinementContext: RefinementContext = {
                 workspace,
@@ -407,7 +382,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 }
             }
 
-            logger.printLog(`Iteration ${iteration} complete\n`);
+            logger.printInfoLog(`Iteration ${iteration} complete\n`);
             previousScreenshotPath = validationResult.comparisonScreenshotPath;
         }
 
@@ -478,9 +453,6 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printWarnLog(`Failed to generate final screenshots: ${errorMsg}. Returning minimal report.`);
             saveProcessedJson(outputDir, finalOutput);
 
-            // Preserve actual validation status even when screenshot generation fails
-            const validationPassed = currentMae <= config.targetMae;
-
             return {
                 reportGenerated: false,
                 validationPassed,
@@ -499,7 +471,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     } finally {
         // Cleanup: Stop dev server if it was started by this validation loop
         if (serverKey) {
-            logger.printLog('Cleaning up dev server...');
+            logger.printInfoLog('Cleaning up dev server...');
             await launchTool.stopDevServer(serverKey).catch((err: unknown) => {
                 logger.printWarnLog(`Failed to stop dev server: ${err instanceof Error ? err.message : String(err)}`);
             });

@@ -98,7 +98,7 @@ export class DevServerManager {
         const normalizedExecutable = normalizeExecutable(executable);
         const commandArgs = needsDoubleDash ? [...args, '--', '--port', String(port)] : [...args, '--port', String(port)];
 
-        logger.printLog(`🚀 Starting dev server: ${normalizedExecutable} ${commandArgs.join(' ')}`);
+        logger.printInfoLog(`Starting dev server: ${normalizedExecutable} ${commandArgs.join(' ')}`);
 
         const child = spawn(normalizedExecutable, commandArgs, {
             cwd: this.params.repoPath,

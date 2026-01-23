@@ -90,7 +90,7 @@ async function generateIterationScreenshot(
         const screenshotPath = path.join(comparisonDir, `iteration_${iteration}.webp`);
         await visualizationTool.combine(render.renderMarked, targetMarked, screenshotPath);
 
-        logger.printLog(`Saved comparison screenshot: ${path.basename(screenshotPath)}`);
+        logger.printInfoLog(`Saved comparison screenshot: ${path.basename(screenshotPath)}`);
         return screenshotPath;
     } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
@@ -150,7 +150,7 @@ export async function validatePositions(config: ValidationIterationConfig): Prom
     const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
     const skippedElements = aggregated.skippedElements as unknown as SkippedElement[];
 
-    logger.printLog(`Found ${misalignedComponents.length} misaligned components`);
+    logger.printInfoLog(`Found ${misalignedComponents.length} misaligned components`);
 
     // Generate iteration screenshot
     const comparisonScreenshotPath = await generateIterationScreenshot(

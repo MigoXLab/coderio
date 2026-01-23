@@ -14,7 +14,7 @@ async function installChromiumBrowsers(): Promise<void> {
     if (installCompleted) return;
 
     if (!installPromise) {
-        logger.printLog('Playwright Chromium binaries are missing. Installing them automatically...');
+        logger.printInfoLog('Playwright Chromium binaries are missing. Installing them automatically...');
 
         installPromise = new Promise((resolve, reject) => {
             // NOTE: Avoid --with-deps here; it can try to install system packages on some platforms.

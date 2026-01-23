@@ -43,13 +43,6 @@ export class HistoryTool {
     private _history: ComponentHistory = {};
 
     /**
-     * Initialize the HistoryTool with empty context.
-     */
-    constructor() {
-        this._history = {};
-    }
-
-    /**
      * Initialize with component history from previous iterations.
      *
      * @param history - Dict mapping component_id to list of iteration records

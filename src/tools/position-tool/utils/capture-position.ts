@@ -41,9 +41,9 @@ export async function captureBrowserPositions(input: BrowserPositionInput): Prom
             const thumbnailDimensions = await fetchThumbnailDimensions(input.figmaThumbnailUrl);
             if (thumbnailDimensions) {
                 viewport = { width: thumbnailDimensions.width, height: thumbnailDimensions.height };
-                logger.printLog(`🎯 Using viewport dimensions from Figma thumbnail: ${viewport.width}×${viewport.height}px`);
+                logger.printInfoLog(`Using viewport dimensions from Figma thumbnail: ${viewport.width}×${viewport.height}px`);
             } else {
-                logger.printLog(`⚠️  Using default viewport dimensions: ${viewport.width}×${viewport.height}px`);
+                logger.printWarnLog(`Using default viewport dimensions: ${viewport.width}×${viewport.height}px`);
             }
         }
 

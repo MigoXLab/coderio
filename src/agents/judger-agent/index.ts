@@ -24,7 +24,7 @@ export { formatJudgerInstruction } from './instruction';
  * @param response - Agent response text (with TaskCompletion tags already stripped)
  * @returns Parsed JudgerDiagnosis object
  */
-export function parseDiagnosisJson(response: string): Promise<JudgerDiagnosis> {
+function parseDiagnosisJson(response: string): Promise<JudgerDiagnosis> {
     try {
         // Check for empty response (agent may have hit limits or errors)
         if (!response || response.trim().length === 0) {

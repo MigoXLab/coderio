@@ -55,10 +55,9 @@ function findBestLayoutElement(elementIds: string[], context: ValidationContext)
  * Extract layout metadata from ValidationContext for a specific component.
  *
  * @param context - Unified validation context
- * @param _componentId - Target component ID (unused, kept for API compatibility)
  * @param elementIds - Pre-extracted element IDs for this component
  */
-export function extractLayoutFromContext(context: ValidationContext, _componentId: string, elementIds: string[]): FigmaLayoutMetadata {
+export function extractLayoutFromContext(context: ValidationContext, elementIds: string[]): FigmaLayoutMetadata {
     // Find best layout element from element IDs
     const element = elementIds.length > 0 ? findBestLayoutElement(elementIds, context) : undefined;
 
@@ -94,6 +93,3 @@ export function extractLayoutFromContext(context: ValidationContext, _componentI
         },
     };
 }
-
-// Keep backward-compatible export for any remaining usages
-export { extractLayoutFromContext as extractFigmaLayoutMetadata };

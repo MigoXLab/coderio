@@ -37,9 +37,3 @@ export async function report(options: ReportOptions): Promise<ReportResult> {
         return { success: false, error: errorMessage };
     }
 }
-
-// Export tool for direct usage if needed
-export { ReportTool };
-
-// Re-export types from ReportTool for convenience
-export type { FinalReportRequest, FinalReportResult, ErrorReportOptions, GenerateHtmlResult } from '../../../../tools/report-tool';

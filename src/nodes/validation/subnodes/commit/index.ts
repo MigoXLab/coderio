@@ -3,8 +3,6 @@ import { logger } from '../../../../utils/logger';
 import type { GitCommitOptions, GitCommitResult } from '../../types';
 import path from 'path';
 
-export type { GitCommitOptions, GitCommitResult };
-
 /**
  * Public API: commit changes using commit agent.
  * Delegates to the commit-agent, passing repoPath via instruction.
