@@ -39,14 +39,14 @@ export const LAUNCH_AGENT_PROMPT = `
             - Parameters: npm run dev(appPath=appPath, command=npm run build, timeoutMs=180000)
             - The tool will capture ALL output including runtime errors
             
-        Step 4: Fix Compilation Errors (If Any)
-            - If exitCode is not 0, there are compilation errors in the output
+        Step 5: Fix Runtime Errors (If Any)
+            - If exitCode is not 0, there are runtime errors in the output
             - Carefully analyze the error messages in the 'error' and 'output' fields
             - Use 'FileEditor.read' to examine problematic files mentioned in errors
-            - Use 'FileEditor.write' to fix ONLY the specific lines causing the error
+            - Use 'FileEditor.write' to fix ONLY the specific lines causing the runtime error
             - CRITICAL: Do NOT delete or rewrite entire files. Do NOT simplify complex CSS or logic.
             - After fixing, go back to Step 4 and rerun
-            - Repeat Step 4 and 5 until build succeeds (exitCode is 0)
+            - Repeat Step 4 and 5 until runtime succeeds (exitCode is 0)
     </workflow>
 
     <rules>
