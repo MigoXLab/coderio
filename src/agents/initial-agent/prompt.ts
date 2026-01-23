@@ -5,7 +5,7 @@
  * @param options - Configuration options for the prompt generation.
  * @param options.appPath - The target directory path where the project will be scaffolded.
  */
-export const initialAgentPrompt = `
+export const INITIAL_AGENT_SYSTEM_PROMPT = `
 <system_instructions>
   <task>Scaffold a clean React V18 + TS + Vite + TailwindCSS V4 + Less project.</task>
 

@@ -1,5 +1,5 @@
 import { Agent, type ModelConfig } from 'evoltagent';
-import { initialAgentPrompt } from './prompt';
+import { INITIAL_AGENT_SYSTEM_PROMPT } from './prompt';
 
 /**
  * Creates an initial agent for scaffolding a project.
@@ -14,7 +14,7 @@ export function createInitialAgent(modelConfig: ModelConfig): Agent {
     return new Agent({
         name: 'InitialAgent',
         profile: 'Expert Frontend Engineer specialized in project scaffolding with React, TypeScript, and Tailwind CSS V4.',
-        system: initialAgentPrompt,
+        system: INITIAL_AGENT_SYSTEM_PROMPT,
         tools: systemTools,
         modelConfig,
         verbose: true,
