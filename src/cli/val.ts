@@ -2,45 +2,21 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Command } from 'commander';
 
-import type { FrameStructNode, FigmaFrameInfo } from '../types/figma-types';
+import type { FrameStructNode } from '../types/figma-types';
 import type { ValidationConfig } from '../types/graph-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
 import { initWorkspace } from '../utils/workspace';
 
 type ValCommandOptions = {
-    workspace: string;
-    appName?: string;
+    workspace?: string;
+    url: string;
     reportonly?: boolean;
 };
 
 function readJsonFile<T>(absolutePath: string): T {
     const raw = fs.readFileSync(absolutePath, 'utf-8');
     return JSON.parse(raw) as T;
-}
-
-/**
- * Extract thumbnail URL from protocol elements.
- */
-function findThumbnailInProtocol(protocol: FrameStructNode): string | undefined {
-    const elements = protocol.data.elements as FigmaFrameInfo[] | undefined;
-    if (!elements) return undefined;
-
-    // Check root level
-    for (const element of elements) {
-        if (element.thumbnailUrl) {
-            return element.thumbnailUrl;
-        }
-        // Check first-level children
-        if (element.children) {
-            for (const child of element.children) {
-                if (child.thumbnailUrl) {
-                    return child.thumbnailUrl;
-                }
-            }
-        }
-    }
-    return undefined;
 }
 
 /**
@@ -54,13 +30,30 @@ export function registerValidateCommand(program: Command): void {
         .command('validate')
         .alias('val')
         .description('Validate position misalignment using an existing generated workspace')
-        .requiredOption('-w, --workspace <path>', 'Workspace root path (contains process/ and generated app folder)')
-        .option('--appName [name]', 'Generated app folder name inside workspace root', 'my-app')
+        .option(
+            '-w, --workspace <path>',
+            'Workspace root path (contains process/ and generated app folder). Defaults to coderio/<current-dir> if not specified'
+        )
+        .requiredOption('-u, --url <url>', 'Figma thumbnail URL for validation')
         .option('--reportonly', 'Run report-only validation (no code edits)', false)
         .action(async (opts: ValCommandOptions) => {
             try {
-                const projectName = path.basename(path.resolve(opts.workspace));
-                const workspace = initWorkspace(projectName, undefined, opts.appName);
+                // Determine workspace and project name
+                let workspace: ReturnType<typeof initWorkspace>;
+                let projectName: string;
+
+                if (opts.workspace) {
+                    // Use explicit workspace path
+                    const workspacePath = path.resolve(opts.workspace);
+                    const parentPath = path.dirname(path.dirname(workspacePath)); // Go up to parent of 'coderio' folder
+                    projectName = path.basename(workspacePath);
+                    workspace = initWorkspace(projectName, parentPath);
+                } else {
+                    // Default: use current directory name as project name
+                    projectName = path.basename(process.cwd());
+                    workspace = initWorkspace(projectName);
+                }
+
                 const protocolPath = path.join(workspace.process, 'protocol.json');
 
                 if (!fs.existsSync(protocolPath)) {
@@ -69,12 +62,8 @@ export function registerValidateCommand(program: Command): void {
 
                 const protocol = readJsonFile<FrameStructNode>(protocolPath);
 
-                // Extract thumbnail URL from protocol elements
-                const figmaThumbnailUrl = findThumbnailInProtocol(protocol);
-
-                if (!figmaThumbnailUrl) {
-                    throw new Error('Missing thumbnailUrl in protocol. Ensure d2p/d2c generated protocol with thumbnail data.');
-                }
+                // Use the provided URL directly
+                const figmaThumbnailUrl = opts.url;
 
                 // Build ValidationConfig from CLI options
                 const config: ValidationConfig = {
