@@ -31,7 +31,7 @@ export function registerValidateCommand(program: Command): void {
         .alias('val')
         .description('Validate position misalignment using an existing generated workspace')
         .option(
-            '-w, --workspace <path>',
+            '-w, --workspace [path]',
             'Workspace root path (contains process/ and generated app folder). Defaults to coderio/<current-dir> if not specified'
         )
         .requiredOption('-u, --url <url>', 'Figma thumbnail URL for validation')
@@ -50,7 +50,7 @@ export function registerValidateCommand(program: Command): void {
                     workspace = initWorkspace(projectName, parentPath);
                 } else {
                     // Default: use current directory name as project name
-                    projectName = path.basename(process.cwd());
+                    projectName = path.basename(process.env.CODERIO_CLI_USER_CWD ?? process.cwd());
                     workspace = initWorkspace(projectName);
                 }
 
