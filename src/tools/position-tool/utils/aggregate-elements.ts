@@ -13,6 +13,13 @@ export interface Rectangle {
 }
 
 /**
+ * Converts a rect-like object to a proper Rectangle type.
+ */
+export function toRect(rectLike: { x: number; y: number; width: number; height: number }): Rectangle {
+    return { x: rectLike.x, y: rectLike.y, width: rectLike.width, height: rectLike.height };
+}
+
+/**
  * Aggregate bounding box result.
  */
 export interface BoundingBox {

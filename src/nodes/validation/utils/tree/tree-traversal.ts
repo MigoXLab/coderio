@@ -2,10 +2,10 @@
  * Generic tree traversal utilities for nested dict/list structures.
  */
 
-/**
- * Generic dictionary type.
- */
-export type Dict = Record<string, unknown>;
+import type { Dict } from '../../types';
+
+// Re-export Dict for external consumers
+export type { Dict } from '../../types';
 
 /**
  * Get node ID, trying componentId first, then id.
