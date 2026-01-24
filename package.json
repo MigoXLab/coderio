@@ -15,7 +15,8 @@
     ],
     "scripts": {
         "dev": "tsup --watch",
-        "build": "pnpm run check && tsup",
+        "build:report": "cd src/tools/report-tool/template && pnpm install && pnpm build",
+        "build": "pnpm run build:report && pnpm run check && tsup",
         "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",

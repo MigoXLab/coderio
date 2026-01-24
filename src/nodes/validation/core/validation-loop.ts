@@ -36,6 +36,7 @@ import { type Dict } from '../utils/tree/tree-traversal';
 import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';
 import type { ValidationContext } from '../../../types/validation-types';
 import { validatePositions } from './validate-position';
+import { downloadImage } from '../../../tools/figma-tool/images';
 
 interface RefinementContext {
     workspace: WorkspaceStructure;
@@ -145,19 +146,6 @@ function saveProcessedJson(outputDir: string, processedOutput: ProcessedOutput):
     logger.printInfoLog('Saved processed.json');
 }
 
-/**
- * Download and cache Figma thumbnail as base64.
- * This prevents redundant downloads during the validation loop.
- */
-async function downloadFigmaThumbnail(figmaThumbnailUrl: string): Promise<string> {
-    logger.printInfoLog('Downloading Figma thumbnail (will be cached for all iterations)...');
-    const axios = (await import('axios')).default;
-    const response = await axios.get(figmaThumbnailUrl, { responseType: 'arraybuffer', timeout: 30000 });
-    const base64 = Buffer.from(response.data).toString('base64');
-    logger.printSuccessLog('Figma thumbnail cached successfully');
-    return base64;
-}
-
 export async function validationLoop(params: ValidationLoopParams): Promise<ValidationLoopResult> {
     const { protocol, figmaThumbnailUrl, outputDir, workspace } = params;
 
@@ -213,7 +201,9 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         const elementRegistry = toElementMetadataRegistry(validationContext);
 
         // Download and cache Figma thumbnail once to avoid redundant downloads in each iteration
-        const cachedFigmaThumbnailBase64 = await downloadFigmaThumbnail(figmaThumbnailUrl);
+        logger.printInfoLog('Downloading Figma thumbnail (will be cached for all iterations)...');
+        const cachedFigmaThumbnailBase64 = await downloadImage(figmaThumbnailUrl, undefined, undefined, true);
+        logger.printSuccessLog('Figma thumbnail cached successfully');
 
         const iterations: IterationLog[] = [];
         const componentHistory: ComponentHistory = {};

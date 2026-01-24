@@ -35,5 +35,5 @@
     "types": ["node"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "scripts", "src/report/**"]
+  "exclude": ["node_modules", "dist", "scripts", "src/tools/report-tool/template/**"]
 }

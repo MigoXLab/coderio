@@ -69,10 +69,7 @@ export function extractValidationContext(protocol: FrameStructNode): ValidationC
         }
     });
 
-    // Extract thumbnail URL
-    const thumbnailUrl = extractThumbnailUrl(protocol);
-
-    return { offset, elements, components, elementToComponent, figmaPositions, thumbnailUrl };
+    return { offset, elements, components, elementToComponent, figmaPositions };
 }
 
 /**
@@ -173,30 +170,6 @@ function extractElementsRecursive(
             extractElementsRecursive(element.frames, componentInfo, itemType, elementsMap, elementToComponent, figmaPositions, offset);
         }
     }
-}
-
-/**
- * Extract thumbnail URL from protocol elements.
- */
-function extractThumbnailUrl(protocol: FrameStructNode): string | undefined {
-    const elements = protocol.data.elements as FigmaFrameInfo[] | undefined;
-    if (!elements) return undefined;
-
-    // Check root level
-    for (const element of elements) {
-        if (element.thumbnailUrl) {
-            return element.thumbnailUrl;
-        }
-        // Check first-level children
-        if (element.children) {
-            for (const child of element.children) {
-                if (child.thumbnailUrl) {
-                    return child.thumbnailUrl;
-                }
-            }
-        }
-    }
-    return undefined;
 }
 
 // ============================================================================
