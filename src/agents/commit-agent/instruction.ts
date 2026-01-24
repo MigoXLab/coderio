@@ -1,13 +1,11 @@
 import type { CommitAgentParams } from './types';
 
 export function formatGitCommitInstruction(params: CommitAgentParams): string {
-    const commitMessage = (params.commitMessage ?? '').trim();
-    const allowEmpty = params.allowEmpty ?? false;
+    const { repoPath, iteration } = params;
 
-    return `repoPath: ${params.repoPath}
-commitMessage: ${commitMessage}
-allowEmpty: ${allowEmpty}
+    return `repoPath: ${repoPath}
+iteration: ${iteration ?? 'undefined'}
 
 TASK:
-Commit local changes in the repository at repoPath.`;
+Check for changes and commit if there are any modifications in the repository.`;
 }

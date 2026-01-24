@@ -41,24 +41,15 @@ export type { BoundingBox, PositionError, Rectangle, ComponentAggregationData } 
 export interface GitCommitOptions {
     /**
      * Absolute path to the git repository to commit.
-     * Defaults to the generated app directory.
      */
     repoPath?: string;
 
     /**
-     * Optional commit message "suffix".
-     * If provided, the agent MUST commit with:
-     *   "Commit by CodeRio - ${commitMessage}"
-     *
-     * Example: "start iteration 1"
+     * Current iteration number (optional).
+     * If provided: generates iteration-based commit message
+     * If undefined: treats as initial commit
      */
-    commitMessage?: string;
-
-    /**
-     * Whether to allow empty commits.
-     * Useful for creating deterministic marker commits (e.g. iteration boundaries).
-     */
-    allowEmpty?: boolean;
+    iteration?: number;
 }
 
 /**

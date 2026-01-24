@@ -174,15 +174,15 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     const launchTool = new LaunchTool();
     const reportTool = new ReportTool();
 
-    const preCommit = await commit({
+    // Commit initial generated code before validation loop starts
+    const initialCommit = await commit({
         repoPath: workspace.app,
-        commitMessage: `start validation loop`,
-        allowEmpty: true,
+        // iteration is undefined → agent treats as initial commit
     });
-    if (!preCommit.success) {
-        logger.printWarnLog(`Git commit (start validation loop) failed: ${preCommit.message}`);
+    if (!initialCommit.success) {
+        logger.printWarnLog(`Git commit (initial) failed: ${initialCommit.message}`);
     } else {
-        logger.printSuccessLog(`Initial project has been committed successfully, starting validation loop...`);
+        logger.printSuccessLog(`Initial project committed successfully, starting validation loop...`);
     }
 
     const result = await launch(workspace.app);
@@ -226,17 +226,6 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printLog(`\n${'='.repeat(60)}`);
             logger.printLog(`Iteration ${iteration}/${maxIterations}`);
             logger.printLog(`${'='.repeat(60)}`);
-
-            if (mode === 'full') {
-                const startCommit = await commit({
-                    repoPath: workspace.app,
-                    commitMessage: `start iteration ${iteration}`,
-                    allowEmpty: true,
-                });
-                if (!startCommit.success) {
-                    logger.printWarnLog(`Git commit (start iteration ${iteration}) failed: ${startCommit.message}`);
-                }
-            }
 
             const validationResult = await validatePositions({
                 serverUrl: currentServerUrl,
@@ -320,13 +309,13 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                     if (!buildCheck.success) {
                         throw new Error(buildCheck.error);
                     }
-                    const endCommit = await commit({
+                    // Commit final iteration changes
+                    const iterationCommit = await commit({
                         repoPath: workspace.app,
-                        commitMessage: `end iteration ${iteration}`,
-                        allowEmpty: true,
+                        iteration,
                     });
-                    if (!endCommit.success) {
-                        logger.printWarnLog(`Git commit (end iteration ${iteration}) failed: ${endCommit.message}`);
+                    if (!iterationCommit.success) {
+                        logger.printWarnLog(`Git commit (iteration ${iteration}) failed: ${iterationCommit.message}`);
                     }
                 }
                 break;
@@ -346,6 +335,17 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             for (const comp of misalignedToFix) {
                 const log = await refineComponent(comp, refinementContext);
                 componentLogs.push(log);
+            }
+
+            // Commit refiner changes (component fixes)
+            if (mode === 'full') {
+                const refinerCommit = await commit({
+                    repoPath: workspace.app,
+                    iteration,
+                });
+                if (!refinerCommit.success) {
+                    logger.printWarnLog(`Git commit after refiner (iteration ${iteration}) failed: ${refinerCommit.message}`);
+                }
             }
 
             iterations.push({
@@ -372,13 +372,13 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 if (!buildCheck.success) {
                     throw new Error(buildCheck.error);
                 }
-                const endCommit = await commit({
+                // Commit launch changes (build error fixes)
+                const launchCommit = await commit({
                     repoPath: workspace.app,
-                    commitMessage: `end iteration ${iteration}`,
-                    allowEmpty: true,
+                    iteration,
                 });
-                if (!endCommit.success) {
-                    logger.printWarnLog(`Git commit (end iteration ${iteration}) failed: ${endCommit.message}`);
+                if (!launchCommit.success) {
+                    logger.printWarnLog(`Git commit after launch (iteration ${iteration}) failed: ${launchCommit.message}`);
                 }
             }
 
