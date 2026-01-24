@@ -8,7 +8,7 @@ export default [
             'coderio/**',
             'scripts/**',
             'examples/**',
-            'src/report/**',
+            'src/tools/report-tool/template/**',
             '*.config.ts',
             '*.config.js',
         ],

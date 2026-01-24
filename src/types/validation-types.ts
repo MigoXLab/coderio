@@ -82,9 +82,6 @@ export interface ValidationContext {
 
     /** All Figma positions indexed by node ID (offset already applied) */
     figmaPositions: Record<string, FigmaPosition | undefined>;
-
-    /** Figma thumbnail URL extracted from protocol */
-    thumbnailUrl?: string;
 }
 
 /**

@@ -398,28 +398,23 @@ export class ReportTool {
     }
 
     /**
-     * Determine the root directory of the package (where src/report/dist is located relative to executed code)
+     * Determine the root directory of the package by walking up to find package.json
      */
     private getPackageRoot(): string {
         // In ES modules, __dirname is not available, construct it from import.meta.url
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
 
-        // Check if we are in 'dist' (production build)
-        if (__dirname.includes('dist')) {
-            // Find package.json by walking up the directory tree
-            let currentDir = __dirname;
-            while (currentDir !== path.parse(currentDir).root) {
-                if (fs.existsSync(path.join(currentDir, 'package.json'))) {
-                    return currentDir;
-                }
-                currentDir = path.dirname(currentDir);
+        // Walk up the directory tree to find package.json
+        let currentDir = __dirname;
+        while (currentDir !== path.parse(currentDir).root) {
+            if (fs.existsSync(path.join(currentDir, 'package.json'))) {
+                return currentDir;
             }
-            return process.cwd(); // Fallback
+            currentDir = path.dirname(currentDir);
         }
 
-        // Development mode: src/tools/report-tool -> ../../../ -> project root
-        return path.resolve(__dirname, '../../..');
+        return process.cwd(); // Fallback
     }
 
     /**
@@ -428,11 +423,10 @@ export class ReportTool {
     private getReportDistDir(): string {
         const root = this.getPackageRoot();
 
-        // 1. Check relative to root (standard layout)
+        // Check standard locations for report template
         const paths = [
-            path.join(root, 'dist/report'), // Production layout
-            path.join(root, 'src/report/dist'), // Development layout
-            path.join(root, 'report'), // Alternative production layout
+            path.join(root, 'dist/tools/report-tool/template'), // Production layout (if copied)
+            path.join(root, 'src/tools/report-tool/template/dist'), // Development layout
         ];
 
         for (const p of paths) {
@@ -441,14 +435,7 @@ export class ReportTool {
             }
         }
 
-        // 2. Last resort: check relative to __dirname (in case structure is flat)
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = path.dirname(__filename);
-        const relativePath = path.join(__dirname, 'report');
-        if (fs.existsSync(path.join(relativePath, 'index.html'))) {
-            return relativePath;
-        }
-
-        return path.join(root, 'src/report/dist'); // Default fallback
+        // Fallback to development layout
+        return path.join(root, 'src/tools/report-tool/template/dist');
     }
 }
