@@ -58,6 +58,3 @@ export const runValidation = async (state: GraphState): Promise<ValidationResult
         reportHtmlPath,
     };
 };
-
-export { validationLoop };
-export * from './types';

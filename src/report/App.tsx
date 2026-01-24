@@ -14,96 +14,9 @@ declare global {
     }
 }
 
-// src/report/App.tsx
-
-const MOCK_DATA: UserReport = {
-    design: {
-        snap: 'https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17e35ee9-4df3-4793-9f29-b98113ca62a7',
-        markedSnap: 'https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17e35ee9-4df3-4793-9f29-b98113ca62a7',
-    },
-    page: {
-        url: 'http://localhost:5173',
-        snap: 'https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17e35ee9-4df3-4793-9f29-b98113ca62a7',
-        markedSnap: 'https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17e35ee9-4df3-4793-9f29-b98113ca62a7',
-    },
-    report: {
-        heatmap: 'https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17e35ee9-4df3-4793-9f29-b98113ca62a7',
-        detail: {
-            metrics: {
-                mae: 76.34,
-                sae: 720335.04,
-                misalignedCount: 17,
-            },
-            components: [
-                {
-                    componentId: 'NavigationLinks',
-                    componentPath: '@/components/global-header/navigation-links',
-                    elements: [
-                        { elementId: '1:1618', elementIndex: 1, validationInfo: { x: 442.89, y: 0 } },
-                        { elementId: '1:1619', elementIndex: 2, validationInfo: { x: 442.05, y: 0 } },
-                        { elementId: '1:1620', elementIndex: 3, validationInfo: { x: 442.89, y: 0 } },
-                    ],
-                },
-                {
-                    componentId: 'HeroTitle',
-                    componentPath: '@/components/hero-section/hero-title',
-                    elements: [{ elementId: '1:1630', elementIndex: 4, validationInfo: { x: -42, y: 0 } }],
-                },
-                {
-                    componentId: 'HeroSubtitle',
-                    componentPath: '@/components/hero-section/hero-subtitle',
-                    elements: [{ elementId: '1:1631', elementIndex: 5, validationInfo: { x: 81.08, y: 0 } }],
-                },
-                {
-                    componentId: 'EvaluationVideoCard',
-                    componentPath: '@/components/video-card',
-                    elements: [
-                        { elementId: '1:1578', elementIndex: 6, validationInfo: { x: 0, y: -24 } },
-                        { elementId: '1:1627', elementIndex: 7, validationInfo: { x: 0, y: -24 } },
-                    ],
-                },
-                {
-                    componentId: 'HelperText',
-                    componentPath: '@/components/helper-text',
-                    elements: [{ elementId: '1:1589', elementIndex: 8, validationInfo: { x: 252, y: -36 } }],
-                },
-                {
-                    componentId: 'ActionButtons',
-                    componentPath: '@/components/action-buttons',
-                    elements: [{ elementId: '1:1590', elementIndex: 9, validationInfo: { x: 0, y: -68 } }],
-                },
-                {
-                    componentId: 'StartButton',
-                    componentPath: '@/components/action-buttons/start-button',
-                    elements: [
-                        { elementId: '1:1601', elementIndex: 10, validationInfo: { x: 0, y: -68 } },
-                        { elementId: '1:1602', elementIndex: 11, validationInfo: { x: 0, y: -68 } },
-                        { elementId: '1:1603', elementIndex: 12, validationInfo: { x: 0, y: -68 } },
-                    ],
-                },
-                {
-                    componentId: 'ApiButton',
-                    componentPath: '@/components/action-buttons/api-button',
-                    elements: [
-                        { elementId: '1:1591', elementIndex: 13, validationInfo: { x: 0.53, y: -66 } },
-                        { elementId: '1:1592', elementIndex: 14, validationInfo: { x: 0.53, y: -68 } },
-                        { elementId: '1:1593', elementIndex: 15, validationInfo: { x: 0.53, y: -68 } },
-                        { elementId: '1:1600', elementIndex: 16, validationInfo: { x: 0.53, y: -68 } },
-                    ],
-                },
-                {
-                    componentId: 'Footer',
-                    componentPath: '@/components/footer',
-                    elements: [{ elementId: '1:1604', elementIndex: 17, validationInfo: { x: 0.2, y: -147 } }],
-                },
-            ],
-        },
-    },
-};
-
 const App: React.FC = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('annotation');
-    const { design, page, report } = window.__REPORT_DATA__ || MOCK_DATA;
+    const { design, page, report } = window.__REPORT_DATA__;
 
     return (
         <div className="h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">

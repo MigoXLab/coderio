@@ -18,8 +18,7 @@ export async function commit(options?: GitCommitOptions): Promise<GitCommitResul
 
         const instruction = formatGitCommitInstruction({
             repoPath,
-            commitMessage: options.commitMessage,
-            allowEmpty: options.allowEmpty,
+            iteration: options.iteration,
         });
 
         await agent.run(instruction);
