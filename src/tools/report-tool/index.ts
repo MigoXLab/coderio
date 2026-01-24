@@ -1,6 +1,6 @@
 /**
  * Report generation tool for validation results.
- * Provides methods for building userReport, formatting data, and generating HTML.
+ * Provides pure visualization and formatting.
  */
 
 import * as fs from 'fs';
@@ -10,30 +10,25 @@ import { fileURLToPath } from 'url';
 import { tools } from 'evoltagent';
 
 import { logger } from '../../utils/logger';
-import { PositionTool } from '../position-tool';
 import { VisualizationTool } from '../visualization-tool';
 import type { MisalignedComponentData } from '../visualization-tool/types';
-import type { MisalignedComponent, UserReport } from '../../types/validation-types';
-import type { ErrorReportOptions, FinalReportRequest, FinalReportResult, GenerateHtmlResult } from './types';
+import type { UserReport } from '../../types/validation-types';
+import type { ReportGenerationRequest, ReportGenerationResult, ErrorReportOptions, GenerateHtmlResult } from './types';
 
-export type { ErrorReportOptions, FinalReportRequest, FinalReportResult, GenerateHtmlResult } from './types';
+export type { ReportGenerationRequest, ReportGenerationResult, ErrorReportOptions, GenerateHtmlResult } from './types';
 
 @tools({
-    buildUserReport: {
-        description: 'Capture positions, generate annotated screenshots, and build userReport with metrics and component details',
+    generateReport: {
+        description:
+            'Generate visual validation report structure from pre-computed validation results. Creates annotated screenshots, heatmap, and userReport structure.',
         params: [
             {
                 name: 'request',
                 type: 'object',
-                description: 'FinalReportRequest with figmaJson, structureTree, serverUrl, outputDir, etc.',
+                description: 'ReportGenerationRequest with validationResult, figmaThumbnailUrl, serverUrl, outputDir, etc.',
             },
         ],
-        returns: { type: 'object', description: 'FinalReportResult with userReport and misalignedCount' },
-    },
-    formatMisalignedData: {
-        description: 'Transform MisalignedComponent array to MisalignedComponentData format for screenshot annotation',
-        params: [{ name: 'components', type: 'object', description: 'MisalignedComponent[] to transform' }],
-        returns: { type: 'object', description: 'MisalignedComponentData[] for visualization' },
+        returns: { type: 'object', description: 'ReportGenerationResult with userReport and misalignedCount' },
     },
     createMinimalReport: {
         description: 'Create a minimal user report for error scenarios without screenshots',
@@ -51,58 +46,60 @@ export type { ErrorReportOptions, FinalReportRequest, FinalReportResult, Generat
 })
 export class ReportTool {
     /**
-     * Build final validation report with screenshots and metrics.
-     * Captures positions, generates annotated screenshots, and builds userReport structure.
+     * Generate visual validation report from validation results.
+     *
+     * This method ONLY does visualization and formatting:
+     * - Annotates browser and Figma screenshots with error markers
+     * - Generates pixel difference heatmap
+     * - Builds userReport structure
+     *
      */
-    async buildUserReport(request: FinalReportRequest): Promise<FinalReportResult> {
-        logger.printInfoLog('\nGenerating final validation report...');
+    async generateReport(request: ReportGenerationRequest): Promise<ReportGenerationResult> {
+        logger.printInfoLog('\nGenerating validation report...');
 
-        const positionTool = new PositionTool();
         const visualizationTool = new VisualizationTool();
+        const { validationResult } = request;
 
-        const finalCaptureResult = await positionTool.capturePosition({
-            protocol: request.protocol,
-            validationContext: request.validationContext,
-            url: request.serverUrl,
-            figmaThumbnailUrl: request.figmaThumbnailUrl,
-            positionThreshold: request.positionThreshold,
-            returnScreenshot: true,
-            elementRegistry: request.elementRegistry,
-        });
-
-        const elementToComponent = request.validationContext.elementToComponent;
-        const aggregated = positionTool.aggregateElements(finalCaptureResult.positions, elementToComponent, request.positionThreshold);
-        const misalignedComponents = aggregated.misalignedComponents as unknown as MisalignedComponent[];
-        const misalignedData = this.formatMisalignedData(misalignedComponents);
-
-        logger.printInfoLog(`Final misaligned components: ${misalignedData.length}`);
-
+        // Prepare output directory
         const comparisonDir = path.join(request.outputDir, 'comparison_screenshots');
         if (!fs.existsSync(comparisonDir)) {
             fs.mkdirSync(comparisonDir, { recursive: true });
         }
 
-        const viewport = finalCaptureResult.metadata.viewport;
-        const designOffset = finalCaptureResult.metadata.designOffset || request.designOffset;
+        // Transform validation data to visualization format
+        const misalignedData = visualizationTool['formatForVisualization'](validationResult.misalignedComponents);
+        logger.printInfoLog(`Final misaligned components: ${misalignedData.length}`);
 
-        const render = await visualizationTool.annotateRender(request.serverUrl, misalignedData, viewport);
+        // Generate annotated screenshots
+        const render = await visualizationTool.annotateRender(request.serverUrl, misalignedData, validationResult.viewport);
 
         // Use cached thumbnail if available to avoid redundant download
         const targetMarked = request.cachedFigmaThumbnailBase64
-            ? await visualizationTool.annotateTargetFromBase64(request.cachedFigmaThumbnailBase64, misalignedData, viewport, designOffset)
-            : await visualizationTool.annotateTarget(request.figmaThumbnailUrl, misalignedData, viewport, designOffset);
+            ? await visualizationTool.annotateTargetFromBase64(
+                  request.cachedFigmaThumbnailBase64,
+                  misalignedData,
+                  validationResult.viewport,
+                  request.designOffset
+              )
+            : await visualizationTool.annotateTarget(
+                  request.figmaThumbnailUrl,
+                  misalignedData,
+                  validationResult.viewport,
+                  request.designOffset
+              );
 
         const screenshots = {
-            renderSnap: render.renderSnap,
+            renderSnap: validationResult.screenshots?.renderSnap || render.renderSnap,
             renderMarked: render.renderMarked,
             targetMarked,
         };
 
+        // Generate combined comparison screenshot
         const finalScreenshotPath = path.join(comparisonDir, 'final.webp');
         await visualizationTool.combine(screenshots.renderMarked, screenshots.targetMarked, finalScreenshotPath);
-
         logger.printSuccessLog(`Saved final comparison screenshot: ${path.basename(finalScreenshotPath)}`);
 
+        // Generate pixel difference heatmap
         let heatmap = '';
         try {
             heatmap = await visualizationTool.diffHeatmap(screenshots.renderSnap, request.figmaThumbnailUrl);
@@ -122,9 +119,10 @@ export class ReportTool {
             logger.printWarnLog(`Failed to generate pixel difference heatmap: ${errorMsg}. Continuing without heatmap.`);
         }
 
+        // Build userReport structure (pure data formatting)
         const userReport = this.buildUserReportStructure(
-            request.finalMae,
-            request.finalSae,
+            validationResult.mae,
+            validationResult.sae,
             misalignedData.length,
             screenshots,
             heatmap,
@@ -133,44 +131,12 @@ export class ReportTool {
             misalignedData
         );
 
-        logger.printSuccessLog('Final validation report generated successfully');
+        logger.printSuccessLog('Validation report generated successfully');
 
         return {
             userReport,
             misalignedCount: misalignedData.length,
         };
-    }
-
-    /**
-     * Transform MisalignedComponent array to MisalignedComponentData format.
-     * This format is used for screenshot annotation and report generation.
-     */
-    formatMisalignedData(components: MisalignedComponent[]): MisalignedComponentData[] {
-        return components.map((comp, idx) => {
-            if (comp.elementIds.length === 0) {
-                logger.printWarnLog(`Component ${comp.name} has no elementIds. Using componentId as fallback.`);
-            }
-
-            return {
-                index: idx + 1,
-                elementId: comp.elementIds[0] || comp.componentId,
-                elementName: comp.name,
-                componentId: comp.componentId,
-                componentName: comp.name,
-                componentPath: comp.path,
-                currentX: comp.currentX,
-                currentY: comp.currentY,
-                currentWidth: comp.currentWidth,
-                currentHeight: comp.currentHeight,
-                targetX: comp.targetX,
-                targetY: comp.targetY,
-                targetWidth: comp.targetWidth,
-                targetHeight: comp.targetHeight,
-                distance: comp.distance,
-                xDelta: comp.validationReport.absoluteError[0],
-                yDelta: comp.validationReport.absoluteError[1],
-            };
-        });
     }
 
     /**

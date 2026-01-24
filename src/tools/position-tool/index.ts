@@ -3,7 +3,7 @@ import { tools } from 'evoltagent';
 import { logger } from '../../utils/logger';
 import { captureBrowserPositions } from './utils/capture-position';
 import { calculatePositionMetrics } from './utils/position-metrics';
-import { calculateComponentMetrics } from './utils/aggregate-elements';
+import { calculateComponentMetrics, toRect } from './utils/aggregate-elements';
 import type {
     AggregateElementsResult,
     BrowserPositionInput,
@@ -14,7 +14,6 @@ import type {
     PositionValidationOutput,
     SkippedElement,
 } from './types';
-import { toRect } from './utils/rect';
 
 @tools({
     capturePosition: {

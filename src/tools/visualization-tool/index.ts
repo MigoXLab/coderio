@@ -1,12 +1,15 @@
 import { tools } from 'evoltagent';
+import * as path from 'path';
 
 import type { AnnotateRenderResult, CombineOptions, MisalignedComponentData } from './types';
+import type { MisalignedComponent } from '../../types/validation-types';
 import { annotateRenderWithPlaywright } from './utils/annotate-render';
 import { annotateTargetWithPlaywright } from './utils/annotate-target';
 import { browserManagement } from './utils/browser-management';
 import { combineSideBySide } from './utils/combine';
 import { captureAsWebP } from './utils/image-converter';
 import { generatePixelDiffHeatmap } from './utils/pixel-diff-heatmap';
+import { logger } from '../../utils/logger';
 
 @tools({
     annotateRender: {
@@ -46,6 +49,25 @@ import { generatePixelDiffHeatmap } from './utils/pixel-diff-heatmap';
         ],
         returns: { type: 'string', description: 'Annotated target screenshot as WebP data URI.' },
     },
+    annotateTargetFromBase64: {
+        description: 'Annotate target using pre-cached base64 thumbnail data. Use this to avoid redundant Figma thumbnail downloads.',
+        params: [
+            { name: 'figmaThumbnailBase64', type: 'string', description: 'Base64-encoded Figma thumbnail data.' },
+            {
+                name: 'misalignedData',
+                type: 'object',
+                description: 'MisalignedComponentData[] used to draw GREEN boxes on the target.',
+            },
+            { name: 'viewport', type: 'object', description: 'Viewport {width,height} to match the Figma thumbnail.' },
+            {
+                name: 'designOffset',
+                type: 'object',
+                description: 'Design offset {x,y} used when the thumbnail is not cropped (default behavior is cropped).',
+                optional: true,
+            },
+        ],
+        returns: { type: 'string', description: 'Annotated target screenshot as WebP data URI.' },
+    },
     combine: {
         description: 'Combine two base64 screenshots side-by-side with headers and write to outputPath (WebP).',
         params: [
@@ -63,6 +85,24 @@ import { generatePixelDiffHeatmap } from './utils/pixel-diff-heatmap';
             { name: 'targetSnap', type: 'string', description: 'Target screenshot (WebP data URI) OR URL.' },
         ],
         returns: { type: 'string', description: 'Heatmap image as WebP data URI.' },
+    },
+    generateIterationScreenshot: {
+        description: 'Generate annotated comparison screenshot for validation iteration. Orchestrates annotate + combine for convenience.',
+        params: [
+            { name: 'misalignedComponents', type: 'object', description: 'MisalignedComponent[] from validation result' },
+            { name: 'serverUrl', type: 'string', description: 'Dev server URL' },
+            { name: 'figmaThumbnailUrl', type: 'string', description: 'Figma thumbnail URL' },
+            { name: 'viewport', type: 'object', description: 'Viewport {width, height}' },
+            { name: 'designOffset', type: 'object', description: 'Design offset {x, y}' },
+            { name: 'outputPath', type: 'string', description: 'Output file path for combined screenshot' },
+            {
+                name: 'cachedFigmaThumbnailBase64',
+                type: 'string',
+                description: 'Optional cached thumbnail base64',
+                optional: true,
+            },
+        ],
+        returns: { type: 'string', description: 'Output path (empty string if no misaligned components)' },
     },
 })
 export class VisualizationTool {
@@ -120,5 +160,80 @@ export class VisualizationTool {
 
     async diffHeatmap(renderSnap: string, targetSnap: string): Promise<string> {
         return await generatePixelDiffHeatmap(renderSnap, targetSnap);
+    }
+
+    /**
+     * Generate annotated comparison screenshot for a single iteration.
+     * This is a convenience method that orchestrates the full screenshot workflow.
+     *
+     * @returns Output path, or empty string if no misaligned components or on error
+     */
+    async generateIterationScreenshot(
+        misalignedComponents: MisalignedComponent[],
+        serverUrl: string,
+        figmaThumbnailUrl: string,
+        viewport: { width: number; height: number },
+        designOffset: { x: number; y: number },
+        outputPath: string,
+        cachedFigmaThumbnailBase64?: string
+    ): Promise<string> {
+        if (misalignedComponents.length === 0) {
+            return '';
+        }
+
+        try {
+            // Transform validation data to visualization format
+            const misalignedData = this.formatForVisualization(misalignedComponents);
+
+            // Annotate render (browser screenshot)
+            const render = await this.annotateRender(serverUrl, misalignedData, viewport);
+
+            // Annotate target (Figma screenshot) - use cached thumbnail if available
+            const targetMarked = cachedFigmaThumbnailBase64
+                ? await this.annotateTargetFromBase64(cachedFigmaThumbnailBase64, misalignedData, viewport, designOffset)
+                : await this.annotateTarget(figmaThumbnailUrl, misalignedData, viewport, designOffset);
+
+            // Combine into side-by-side comparison
+            await this.combine(render.renderMarked, targetMarked, outputPath);
+
+            logger.printInfoLog(`Saved comparison screenshot: ${path.basename(outputPath)}`);
+            return outputPath;
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            logger.printWarnLog(`Failed to generate iteration screenshot: ${errorMsg}`);
+            return '';
+        }
+    }
+
+    /**
+     * Transform MisalignedComponent[] to MisalignedComponentData[] format.
+     * This is an internal helper for converting validation results to visualization format.
+     */
+    private formatForVisualization(components: MisalignedComponent[]): MisalignedComponentData[] {
+        return components.map((comp, idx) => {
+            if (comp.elementIds.length === 0) {
+                logger.printWarnLog(`Component ${comp.name} has no elementIds. Using componentId as fallback.`);
+            }
+
+            return {
+                index: idx + 1,
+                elementId: comp.elementIds[0] || comp.componentId,
+                elementName: comp.name,
+                componentId: comp.componentId,
+                componentName: comp.name,
+                componentPath: comp.path,
+                currentX: comp.currentX,
+                currentY: comp.currentY,
+                currentWidth: comp.currentWidth,
+                currentHeight: comp.currentHeight,
+                targetX: comp.targetX,
+                targetY: comp.targetY,
+                targetWidth: comp.targetWidth,
+                targetHeight: comp.targetHeight,
+                distance: comp.distance,
+                xDelta: comp.validationReport.absoluteError[0],
+                yDelta: comp.validationReport.absoluteError[1],
+            };
+        });
     }
 }

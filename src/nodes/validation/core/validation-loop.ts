@@ -11,7 +11,6 @@ import * as path from 'path';
 
 import { DEFAULT_VALIDATION_LOOP_CONFIG } from '../constants';
 import { logger } from '../../../utils/logger';
-import type { WorkspaceStructure } from '../../../types/workspace-types';
 import { commit } from '../subnodes/commit/index';
 import { createJudgerAgent, formatJudgerInstruction } from '../../../agents/judger-agent';
 import { createRefinerAgent, formatRefinerInstruction } from '../../../agents/refiner-agent';
@@ -19,40 +18,25 @@ import { launch } from '../subnodes/launch/index';
 import type {
     ComponentCorrectionLog,
     ComponentHistory,
+    Dict,
     IterationLog,
     JudgerDiagnosis,
     MisalignedComponent,
     ProcessedOutput,
     RefinerResult,
+    RefinementContext,
+    ValidationIterationResult,
     ValidationLoopConfig,
     ValidationLoopParams,
     ValidationLoopResult,
 } from '../types';
 import { extractLayoutFromContext } from '../utils/extraction/extract-layout-metadata';
 import { report } from '../subnodes/report/index';
-import { ReportTool } from '../../../tools/report-tool';
 import { LaunchTool } from '../../../tools/launch-tool';
-import { type Dict } from '../utils/tree/tree-traversal';
+import { VisualizationTool } from '../../../tools/visualization-tool';
 import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';
-import type { ValidationContext } from '../../../types/validation-types';
 import { validatePositions } from './validate-position';
 import { downloadImage } from '../../../tools/figma-tool/images';
-
-interface RefinementContext {
-    workspace: WorkspaceStructure;
-    structureTree: Dict;
-    componentPaths: Record<string, string>;
-    componentHistory: ComponentHistory;
-    validationContext: ValidationContext;
-    previousScreenshotPath?: string;
-}
-
-function calculateSae(misaligned: MisalignedComponent[]): number {
-    return misaligned.reduce((sum, comp) => {
-        const [errorX, errorY] = comp.validationReport.absoluteError;
-        return sum + errorX + errorY;
-    }, 0);
-}
 
 function filterComponentsToFix(misaligned: MisalignedComponent[], positionThreshold: number): MisalignedComponent[] {
     return misaligned.filter(comp => {
@@ -78,7 +62,7 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
     try {
         // Extract element IDs from context for this component
         const elementIds = Array.from(validationContext.elements.values())
-            .filter(e => e.parentComponentId === comp.componentId)
+            .filter((e): e is NonNullable<typeof e> => e.parentComponentId === comp.componentId)
             .map(e => e.id);
 
         const figmaMetadata = extractLayoutFromContext(validationContext, elementIds);
@@ -160,7 +144,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     const mode: 'reportOnly' | 'full' = config.mode ?? 'full';
     const maxIterations = mode === 'reportOnly' ? 1 : config.maxIterations;
     const launchTool = new LaunchTool();
-    const reportTool = new ReportTool();
+    const visualizationTool = new VisualizationTool();
 
     // Commit initial generated code before validation loop starts
     const initialCommit = await commit({
@@ -211,6 +195,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         let currentMae = -1; // Sentinel value: -1 indicates no measurement yet
         let currentSae = 0;
         let lastMisalignedCount = 0;
+        let lastValidationResult: ValidationIterationResult | undefined;
 
         for (let iteration = 1; iteration <= maxIterations; iteration++) {
             logger.printLog(`\n${'='.repeat(60)}`);
@@ -231,10 +216,28 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 resolvedComponentPaths,
             });
 
+            // Store for final report generation
+            lastValidationResult = validationResult;
+
             currentMae = validationResult.mae;
+            currentSae = validationResult.sae;
             const misaligned = validationResult.misalignedComponents;
             lastMisalignedCount = misaligned.length;
-            currentSae = calculateSae(misaligned);
+
+            logger.printInfoLog(`MAE: ${currentMae.toFixed(2)}px (target: <=${config.targetMae}px)`);
+            logger.printInfoLog(`SAE: ${currentSae.toFixed(2)}px`);
+            logger.printInfoLog(`Misaligned: ${misaligned.length}`);
+
+            // Generate iteration screenshot using VisualizationTool
+            const comparisonScreenshotPath = await visualizationTool.generateIterationScreenshot(
+                misaligned,
+                currentServerUrl,
+                figmaThumbnailUrl,
+                validationResult.viewport,
+                { x: designOffset[0], y: designOffset[1] },
+                path.join(outputDir, 'comparison_screenshots', `iteration_${iteration}.webp`),
+                cachedFigmaThumbnailBase64
+            );
 
             logger.printInfoLog(`MAE: ${currentMae.toFixed(2)}px (target: <=${config.targetMae}px)`);
             logger.printInfoLog(`SAE: ${currentSae.toFixed(2)}px`);
@@ -258,7 +261,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                     iteration,
                     metrics: { mae: currentMae, sae: currentSae, misalignedCount: misaligned.length },
                     components: componentLogs,
-                    screenshotPath: validationResult.comparisonScreenshotPath,
+                    screenshotPath: comparisonScreenshotPath,
                     skippedElements: validationResult.skippedElements.length > 0 ? validationResult.skippedElements : undefined,
                 });
                 saveProcessedJson(outputDir, {
@@ -280,7 +283,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                     iteration,
                     metrics: { mae: currentMae, sae: currentSae, misalignedCount: misaligned.length },
                     components: componentLogs,
-                    screenshotPath: validationResult.comparisonScreenshotPath,
+                    screenshotPath: comparisonScreenshotPath,
                     skippedElements: validationResult.skippedElements.length > 0 ? validationResult.skippedElements : undefined,
                 });
                 saveProcessedJson(outputDir, {
@@ -342,7 +345,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 iteration,
                 metrics: { mae: currentMae, sae: currentSae, misalignedCount: misaligned.length },
                 components: componentLogs,
-                screenshotPath: validationResult.comparisonScreenshotPath,
+                screenshotPath: comparisonScreenshotPath,
                 skippedElements: validationResult.skippedElements.length > 0 ? validationResult.skippedElements : undefined,
             });
 
@@ -373,7 +376,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             }
 
             logger.printInfoLog(`Iteration ${iteration} complete\n`);
-            previousScreenshotPath = validationResult.comparisonScreenshotPath;
+            previousScreenshotPath = comparisonScreenshotPath;
         }
 
         const validationPassed = currentMae <= config.targetMae;
@@ -400,37 +403,27 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             },
         };
 
+        // Generate final validation report using report() subnode
         try {
-            // Step 1: Build userReport with screenshots (replaces generateFinalReport)
-            const reportResult = await reportTool.buildUserReport({
-                protocol,
-                serverUrl: currentServerUrl,
-                figmaThumbnailUrl,
-                outputDir,
-                designOffset: { x: designOffset[0], y: designOffset[1] },
-                finalMae: currentMae,
-                finalSae: currentSae,
-                positionThreshold: config.positionThreshold,
-                validationContext,
-                elementRegistry,
-                cachedFigmaThumbnailBase64,
-            });
-
-            finalOutput.finalResult.misalignedCount = reportResult.misalignedCount;
-            saveProcessedJson(outputDir, finalOutput);
-
-            // Step 2: Generate HTML file from userReport (NEW - happens inside validation)
-            const htmlResult = await report({
-                userReport: reportResult.userReport,
-                outputDir,
-            });
-
-            if (!htmlResult.success) {
-                logger.printWarnLog(`Failed to generate HTML report: ${htmlResult.error}`);
+            if (!lastValidationResult) {
+                throw new Error('No validation results available for report generation');
             }
 
+            const reportResult = await report({
+                validationResult: lastValidationResult,
+                figmaThumbnailUrl,
+                cachedFigmaThumbnailBase64,
+                designOffset: { x: designOffset[0], y: designOffset[1] },
+                outputDir,
+                serverUrl: currentServerUrl,
+            });
+
+            // Update misaligned count from final report (may differ from last iteration)
+            finalOutput.finalResult.misalignedCount = lastValidationResult.misalignedComponents.length;
+            saveProcessedJson(outputDir, finalOutput);
+
             return {
-                reportGenerated: htmlResult.success,
+                reportGenerated: reportResult.success,
                 validationPassed,
                 finalMae: currentMae,
                 finalSae: currentSae,
@@ -440,9 +433,10 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             };
         } catch (screenshotError) {
             const errorMsg = screenshotError instanceof Error ? screenshotError.message : String(screenshotError);
-            logger.printWarnLog(`Failed to generate final screenshots: ${errorMsg}. Returning minimal report.`);
+            logger.printWarnLog(`Failed to generate final report: ${errorMsg}. Returning minimal report.`);
             saveProcessedJson(outputDir, finalOutput);
 
+            // Fallback: create minimal report
             return {
                 reportGenerated: false,
                 validationPassed,
@@ -450,12 +444,17 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 finalSae: currentSae,
                 totalIterations: iterations.length,
                 processedOutput: finalOutput,
-                userReport: reportTool.createMinimalReport({
-                    serverUrl: currentServerUrl,
-                    figmaThumbnailUrl,
-                    mae: currentMae,
-                    sae: currentSae,
-                }),
+                userReport: {
+                    design: { snap: figmaThumbnailUrl, markedSnap: '' },
+                    page: { url: currentServerUrl, snap: '', markedSnap: '' },
+                    report: {
+                        heatmap: '',
+                        detail: {
+                            metrics: { mae: currentMae, sae: currentSae, misalignedCount: lastMisalignedCount },
+                            components: [],
+                        },
+                    },
+                },
             };
         }
     } finally {

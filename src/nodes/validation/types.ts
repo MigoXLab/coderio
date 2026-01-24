@@ -6,7 +6,15 @@
  */
 
 import type { FrameStructNode } from '../../types/figma-types';
-import type { ComponentHistoryEntry, UserReport, ValidationReport } from '../../types/validation-types';
+import type {
+    ComponentHistoryEntry,
+    UserReport,
+    ValidationReport,
+    ValidationContext,
+    ElementMetadataRegistry,
+    MisalignedComponent,
+    ComponentHistory,
+} from '../../types/validation-types';
 import type { WorkspaceStructure } from '../../types/workspace-types';
 
 import type { JudgerDiagnosis } from '../../agents/judger-agent/types';
@@ -208,3 +216,83 @@ export interface ComponentData extends ComponentAggregationData {
     elementIds: string[];
     errors: { x: number; y: number }[];
 }
+
+/**
+ * Configuration for validation iteration
+ */
+export interface ValidationIterationConfig {
+    serverUrl: string;
+    figmaThumbnailUrl: string;
+    protocol: FrameStructNode;
+    iteration: number;
+    positionThreshold: number;
+    designOffset: [number, number];
+    outputDir: string;
+    /** Unified validation context containing all Figma data with normalized positions */
+    validationContext: ValidationContext;
+    /** Unified element registry containing all element metadata (eliminates tree traversals) */
+    elementRegistry: ElementMetadataRegistry;
+    /** Pre-cached Figma thumbnail base64 data to avoid redundant downloads. */
+    cachedFigmaThumbnailBase64?: string;
+    /** Resolved component paths (componentId -> absolute filesystem path) */
+    resolvedComponentPaths: Record<string, string>;
+}
+
+/**
+ * Result from validating positions in a single iteration
+ */
+export interface ValidationIterationResult {
+    mae: number;
+    sae: number;
+    misalignedComponents: MisalignedComponent[];
+    skippedElements: SkippedElement[];
+    viewport: { width: number; height: number };
+    screenshots?: {
+        renderSnap: string; // Plain browser screenshot (base64 data URI)
+    };
+}
+
+/**
+ * Context object for component refinement in validation loop
+ */
+export interface RefinementContext {
+    workspace: WorkspaceStructure;
+    structureTree: Dict;
+    componentPaths: Record<string, string>;
+    componentHistory: ComponentHistory;
+    validationContext: ValidationContext;
+    previousScreenshotPath?: string;
+}
+
+/**
+ * Options for report generation
+ */
+export interface ReportOptions {
+    /** Pre-computed final validation result */
+    validationResult: ValidationIterationResult;
+    /** Figma thumbnail URL for visual comparison */
+    figmaThumbnailUrl: string;
+    /** Pre-cached Figma thumbnail base64 (avoids redundant downloads) */
+    cachedFigmaThumbnailBase64?: string;
+    /** Design offset for coordinate normalization */
+    designOffset: { x: number; y: number };
+    /** Output directory for report files */
+    outputDir: string;
+    /** Server URL for report metadata */
+    serverUrl: string;
+}
+
+/**
+ * Result from report generation
+ */
+export interface ReportResult {
+    success: boolean;
+    htmlPath?: string;
+    userReport: UserReport;
+    error?: string;
+}
+
+/**
+ * Generic dictionary type for tree traversal utilities
+ */
+export type Dict = Record<string, unknown>;
