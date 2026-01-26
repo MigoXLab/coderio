@@ -73,7 +73,6 @@ export const resolveAppSrc = (paths: WorkspaceStructure, srcSubPath: string): st
  * - @/src/components/Button → /workspace/my-app/src/components/Button/index.tsx
  * - components/Button → /workspace/my-app/src/components/Button/index.tsx
  *
- * CRITICAL: resolveAppSrc already adds 'src/' directory, so we must strip it first
  */
 export const resolveComponentPath = (aliasPath: string): string => {
     // Step 1: Strip @/ prefix if present

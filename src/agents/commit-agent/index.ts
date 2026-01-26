@@ -5,8 +5,6 @@ import { COMMIT_AGENT_SYSTEM_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
 import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
 
-export { formatGitCommitInstruction } from './instruction';
-
 export function createCommitAgent(): Agent {
     const modelConfig: ModelConfig = {
         ...getModelConfig(),
