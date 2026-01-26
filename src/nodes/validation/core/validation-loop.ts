@@ -11,7 +11,7 @@ import * as path from 'path';
 
 import { DEFAULT_VALIDATION_LOOP_CONFIG } from '../constants';
 import { logger } from '../../../utils/logger';
-import { commit } from '../subnodes/commit/index';
+import { commit } from '../commit/index';
 import { createJudgerAgent } from '../../../agents/judger-agent';
 import { formatJudgerInstruction } from '../../../agents/judger-agent/instruction';
 import { createRefinerAgent, formatRefinerInstruction } from '../../../agents/refiner-agent';
@@ -30,9 +30,6 @@ import type {
     ValidationLoopResult,
     SkippedElement,
 } from '../types';
-import type { RefinerResult } from '../../../agents/refiner-agent/types';
-import type { ComponentHistory, MisalignedComponent } from '../../../types/validation-types';
-import type { JudgerDiagnosis } from '../../../agents/judger-agent/types';
 import { extractLayoutFromContext } from '../utils/extraction/extract-layout-metadata';
 import { report } from '../report/index';
 import { LaunchTool } from '../../../tools/launch-tool';
