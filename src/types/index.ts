@@ -5,5 +5,6 @@
 
 export * from './workspace-types';
 export * from './graph-types';
+export * from './protocol-types';
 export * from './figma-types';
 export * from './validation-types';

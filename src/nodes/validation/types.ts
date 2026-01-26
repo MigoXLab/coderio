@@ -5,7 +5,7 @@
  * Shared types (ValidationContext, UserReport, MisalignedComponent, etc.) are in src/types/validation-types.ts
  */
 
-import type { FrameStructNode } from '../../types/figma-types';
+import type { IProtocol } from '../../types/protocol-types';
 import type {
     ComponentHistoryEntry,
     UserReport,
@@ -135,7 +135,7 @@ export interface FigmaLayoutMetadata {
  * Direct parameters passed to validationLoop function (NOT through LangGraph state)
  */
 export interface ValidationLoopParams {
-    protocol: FrameStructNode;
+    protocol: IProtocol;
     serverUrl?: string;
     figmaThumbnailUrl: string;
     outputDir: string;
@@ -206,7 +206,7 @@ export interface ComponentData extends ComponentAggregationData {
 export interface ValidationIterationConfig {
     serverUrl: string;
     figmaThumbnailUrl: string;
-    protocol: FrameStructNode;
+    protocol: IProtocol;
     iteration: number;
     positionThreshold: number;
     designOffset: [number, number];

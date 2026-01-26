@@ -1,20 +1,31 @@
 /**
  * Figma API Types
  *
- * Type definitions for Figma file, node, and design data structures.
- * Based on Figma REST API specification.
- *
- * @see {@link https://developers.figma.com/docs/rest-api/ Figma REST API}
+ * Type definitions for Figma design data structures.
+ * These types represent the data fetched from Figma REST API and used throughout the protocol generation process.
  */
 
 /* URL and File Information */
+
+/**
+ * Parsed Figma URL information
+ */
 export interface FigmaUrlInfo {
-    fileId: string | null; // The ID of the Figma file.
-    name: string; // The name of the Figma file.
-    nodeId: string | null; // The ID of the Figma node.
-    projectName: string | null; // The name of the project.
+    /** The ID of the Figma file */
+    fileId: string | null;
+    /** The name of the Figma file */
+    name: string;
+    /** The ID of the Figma node */
+    nodeId: string | null;
+    /** The name of the project */
+    projectName: string | null;
 }
 
+/* Color and Visual Properties */
+
+/**
+ * RGBA color representation
+ */
 export interface FigmaColor {
     r: number;
     g: number;
@@ -22,11 +33,18 @@ export interface FigmaColor {
     a: number;
 }
 
+/**
+ * Gradient stop definition
+ */
 export interface FigmaGradientStop {
     color: FigmaColor;
     position: number;
 }
 
+/**
+ * Figma paint/fill object
+ * Supports solid colors, gradients, and images
+ */
 export interface FigmaColorObject {
     blendMode?: string;
     visible?: boolean;
@@ -38,6 +56,11 @@ export interface FigmaColorObject {
     imageRef?: string;
 }
 
+/* Position and Layout */
+
+/**
+ * Position and size in Figma coordinate space
+ */
 export interface FigmaPositionAndSize {
     x: number;
     y: number;
@@ -45,6 +68,11 @@ export interface FigmaPositionAndSize {
     height: number;
 }
 
+/* Typography */
+
+/**
+ * Text styling properties from Figma
+ */
 export interface FigmaTextStyle {
     fontFamily: string;
     fontPostScriptName: string;
@@ -61,6 +89,12 @@ export interface FigmaTextStyle {
     lineHeightUnit: string;
 }
 
+/* CSS Conversion */
+
+/**
+ * Computed CSS styles converted from Figma properties
+ * Used for direct style application in generated components
+ */
 export interface CSSStyles {
     position?: string;
     top?: string;
@@ -96,6 +130,12 @@ export interface CSSStyles {
     [key: string]: string | number | undefined;
 }
 
+/* Frame/Node Structure */
+
+/**
+ * Figma frame/node data structure
+ * Represents a complete Figma design node with all its properties and children
+ */
 export interface FigmaFrameInfo {
     id: string;
     name: string;
@@ -148,6 +188,9 @@ export interface FigmaFrameInfo {
     }[];
 }
 
+/**
+ * Supported Figma image export formats
+ */
 export enum FigmaImageFormat {
     PNG = 'png',
     JPG = 'jpg',
@@ -155,101 +198,4 @@ export enum FigmaImageFormat {
     PDF = 'pdf',
     EPS = 'eps',
     WEBP = 'webp',
-}
-
-export type LayoutDirection = 'VERTICAL' | 'HORIZONTAL' | 'NONE';
-
-export interface FrameData {
-    name: string;
-    purpose: string;
-    elements: unknown[]; // Complete Figma node data with hierarchy (simplified)
-    kebabName?: string; // Normalized identifier for filesystem-friendly names
-    /**
-     * Optional reusable component identifier.
-     * When present, this node is an instance of a reusable component (e.g. "TaskCard", "FeatureCard").
-     */
-    componentName?: string;
-    componentPath?: string; // Derived slug for file system paths
-    /**
-     * Props schema definition for reusable component template.
-     * Defines the formal parameters (key, type, description) for the component.
-     */
-    props?: Array<{ key: string; type: string; description: string }>;
-    /**
-     * Array of component states with their data lists.
-     * Each entry contains: state array (actual parameter values), componentName, and componentPath.
-     */
-    states?: Array<{
-        state: Array<Record<string, unknown>>;
-        componentName: string;
-        componentPath: string;
-    }>;
-    path?: string; // Derived slug for file system paths
-    layout?: EmbeddedLayoutInfo;
-}
-
-/**
- * Component Structure Node
- *
- * Represents a single component in the UI hierarchy, including its layout,
- * Figma elements, and nested child components.
- *
- * @example
- * ```typescript
- * const header: FrameStructNode = {
- *   id: "Header",
- *   data: {
- *     name: "Header",
- *     layout: { ... },
- *     elements: [ ... ]
- *   },
- *   children: [
- *     { id: "Logo", data: { ... }, children: [] }
- *   ]
- * }
- * ```
- */
-export interface FrameStructNode {
-    /** Unique component identifier (e.g., "Header", "ProductCard") */
-    id: string;
-
-    /** Component business data (layout, elements, paths, etc.) */
-    data: FrameData;
-
-    /** Nested child components */
-    children?: FrameStructNode[] | null;
-}
-
-/**
- * Embedded layout information
- * Direct layout data attached to each node in structure tree
- * Eliminates need for separate LayoutMeasurementProvider lookups
- */
-interface EmbeddedLayoutInfo {
-    /** Position and size in CSS coordinates */
-    boundingBox: CssBoundingBox;
-    /** Position and size relative to parent component */
-    relativeBoundingBox?: CssBoundingBox;
-    /** Computed layout direction based on children positions */
-    layoutDirection: LayoutDirection;
-    /** Gap to previous and next siblings */
-    spacing: {
-        previous?: number;
-        next?: number;
-    };
-    /** Pre-computed offset from parent's bounding box */
-    parentRelativeOffset: {
-        x: number;
-        y: number;
-    };
-}
-
-/**
- * Bounding box with position and size using CSS coordinate naming (top, left)
- */
-interface CssBoundingBox {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
 }
