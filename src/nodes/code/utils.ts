@@ -9,24 +9,8 @@ import { createFiles, writeFile } from '../../utils/file';
 import { DEFAULT_APP_CONTENT, DEFAULT_STYLING } from './constants';
 import path from 'path';
 import { extractCode, extractFiles } from '../../utils/parser';
-import { resolveAppSrc } from '../../utils/workspace';
+import { resolveAppSrc, resolveComponentPath } from '../../utils/workspace';
 import { CodeCache, isComponentGenerated, saveComponentGenerated, isAppInjected, saveAppInjected } from '../../utils/code-cache';
-
-/**
- * Convert a component path to the actual file system path
- * Handles @/ alias and ensures .tsx extension
- */
-function getComponentPathFromPath(componentPath: string): string {
-    // Remove @/ alias if present
-    let normalizedPath = componentPath.replace(/^@\//, '');
-
-    // If path doesn't end with .tsx or .ts, assume it's a directory and add index.tsx
-    if (!normalizedPath.endsWith('.tsx') && !normalizedPath.endsWith('.ts')) {
-        normalizedPath = path.join(normalizedPath, 'index.tsx');
-    }
-
-    return normalizedPath;
-}
 
 /**
  * Process a node tree and generate code for all nodes
@@ -153,7 +137,7 @@ export async function generateFrame(node: FrameStructNode, state: GraphState, as
 
     // Save generated files
     const componentPath = node.data.path || '';
-    const filePath = resolveAppSrc(state.workspace, getComponentPathFromPath(componentPath));
+    const filePath = resolveAppSrc(state.workspace, resolveComponentPath(componentPath));
     saveGeneratedCode(code, filePath);
     logger.printSuccessLog(`Successfully generated frame: ${frameName}`);
 }
@@ -188,7 +172,7 @@ export async function generateComponent(
     });
 
     // Save generated files
-    const filePath = resolveAppSrc(state.workspace, getComponentPathFromPath(componentPath));
+    const filePath = resolveAppSrc(state.workspace, resolveComponentPath(componentPath));
     saveGeneratedCode(code, filePath);
     logger.printSuccessLog(`Successfully generated component: ${componentName}`);
 }

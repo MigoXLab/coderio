@@ -19,7 +19,7 @@ import type {
     FigmaPosition,
     ValidationContext,
 } from '../../../../types/validation-types';
-import { resolveAppSrc } from '../../../../utils/workspace';
+import { resolveAppSrc, resolveComponentPath } from '../../../../utils/workspace';
 import type { WorkspaceStructure } from '../../../../types/workspace-types';
 
 /**
@@ -190,42 +190,10 @@ export function extractComponentPaths(context: ValidationContext, workspace: Wor
     const paths: Record<string, string> = {};
     for (const [id, info] of context.components) {
         if (info.path) {
-            paths[id] = resolveComponentPath(info.path, workspace);
+            paths[id] = resolveAppSrc(workspace, resolveComponentPath(info.path));
         }
     }
     return paths;
-}
-
-/**
- * Resolve component alias path to absolute filesystem path.
- *
- * Handles various path formats:
- * - @/components/Button → /workspace/my-app/src/components/Button/index.tsx
- * - @/src/components/Button → /workspace/my-app/src/components/Button/index.tsx
- * - components/Button → /workspace/my-app/src/components/Button/index.tsx
- *
- * CRITICAL: resolveAppSrc already adds 'src/' directory, so we must strip it first
- */
-function resolveComponentPath(aliasPath: string, workspace: WorkspaceStructure): string {
-    // Step 1: Strip @/ prefix if present
-    let relativePath = aliasPath.startsWith('@/')
-        ? aliasPath.substring(2) // '@/components/Button' → 'components/Button'
-        : aliasPath;
-
-    // Step 2: Strip 'src/' prefix if present (resolveAppSrc adds it)
-    // '@/src/components/Button' → 'components/Button'
-    if (relativePath.startsWith('src/')) {
-        relativePath = relativePath.substring(4);
-    }
-
-    // Step 3: Ensure path ends with /index.tsx (all components follow this convention)
-    if (!relativePath.endsWith('.tsx')) {
-        relativePath = `${relativePath}/index.tsx`;
-    }
-
-    // Step 4: Resolve to absolute path using workspace utility
-    // 'components/Button/index.tsx' → '/Users/.../my-app/src/components/Button/index.tsx'
-    return resolveAppSrc(workspace, relativePath);
 }
 
 /**
