@@ -11,14 +11,26 @@ import { logger } from './utils/logger';
 
 export async function design2code(url: string): Promise<void> {
     const urlInfo = parseFigmaUrl(url);
-    const workspace = initWorkspace(urlInfo.projectName!);
+    const threadId = urlInfo.projectName!;
+    const workspace = initWorkspace(threadId);
 
     // Initialize SqliteSaver with the database path
-    const checkpointer = initializeSqliteSaver(workspace.db);
-    const threadId = urlInfo.projectName!;
+    let checkpointer = initializeSqliteSaver(workspace.db);
     const resume = await promptCheckpointChoice(checkpointer, threadId);
 
-    // Compile graph with checkpointer
+    logger.printInfoLog(`Starting design-to-code process for: ${urlInfo.projectName}`);
+
+    // If not resuming, delete workspace and reinitialize checkpointer
+    if (resume !== true) {
+        deleteWorkspace(workspace);
+        logger.printInfoLog('Starting fresh...');
+        // Reinitialize checkpointer after deleting workspace
+        checkpointer = initializeSqliteSaver(workspace.db);
+    } else {
+        logger.printInfoLog('Resuming from cache...');
+    }
+
+    // Compile graph with checkpointer (after potential reinitialization)
     const graph = new StateGraph(GraphStateAnnotation)
         .addNode(GraphNode.INITIAL, initialProject)
         .addNode(GraphNode.PROCESS, generateProtocol)
@@ -31,23 +43,17 @@ export async function design2code(url: string): Promise<void> {
 
     const config = { configurable: { thread_id: threadId } };
 
-    logger.printInfoLog(`Starting design-to-code process for: ${urlInfo.projectName}`);
-
     // If resuming from checkpoint, pass null to let LangGraph resume from saved state
     // Otherwise, pass initial state to start fresh
-    if (resume === true) {
-        logger.printInfoLog('Resuming from cache...');
-        await graph.invoke(null, config);
-    } else {
-        deleteWorkspace(workspace);
-        logger.printInfoLog('Starting fresh...');
-        const initialState = {
-            messages: [],
-            urlInfo,
-            workspace,
-        };
-        await graph.invoke(initialState, config);
-    }
+    const state =
+        resume === true
+            ? null
+            : {
+                  messages: [],
+                  urlInfo,
+                  workspace,
+              };
+    await graph.invoke(state, config);
 
     logger.printSuccessLog('Design-to-code process completed!');
 }
