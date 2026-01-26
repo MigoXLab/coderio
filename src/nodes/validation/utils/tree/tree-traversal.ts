@@ -4,9 +4,6 @@
 
 import type { Dict } from '../../types';
 
-// Re-export Dict for external consumers
-export type { Dict } from '../../types';
-
 /**
  * Get node ID, trying componentId first, then id.
  */
