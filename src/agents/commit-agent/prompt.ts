@@ -53,7 +53,7 @@ Input format:
 5. Create commit:
    - Use temporary identity (do NOT modify global git config):
      * user.name = "CodeRio"
-     * user.email = "coderio@pjlab.org.cn"
+     * user.email = ""
    - Run GitTool.commit(message, cwd=repoPath, config={...})
 </workflow>
 
@@ -63,7 +63,7 @@ Example tool call format:
 GitTool.commit({
   "message": "feat: [Initial] generate webpage",
   "cwd": "/absolute/path/to/repo",
-  "config": {"user.name": "CodeRio", "user.email": "coderio@pjlab.org.cn"}
+  "config": {"user.name": "CodeRio", "user.email": ""}
 })
 
 IMPORTANT: The config parameter must be a JSON object with keys like "user.name" and "user.email".
