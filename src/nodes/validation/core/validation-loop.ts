@@ -29,6 +29,7 @@ import type {
     ValidationLoopConfig,
     ValidationLoopParams,
     ValidationLoopResult,
+    SkippedElement,
 } from '../types';
 import { extractLayoutFromContext } from '../utils/extraction/extract-layout-metadata';
 import { report } from '../subnodes/report/index';
@@ -37,6 +38,7 @@ import { VisualizationTool } from '../../../tools/visualization-tool';
 import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';
 import { validatePositions } from './validate-position';
 import { downloadImage } from '../../../tools/figma-tool/images';
+import type { WorkspaceStructure } from '../../../types/workspace-types';
 
 function filterComponentsToFix(misaligned: MisalignedComponent[], positionThreshold: number): MisalignedComponent[] {
     return misaligned.filter(comp => {
@@ -130,6 +132,59 @@ function saveProcessedJson(outputDir: string, processedOutput: ProcessedOutput):
     logger.printInfoLog('Saved processed.json');
 }
 
+// Helper functions for reducing code duplication
+async function performCommit(repoPath: string, iteration: number | undefined, stage: string): Promise<void> {
+    const commitResult = await commit({ repoPath, iteration });
+    if (!commitResult.success) {
+        logger.printWarnLog(`Git commit (${stage}) failed: ${commitResult.message}`);
+    } else if (iteration === undefined) {
+        logger.printSuccessLog(`Initial project committed successfully, starting validation loop...`);
+    }
+}
+
+async function buildAndCommit(workspace: WorkspaceStructure, iteration: number, stage: string): Promise<void> {
+    const buildCheck = await launch(workspace.app);
+    if (!buildCheck.success) {
+        throw new Error(buildCheck.error);
+    }
+    await performCommit(workspace.app, iteration, stage);
+}
+
+function saveIterationAndProcessedJson(
+    iterations: IterationLog[],
+    iteration: number,
+    currentMae: number,
+    currentSae: number,
+    misalignedCount: number,
+    components: ComponentCorrectionLog[],
+    screenshotPath: string,
+    skippedElements: SkippedElement[] | undefined,
+    outputDir: string,
+    targetMae: number
+): void {
+    // Add current iteration to log
+    iterations.push({
+        iteration,
+        metrics: { mae: currentMae, sae: currentSae, misalignedCount },
+        components,
+        screenshotPath,
+        skippedElements: skippedElements && skippedElements.length > 0 ? skippedElements : undefined,
+    });
+
+    // Save processed.json with updated iterations
+    const processedOutput: ProcessedOutput = {
+        iterations,
+        finalResult: {
+            success: currentMae <= targetMae,
+            finalMae: currentMae,
+            finalSae: currentSae,
+            totalIterations: iterations.length,
+            misalignedCount,
+        },
+    };
+    saveProcessedJson(outputDir, processedOutput);
+}
+
 export async function validationLoop(params: ValidationLoopParams): Promise<ValidationLoopResult> {
     const { protocol, figmaThumbnailUrl, outputDir, workspace } = params;
 
@@ -147,15 +202,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     const visualizationTool = new VisualizationTool();
 
     // Commit initial generated code before validation loop starts
-    const initialCommit = await commit({
-        repoPath: workspace.app,
-        // iteration is undefined → agent treats as initial commit
-    });
-    if (!initialCommit.success) {
-        logger.printWarnLog(`Git commit (initial) failed: ${initialCommit.message}`);
-    } else {
-        logger.printSuccessLog(`Initial project committed successfully, starting validation loop...`);
-    }
+    await performCommit(workspace.app, undefined, 'initial');
 
     const result = await launch(workspace.app);
     if (!result.success) {
@@ -239,10 +286,6 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 cachedFigmaThumbnailBase64
             );
 
-            logger.printInfoLog(`MAE: ${currentMae.toFixed(2)}px (target: <=${config.targetMae}px)`);
-            logger.printInfoLog(`SAE: ${currentSae.toFixed(2)}px`);
-            logger.printInfoLog(`Misaligned: ${misaligned.length}`);
-
             const misalignedToFix = filterComponentsToFix(misaligned, config.positionThreshold);
             logger.printInfoLog(
                 `Skipping ${misaligned.length - misalignedToFix.length} components with error <= ${config.positionThreshold}px`
@@ -257,59 +300,39 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             if (mode === 'reportOnly') {
                 logger.printInfoLog('Report-only mode enabled: skipping judger/refiner iterations and code edits.');
 
-                iterations.push({
-                    iteration,
-                    metrics: { mae: currentMae, sae: currentSae, misalignedCount: misaligned.length },
-                    components: componentLogs,
-                    screenshotPath: comparisonScreenshotPath,
-                    skippedElements: validationResult.skippedElements.length > 0 ? validationResult.skippedElements : undefined,
-                });
-                saveProcessedJson(outputDir, {
+                saveIterationAndProcessedJson(
                     iterations,
-                    finalResult: {
-                        success: currentMae <= config.targetMae,
-                        finalMae: currentMae,
-                        finalSae: currentSae,
-                        totalIterations: iterations.length,
-                        misalignedCount: misaligned.length,
-                    },
-                });
+                    iteration,
+                    currentMae,
+                    currentSae,
+                    misaligned.length,
+                    componentLogs,
+                    comparisonScreenshotPath,
+                    validationResult.skippedElements,
+                    outputDir,
+                    config.targetMae
+                );
                 break;
             }
 
             if (currentMae <= config.targetMae) {
                 logger.printSuccessLog('Validation passed!');
-                iterations.push({
-                    iteration,
-                    metrics: { mae: currentMae, sae: currentSae, misalignedCount: misaligned.length },
-                    components: componentLogs,
-                    screenshotPath: comparisonScreenshotPath,
-                    skippedElements: validationResult.skippedElements.length > 0 ? validationResult.skippedElements : undefined,
-                });
-                saveProcessedJson(outputDir, {
+
+                saveIterationAndProcessedJson(
                     iterations,
-                    finalResult: {
-                        success: true,
-                        finalMae: currentMae,
-                        finalSae: currentSae,
-                        totalIterations: iterations.length,
-                        misalignedCount: misaligned.length,
-                    },
-                });
+                    iteration,
+                    currentMae,
+                    currentSae,
+                    misaligned.length,
+                    componentLogs,
+                    comparisonScreenshotPath,
+                    validationResult.skippedElements,
+                    outputDir,
+                    config.targetMae
+                );
 
                 if (serverKey) {
-                    const buildCheck = await launch(workspace.app);
-                    if (!buildCheck.success) {
-                        throw new Error(buildCheck.error);
-                    }
-                    // Commit final iteration changes
-                    const iterationCommit = await commit({
-                        repoPath: workspace.app,
-                        iteration,
-                    });
-                    if (!iterationCommit.success) {
-                        logger.printWarnLog(`Git commit (iteration ${iteration}) failed: ${iterationCommit.message}`);
-                    }
+                    await buildAndCommit(workspace, iteration, `iteration ${iteration}`);
                 }
                 break;
             }
@@ -332,47 +355,24 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
 
             // Commit refiner changes (component fixes)
             if (mode === 'full') {
-                const refinerCommit = await commit({
-                    repoPath: workspace.app,
-                    iteration,
-                });
-                if (!refinerCommit.success) {
-                    logger.printWarnLog(`Git commit after refiner (iteration ${iteration}) failed: ${refinerCommit.message}`);
-                }
+                await performCommit(workspace.app, iteration, `refiner (iteration ${iteration})`);
             }
 
-            iterations.push({
-                iteration,
-                metrics: { mae: currentMae, sae: currentSae, misalignedCount: misaligned.length },
-                components: componentLogs,
-                screenshotPath: comparisonScreenshotPath,
-                skippedElements: validationResult.skippedElements.length > 0 ? validationResult.skippedElements : undefined,
-            });
-
-            saveProcessedJson(outputDir, {
+            saveIterationAndProcessedJson(
                 iterations,
-                finalResult: {
-                    success: currentMae <= config.targetMae,
-                    finalMae: currentMae,
-                    finalSae: currentSae,
-                    totalIterations: iterations.length,
-                    misalignedCount: misaligned.length,
-                },
-            });
+                iteration,
+                currentMae,
+                currentSae,
+                misaligned.length,
+                componentLogs,
+                comparisonScreenshotPath,
+                validationResult.skippedElements,
+                outputDir,
+                config.targetMae
+            );
 
             if (serverKey) {
-                const buildCheck = await launch(workspace.app);
-                if (!buildCheck.success) {
-                    throw new Error(buildCheck.error);
-                }
-                // Commit launch changes (build error fixes)
-                const launchCommit = await commit({
-                    repoPath: workspace.app,
-                    iteration,
-                });
-                if (!launchCommit.success) {
-                    logger.printWarnLog(`Git commit after launch (iteration ${iteration}) failed: ${launchCommit.message}`);
-                }
+                await buildAndCommit(workspace, iteration, `launch (iteration ${iteration})`);
             }
 
             logger.printInfoLog(`Iteration ${iteration} complete\n`);
