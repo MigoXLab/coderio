@@ -109,14 +109,6 @@ export interface FigmaFrameInfo {
     frames?: FigmaFrameInfo[];
     blendMode?: string;
     clipsContent?: boolean;
-    layoutMode?: string; // 'HORIZONTAL' | 'VERTICAL' | 'NONE'
-    primaryAxisAlignItems?: string; // Auto-layout: main axis alignment
-    counterAxisAlignItems?: string; // Auto-layout: cross axis alignment
-    itemSpacing?: number; // Auto-layout: gap between items
-    paddingTop?: number; // Auto-layout padding
-    paddingRight?: number;
-    paddingBottom?: number;
-    paddingLeft?: number;
     background?: FigmaColorObject[];
     fills?: FigmaColorObject[];
     strokes?: FigmaColorObject[];

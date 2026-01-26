@@ -11,13 +11,14 @@
  * Core principle: Protocol is the single source of truth. Extract once, use everywhere.
  */
 
-import type { FigmaFrameInfo, FrameStructNode } from '../../../../types/figma-types';
+import type { FrameStructNode } from '../../../../types/figma-types';
 import type {
     ComponentInfo,
     ElementInfo,
     ElementMetadataRegistry,
     FigmaPosition,
     ValidationContext,
+    ValidationFrameInfo,
 } from '../../../../types/validation-types';
 import { resolveAppSrc, resolveComponentPath } from '../../../../utils/workspace';
 import type { WorkspaceStructure } from '../../../../types/workspace-types';
@@ -58,7 +59,7 @@ export function extractValidationContext(protocol: FrameStructNode): ValidationC
         // Extract elements from this component
         if (node.data.elements && Array.isArray(node.data.elements)) {
             extractElementsRecursive(
-                node.data.elements as FigmaFrameInfo[],
+                node.data.elements as ValidationFrameInfo[],
                 componentInfo,
                 itemType,
                 elements,
@@ -85,7 +86,7 @@ function extractOffset(protocol: FrameStructNode): { x: number; y: number } {
     }
 
     // Second try: first element's absoluteBoundingBox (Figma coordinates)
-    const firstElement = protocol.data.elements?.[0] as FigmaFrameInfo | undefined;
+    const firstElement = protocol.data.elements?.[0] as ValidationFrameInfo | undefined;
     if (firstElement?.absoluteBoundingBox) {
         return {
             x: firstElement.absoluteBoundingBox.x,
@@ -114,7 +115,7 @@ function traverseProtocol(node: FrameStructNode, callback: (node: FrameStructNod
  * Applies offset to positions and builds element metadata.
  */
 function extractElementsRecursive(
-    elements: FigmaFrameInfo[],
+    elements: ValidationFrameInfo[],
     componentInfo: ComponentInfo,
     itemType: 'frame' | 'component',
     elementsMap: Map<string, ElementInfo>,

@@ -2,7 +2,7 @@
  * Generic tree traversal utilities for nested dict/list structures.
  */
 
-import type { Dict } from '../../types';
+import type { Dict } from '../../../../types/validation-types';
 
 /**
  * Get node ID, trying componentId first, then id.

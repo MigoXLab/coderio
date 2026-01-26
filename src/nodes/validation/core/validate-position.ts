@@ -5,8 +5,8 @@
 
 import { logger } from '../../../utils/logger';
 import { PositionTool } from '../../../tools/position-tool';
-import type { ValidationIterationConfig, ValidationIterationResult, SkippedElement } from '../types';
 import type { MisalignedComponent } from '../../../types/validation-types';
+import type { ValidationIterationConfig, ValidationIterationResult, SkippedElement } from '../types';
 
 /**
  * Validate positions by capturing browser positions and comparing with Figma.

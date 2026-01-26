@@ -16,9 +16,11 @@ import { createJudgerAgent } from '../../../agents/judger-agent';
 import { formatJudgerInstruction } from '../../../agents/judger-agent/instruction';
 import { createRefinerAgent, formatRefinerInstruction } from '../../../agents/refiner-agent';
 import { launch } from '../launch/index';
+import type { ComponentHistory, MisalignedComponent, Dict } from '../../../types/validation-types';
+import type { JudgerDiagnosis } from '../../../agents/judger-agent/types';
+import type { RefinerResult } from '../../../agents/refiner-agent/types';
 import type {
     ComponentCorrectionLog,
-    Dict,
     IterationLog,
     ProcessedOutput,
     RefinementContext,

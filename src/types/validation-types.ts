@@ -11,6 +11,18 @@
  * Per type organization hierarchy: shared types go in src/types/
  */
 
+import type { FigmaFrameInfo } from './figma-types.js';
+
+// ============================================================================
+// Utility Types
+// ============================================================================
+
+/**
+ * Generic dictionary/object type with string keys and unknown values.
+ * Used for flexible data structures like Figma JSON trees, structure trees, etc.
+ */
+export type Dict = Record<string, unknown>;
+
 // ============================================================================
 // Validation Context Types (extracted from protocol)
 // ============================================================================
@@ -61,6 +73,21 @@ export interface ElementInfo {
     parentComponentPath: string;
     /** Parent item type */
     parentItemType: 'frame' | 'component';
+}
+
+/**
+ * Extended Figma frame information for validation.
+ * Includes layout properties needed for position validation.
+ */
+export interface ValidationFrameInfo extends FigmaFrameInfo {
+    layoutMode?: string; // 'HORIZONTAL' | 'VERTICAL' | 'NONE'
+    primaryAxisAlignItems?: string; // Auto-layout: main axis alignment
+    counterAxisAlignItems?: string; // Auto-layout: cross axis alignment
+    itemSpacing?: number; // Auto-layout: gap between items
+    paddingTop?: number; // Auto-layout padding
+    paddingRight?: number;
+    paddingBottom?: number;
+    paddingLeft?: number;
 }
 
 /**
