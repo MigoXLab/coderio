@@ -11,7 +11,7 @@
  * Core principle: Protocol is the single source of truth. Extract once, use everywhere.
  */
 
-import type { FrameStructNode } from '../../../../types/figma-types';
+import type { IProtocol } from '../../../../types/protocol-types';
 import type {
     ComponentInfo,
     ElementInfo,
@@ -31,10 +31,10 @@ import type { WorkspaceStructure } from '../../../../types/workspace-types';
  * - Element metadata with normalized positions
  * - Figma positions with offset applied
  *
- * @param protocol - Protocol structure tree (FrameStructNode)
+ * @param protocol - Protocol structure tree (IProtocol)
  * @returns ValidationContext containing all data needed for validation
  */
-export function extractValidationContext(protocol: FrameStructNode): ValidationContext {
+export function extractValidationContext(protocol: IProtocol): ValidationContext {
     // Extract offset from root bounding box
     const offset = extractOffset(protocol);
 
@@ -76,7 +76,7 @@ export function extractValidationContext(protocol: FrameStructNode): ValidationC
 /**
  * Extract coordinate offset from protocol root.
  */
-function extractOffset(protocol: FrameStructNode): { x: number; y: number } {
+function extractOffset(protocol: IProtocol): { x: number; y: number } {
     // First try: protocol.data.layout.boundingBox (pre-computed CSS coordinates)
     if (protocol.data.layout?.boundingBox) {
         return {
@@ -101,7 +101,7 @@ function extractOffset(protocol: FrameStructNode): { x: number; y: number } {
 /**
  * Traverse protocol structure tree and invoke callback for each node.
  */
-function traverseProtocol(node: FrameStructNode, callback: (node: FrameStructNode) => void): void {
+function traverseProtocol(node: IProtocol, callback: (node: IProtocol) => void): void {
     callback(node);
     if (node.children && Array.isArray(node.children)) {
         for (const child of node.children) {

@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Command } from 'commander';
 
-import type { FrameStructNode } from '../types/figma-types';
+import type { IProtocol } from '../types/protocol-types';
 import type { ValidationConfig } from '../types/graph-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
@@ -60,7 +60,7 @@ export function registerValidateCommand(program: Command): void {
                     throw new Error(`Missing protocol at: ${protocolPath}. Run d2p/d2c first to generate process/protocol.json.`);
                 }
 
-                const protocol = readJsonFile<FrameStructNode>(protocolPath);
+                const protocol = readJsonFile<IProtocol>(protocolPath);
 
                 // Use the provided URL directly
                 const figmaThumbnailUrl = opts.url;

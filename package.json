@@ -26,10 +26,23 @@
     "prepare": "husky"
   },
   "keywords": [
-    "cli",
-    "tool",
+    "figma",
+    "design-to-code",
+    "figma-to-react",
+    "ai-code-generation",
+    "visual-validation",
+    "react",
     "typescript",
-    "development"
+    "tailwindcss",
+    "multi-agent",
+    "design-automation",
+    "frontend-tools",
+    "ui-restoration",
+    "design-ops",
+    "code-generation",
+    "ai-tool",
+    "vite",
+    "cli"
   ],
   "author": "",
   "license": "Apache-2.0",
