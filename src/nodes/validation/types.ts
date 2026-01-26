@@ -14,6 +14,7 @@ import type {
     ElementMetadataRegistry,
     MisalignedComponent,
     ComponentHistory,
+    Dict,
 } from '../../types/validation-types';
 import type { WorkspaceStructure } from '../../types/workspace-types';
 
@@ -273,8 +274,3 @@ export interface ReportResult {
     userReport: UserReport;
     error?: string;
 }
-
-/**
- * Generic dictionary type for tree traversal utilities
- */
-export type Dict = Record<string, unknown>;

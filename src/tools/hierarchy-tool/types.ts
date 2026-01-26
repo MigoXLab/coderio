@@ -4,7 +4,7 @@
  * Kept standalone to keep `index.ts` focused on behavior.
  */
 
-import type { Dict } from '../../nodes/validation/types';
+import type { Dict } from '../../types/validation-types';
 
 export type HierarchyNode = Dict;
 
