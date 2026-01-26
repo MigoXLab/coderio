@@ -9,9 +9,10 @@ import { logger } from './logger';
     coderio/
     └── figmaName/                   # Project root directory generated from a Figma URL
         ├── my-app/                  # Generated project source code
-        ├── process/                 # Intermediate data and cache during generation (if any)
-        │   └── ...                  # Others
-        ├── reports.html             # Validation reports and screenshots
+        ├── process/                 # Intermediate data and cache during generation
+        │   ├── validation/          # Validation reports, screenshots, and processed.json
+        │   └── ...                  # Other process artifacts
+        ├── reports.html             # Validation reports summary
         └── coderio-cli.db           # Cache database (if any)
 */
 

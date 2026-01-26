@@ -24,7 +24,7 @@ export const runValidation = async (state: GraphState): Promise<void> => {
     }
 
     const mode = state.config?.validationMode ?? 'full';
-    const outputDir = path.join(state.workspace.root, 'validation');
+    const outputDir = path.join(state.workspace.process, 'validation');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
