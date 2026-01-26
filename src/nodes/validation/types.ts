@@ -21,24 +21,6 @@ import type { JudgerDiagnosis } from '../../agents/judger-agent/types';
 import type { RefinerResult } from '../../agents/refiner-agent/types';
 import type { ComponentAggregationData } from '../../tools/position-tool/types';
 
-// Re-export shared types for node-internal use
-export type {
-    ComponentHistory,
-    ComponentHistoryEntry,
-    ComponentInfo,
-    ElementInfo,
-    ElementMetadataRegistry,
-    FigmaPosition,
-    MisalignedComponent,
-    UserReport,
-    ValidationContext,
-    ValidationReport,
-} from '../../types/validation-types';
-
-export type { JudgerDiagnosis } from '../../agents/judger-agent/types';
-export type { RefinerResult } from '../../agents/refiner-agent/types';
-export type { BoundingBox, PositionError, Rectangle, ComponentAggregationData } from '../../tools/position-tool/types';
-
 // ============================================================================
 // Validation Node-Specific Types
 // ============================================================================

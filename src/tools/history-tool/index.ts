@@ -6,7 +6,8 @@
  */
 
 import { tools } from 'evoltagent';
-import type { ComponentHistory, IterationSummaryChange } from './types';
+import type { IterationSummaryChange } from './types';
+import type { ComponentHistory } from '../../types/validation-types';
 
 /**
  * Iteration history lookup tool.

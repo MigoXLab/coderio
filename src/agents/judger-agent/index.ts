@@ -11,12 +11,11 @@ import type { ModelConfig } from 'evoltagent';
 import { HistoryTool } from '../../tools/history-tool';
 import { HierarchyTool } from '../../tools/hierarchy-tool';
 import type { ComponentHistory } from '../../types/validation-types';
-import type { Dict } from '../../nodes/validation/utils/tree/tree-traversal';
+import type { Dict } from '../../nodes/validation/types';
 import { JUDGER_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
 import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
 import { parseJudgerResult, updateToolContext } from './utils';
-export { formatJudgerInstruction } from './instruction';
 
 /**
  * Create judger agent (critic) with JSON output.
