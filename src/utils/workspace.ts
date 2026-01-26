@@ -9,9 +9,10 @@ import { logger } from './logger';
     coderio/
     └── figmaName/                   # Project root directory generated from a Figma URL
         ├── my-app/                  # Generated project source code
-        ├── process/                 # Intermediate data and cache during generation (if any)
-        │   └── ...                  # Others
-        ├── reports.html             # Validation reports and screenshots
+        ├── process/                 # Intermediate data and cache during generation
+        │   ├── validation/          # Validation reports, screenshots, and processed.json
+        │   └── ...                  # Other process artifacts
+        ├── reports.html             # Validation reports summary
         └── coderio-cli.db           # Cache database (if any)
 */
 
@@ -34,10 +35,6 @@ export const initWorkspace = (subPath: string, rootPath?: string, appName?: stri
     };
 };
 
-export const resolveAppSrc = (paths: WorkspaceStructure, srcSubPath: string): string => {
-    return path.join(paths.app, 'src', srcSubPath);
-};
-
 /**
  * Delete all files and directories inside the workspace
  */
@@ -58,3 +55,42 @@ export function deleteWorkspace(workspace: WorkspaceStructure): void {
         logger.printWarnLog(`Failed to delete workspace: ${errorMessage}`);
     }
 }
+
+/**
+ * Resolve the absolute path to the source code directory
+ * @param paths - The workspace structure
+ * @param srcSubPath - The subpath to the source code directory
+ * @returns The absolute path to the source code directory
+ */
+export const resolveAppSrc = (paths: WorkspaceStructure, srcSubPath: string): string => {
+    return path.join(paths.app, 'src', srcSubPath);
+};
+
+/**
+ * Resolve component alias path to absolute filesystem path.
+ *
+ * Handles various path formats:
+ * - @/components/Button → /workspace/my-app/src/components/Button/index.tsx
+ * - @/src/components/Button → /workspace/my-app/src/components/Button/index.tsx
+ * - components/Button → /workspace/my-app/src/components/Button/index.tsx
+ *
+ */
+export const resolveComponentPath = (aliasPath: string): string => {
+    // Step 1: Strip @/ prefix if present
+    let relativePath = aliasPath.startsWith('@/')
+        ? aliasPath.substring(2) // '@/components/Button' → 'components/Button'
+        : aliasPath;
+
+    // Step 2: Strip 'src/' prefix if present (resolveAppSrc adds it)
+    // '@/src/components/Button' → 'components/Button'
+    if (relativePath.startsWith('src/')) {
+        relativePath = relativePath.substring(4);
+    }
+
+    // Step 3: Ensure path ends with /index.tsx (all components follow this convention)
+    if (!relativePath.endsWith('.tsx') && !relativePath.endsWith('.ts')) {
+        relativePath = `${relativePath}/index.tsx`;
+    }
+
+    return relativePath;
+};

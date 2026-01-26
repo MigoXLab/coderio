@@ -1,4 +1,4 @@
-import type { FigmaFrameInfo, FrameStructNode, FrameData } from '../../../types';
+import type { FigmaFrameInfo, IProtocol, FrameData } from '../../../types';
 import type { SimplifiedFigmaNode, ExtendedFrameStructNode, ParsedDataListResponse } from './types';
 import { toKebabCase } from '../../../utils/naming';
 import { extractJSON } from '../../../utils/parser';
@@ -232,7 +232,7 @@ export function extractHierarchicalNodesByIds(
  * @param structure - The parsed structure from AI model
  * @param frames - The Figma frames tree for element extraction
  */
-export function postProcessStructure(structure?: FrameStructNode | FrameStructNode[] | null, frames?: FigmaFrameInfo[]): void {
+export function postProcessStructure(structure?: IProtocol | IProtocol[] | null, frames?: FigmaFrameInfo[]): void {
     if (!structure) {
         return;
     }
@@ -248,7 +248,7 @@ export function postProcessStructure(structure?: FrameStructNode | FrameStructNo
     let rootPath = '@/components';
 
     // Convert component name to kebab-case for file naming
-    const toKebabName = (node: FrameStructNode): string => {
+    const toKebabName = (node: IProtocol): string => {
         const source = node.data.kebabName || node.data.name || node.id || 'component';
         const kebabName = toKebabCase(source);
         if (!node.data.kebabName) {
@@ -257,7 +257,7 @@ export function postProcessStructure(structure?: FrameStructNode | FrameStructNo
         return kebabName;
     };
 
-    const traverse = (node?: FrameStructNode | null, parentPath?: string, level = 0): void => {
+    const traverse = (node?: IProtocol | null, parentPath?: string, level = 0): void => {
         if (!node || !node.data) {
             return;
         }
@@ -334,10 +334,10 @@ export function postProcessStructure(structure?: FrameStructNode | FrameStructNo
  * @param frames - Figma frames for reference
  * @param thumbnailUrl - Design thumbnail URL for AI visual context
  */
-export async function populateComponentProps(node: FrameStructNode, frames: FigmaFrameInfo[], thumbnailUrl?: string): Promise<void> {
+export async function populateComponentProps(node: IProtocol, frames: FigmaFrameInfo[], thumbnailUrl?: string): Promise<void> {
     if (!node || !node.children || node.children.length === 0) return;
 
-    const componentGroups = new Map<string, FrameStructNode[]>();
+    const componentGroups = new Map<string, IProtocol[]>();
     const validChildren = node.children.filter(c => c && c.data);
 
     validChildren.forEach(child => {
@@ -391,8 +391,8 @@ export async function populateComponentProps(node: FrameStructNode, frames: Figm
                         componentPath: group[0]?.data.componentPath || '',
                     });
 
-                    const originalChildren: FrameStructNode[] = node.children || [];
-                    const newChildren: FrameStructNode[] = [];
+                    const originalChildren: IProtocol[] = node.children || [];
+                    const newChildren: IProtocol[] = [];
                     const processedComponentNames = new Set<string>();
 
                     for (const child of originalChildren) {
