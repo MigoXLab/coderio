@@ -1,4 +1,4 @@
-import { createLaunchAgent, launchAgentInstruction } from '../../../../agents/launch-agent';
+import { createLaunchAgent, launchAgentInstruction } from '../../../agents/launch-agent';
 
 export const launch = async (appPath: string) => {
     if (!appPath) {

@@ -9,14 +9,13 @@ import type { GraphState } from '../../state';
 import { METRIC_DECIMAL_PLACES } from './constants';
 import { logger } from '../../utils/logger';
 import { validationLoop } from './core/validation-loop';
-import type { ValidationResult } from './types';
 
 /**
  * LangGraph node: run validation on the generated app and write a report into the workspace.
  * Reads validation mode from state.config.validationMode (defaults to 'full').
- * Returns empty object for graph state (terminal node), but provides validation results for direct invocation.
+ * Throws error if validation fails (MAE threshold not reached) or execution errors occur.
  */
-export const runValidation = async (state: GraphState): Promise<ValidationResult> => {
+export const runValidation = async (state: GraphState): Promise<void> => {
     if (!state.protocol) {
         throw new Error('No protocol found for validation (state.protocol is missing).');
     }
@@ -49,12 +48,7 @@ export const runValidation = async (state: GraphState): Promise<ValidationResult
         logger.printSuccessLog(`Validation PASSED (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`);
     } else {
         logger.printWarnLog(`Validation FAILED (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`);
+        throw new Error(`Validation failed: MAE ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px exceeds threshold`);
     }
     logger.printInfoLog(`Validation report: ${reportHtmlPath}`);
-
-    return {
-        validationPassed: result.validationPassed,
-        reportDir: outputDir,
-        reportHtmlPath,
-    };
 };

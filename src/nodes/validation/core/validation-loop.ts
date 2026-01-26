@@ -15,7 +15,7 @@ import { commit } from '../subnodes/commit/index';
 import { createJudgerAgent } from '../../../agents/judger-agent';
 import { formatJudgerInstruction } from '../../../agents/judger-agent/instruction';
 import { createRefinerAgent, formatRefinerInstruction } from '../../../agents/refiner-agent';
-import { launch } from '../subnodes/launch/index';
+import { launch } from '../launch/index';
 import type {
     ComponentCorrectionLog,
     Dict,
@@ -32,7 +32,7 @@ import type { RefinerResult } from '../../../agents/refiner-agent/types';
 import type { ComponentHistory, MisalignedComponent } from '../../../types/validation-types';
 import type { JudgerDiagnosis } from '../../../agents/judger-agent/types';
 import { extractLayoutFromContext } from '../utils/extraction/extract-layout-metadata';
-import { report } from '../subnodes/report/index';
+import { report } from '../report/index';
 import { LaunchTool } from '../../../tools/launch-tool';
 import { VisualizationTool } from '../../../tools/visualization-tool';
 import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';

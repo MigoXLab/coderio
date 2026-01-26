@@ -72,7 +72,7 @@ export function registerValidateCommand(program: Command): void {
 
                 logger.printInfoLog(`Running validation (${config.validationMode}) using workspace: ${workspace.root}`);
 
-                const result = await runValidation({
+                await runValidation({
                     urlInfo: { fileId: null, name: projectName, nodeId: null, projectName: null },
                     workspace,
                     figmaInfo: { thumbnail: figmaThumbnailUrl },
@@ -81,7 +81,8 @@ export function registerValidateCommand(program: Command): void {
                     config,
                 });
 
-                process.exit(result.validationPassed ? 0 : 1);
+                // If we reach here, validation passed
+                process.exit(0);
             } catch (error) {
                 logger.printErrorLog(`Error during val execution: ${error instanceof Error ? error.message : String(error)}`);
                 process.exit(1);
