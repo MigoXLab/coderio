@@ -3,7 +3,7 @@ import { GraphNode } from './types/graph-types';
 import { GraphStateAnnotation } from './state';
 import { initialProject } from './nodes/initial';
 import { generateProtocol } from './nodes/process';
-import { runValidation } from './nodes/validation';
+// import { runValidation } from './nodes/validation';
 import { parseFigmaUrl } from './utils/url-parser';
 import { deleteWorkspace, initWorkspace } from './utils/workspace';
 import { generateCode } from './nodes/code';
@@ -36,12 +36,13 @@ export async function design2code(url: string): Promise<void> {
         .addNode(GraphNode.INITIAL, initialProject)
         .addNode(GraphNode.PROCESS, generateProtocol)
         .addNode(GraphNode.CODE, generateCode)
-        .addNode(GraphNode.VALIDATION, runValidation)
+        // .addNode(GraphNode.VALIDATION, runValidation)
         .addEdge(START, GraphNode.INITIAL)
         .addEdge(GraphNode.INITIAL, GraphNode.PROCESS)
         .addEdge(GraphNode.PROCESS, GraphNode.CODE)
-        .addEdge(GraphNode.CODE, GraphNode.VALIDATION)
-        .addEdge(GraphNode.VALIDATION, END)
+        // .addEdge(GraphNode.CODE, GraphNode.VALIDATION)
+        // .addEdge(GraphNode.VALIDATION, END)
+        .addEdge(GraphNode.CODE, END)
         .compile({ checkpointer });
 
     const config = { configurable: { thread_id: threadId } };

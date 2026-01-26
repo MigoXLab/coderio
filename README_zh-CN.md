@@ -15,13 +15,14 @@
 ## 📑 目录
 
 - [CodeRio 是什么？](#coderio-是什么)
-- [核心特性](#核心特性)
-- [快速开始](#快速开始)
-- [全部命令](#全部命令)
-- [工作原理](#工作原理)
-- [路线图](#路线图)
-- [贡献](#贡献)
-- [许可证](#许可证)
+- [示例展示](#-示例展示)
+- [快速开始](#-快速开始)
+- [全部命令](#-全部命令)
+- [核心特性](#-核心特性)
+- [工作原理](#️-工作原理)
+- [路线图](#️-路线图)
+- [贡献](#-贡献)
+- [许可证](#-许可证)
 
 ---
 
@@ -34,7 +35,107 @@ CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计�
 - 🚀 希望加速开发流程的团队
 - 💎 期望设计精准实现的设计师
 
-## 核心特性
+## ✨ 示例展示
+
+
+## 🚀 快速开始
+
+### 1. 前置要求
+
+- Node.js >= 18.0.0 (< 23.0.0)
+- [Figma 个人访问令牌](https://www.figma.com/developers/api#access-tokens)
+- LLM API 密钥（[Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/)）
+
+### 2. 安装
+
+```bash
+# 全局安装
+npm install -g coderio
+
+# 或使用 pnpm（推荐）
+pnpm add -g coderio
+```
+
+### 3. 配置
+
+创建 `~/.coderio/config.yaml`：
+
+```bash
+mkdir -p ~/.coderio
+cat > ~/.coderio/config.yaml << 'EOF'
+model:
+  provider: anthropic          # anthropic | openai | google
+  model: claude-3-5-sonnet-20241022
+  baseUrl: https://api.anthropic.com
+  apiKey: your-api-key-here
+
+figma:
+  token: your-figma-token-here
+EOF
+```
+
+### 4. 使用
+
+```bash
+# 将 Figma 设计转换为验证过的代码
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
+```
+
+CodeRio 将会：
+1. ✅ 获取 Figma 设计并生成协议
+2. ✅ 创建 React + TypeScript + Tailwind CSS 代码
+3. ✅ 启动开发服务器并捕获截图
+4. ✅ 验证视觉准确度并优化偏差
+5. ✅ 生成交互式验证报告
+
+### 5. 运行项目
+
+```bash
+# 进入生成的项目目录
+cd coderio/<设计文件名-页面节点编号>/my-app
+
+# 安装依赖
+pnpm install
+
+# 启动开发服务器
+pnpm dev
+
+# 🎉 打开 http://localhost:5173
+```
+
+### 6. 查看验证报告
+
+```bash
+# 在浏览器中打开验证报告
+open coderio/<设计文件名-页面节点编号>/validation/index.html
+```
+
+## 📖 全部命令
+
+| 命令 | 别名 | 描述 |
+|------|------|------|
+| `design2code` | `d2c` | 完整流程：Figma → 协议 → 代码 → 验证 |
+| `design2protocol` | `d2p` | 仅提取设计协议 |
+| `protocol2code` | `p2c` | 从现有协议生成代码 |
+| `validate` | `val` | 对生成的代码运行验证 |
+| `images` | - | 下载和处理 Figma 资源 |
+
+### 分步骤工作流
+
+如需更多控制，可单独运行每个步骤：
+
+```bash
+# 步骤 1：提取设计协议
+coderio d2p -s 'https://www.figma.com/design/.../...'
+
+# 步骤 2：从协议生成代码
+coderio p2c -p './coderio/<设计文件名-页面节点编号>/process/protocol.json'
+
+# 步骤 3：运行验证（即将推出）
+# coderio val -p './coderio/<设计文件名-页面节点编号>/my-app'
+```
+
+## 💎 核心特性
 
 ### 1. 智能设计协议生成
 
@@ -82,136 +183,7 @@ interface IProtocol {
 - **任意位置恢复**：精确恢复到中断位置
 - **崩溃恢复**：处理网络故障、API 超时、进程中断
 
-
-## 快速开始
-
-### 1. 前置要求
-
-- Node.js >= 18.0.0 (< 23.0.0)
-- [Figma 个人访问令牌](https://www.figma.com/developers/api#access-tokens)
-- LLM API 密钥（[Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/)）
-
-### 2. 安装
-
-```bash
-# 全局安装
-npm install -g coderio
-
-# 或使用 pnpm（推荐）
-pnpm add -g coderio
-```
-
-### 3. 配置
-
-创建 `~/.coderio/config.yaml`：
-
-```bash
-mkdir -p ~/.coderio
-cat > ~/.coderio/config.yaml << 'EOF'
-model:
-  provider: anthropic          # anthropic | openai | google
-  model: claude-3-5-sonnet-20241022
-  baseUrl: https://api.anthropic.com
-  apiKey: your-api-key-here
-
-figma:
-  token: your-figma-token-here
-EOF
-```
-
-### 4. 使用
-
-```bash
-# 将 Figma 设计转换为验证过的代码
-coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
-
-# 输出：./coderio/<设计文件名-页面节点编号>/my-app/
-```
-
-CodeRio 将会：
-1. ✅ 获取 Figma 设计并生成协议
-2. ✅ 创建 React + TypeScript + Tailwind CSS 代码
-3. ✅ 启动开发服务器并捕获截图
-4. ✅ 验证视觉准确度并优化偏差
-5. ✅ 生成交互式验证报告
-
-#### 🚀 启动生成项目
-
-进入生成的项目目录，安装依赖并启动开发服务器：
-
-```bash
-# 进入项目目录
-cd coderio/<设计文件名-页面节点编号>/my-app
-
-# 安装依赖
-pnpm install
-
-# 启动开发服务器
-pnpm dev
-
-# 项目将在 http://localhost:5173 启动
-```
-
-#### 📊 查看验证报告
-
-```bash
-# 在浏览器中打开验证报告
-open coderio/<设计文件名-页面节点编号>/validation/index.html
-```
-
-#### 📁 输出结构
-
-运行 `coderio d2c` 后，将生成以下目录结构：
-
-```
-coderio/<设计文件名-页面节点编号>/
-├── my-app/                    # 生成的 React 项目
-│   ├── src/
-│   │   ├── components/        # React 组件
-│   │   ├── assets/            # 图片和资源文件
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── vite.config.ts
-├── process/
-│   ├── protocol.json          # 设计协议（IProtocol）
-│   └── images.json            # 图片元数据
-├── validation/
-│   ├── comparison_screenshots/ # 视觉对比图片
-│   │   ├── design.png         # 原始 Figma 设计
-│   │   ├── generated.png      # 生成页面截图
-│   │   └── diff.png           # 带热力图的视觉差异
-│   ├── index.html             # 交互式验证报告
-│   └── processed.json         # 验证结果数据
-└── checkpoint.json            # 用于恢复的检查点文件
-```
-
-## 全部命令
-
-| 命令 | 别名 | 描述 |
-|------|------|------|
-| `design2code` | `d2c` | 完整流程：Figma → 协议 → 代码 → 验证 |
-| `design2protocol` | `d2p` | 仅提取设计协议 |
-| `protocol2code` | `p2c` | 从现有协议生成代码 |
-| `validate` | `val` | 对生成的代码运行验证 |
-| `images` | - | 下载和处理 Figma 资源 |
-
-### 分步骤工作流
-
-如需更多控制，可单独运行每个步骤：
-
-```bash
-# 步骤 1：提取设计协议
-coderio d2p -s 'https://www.figma.com/design/.../...'
-
-# 步骤 2：从协议生成代码
-coderio p2c -p './coderio/<设计文件名-页面节点编号>/process/protocol.json'
-
-# 步骤 3：运行验证
-// todo
-```
-
-## 工作原理
+## 🛠️ 工作原理
 
 CodeRio 使用复杂的多智能体流水线：
 
@@ -230,31 +202,25 @@ Figma 设计 → 协议 → 代码 → 启动 → 验证 → 优化 → 报告
 5. **优化**：自动修复偏差
 6. **报告**：生成交互式视觉报告
 
-## 路线图
+## 🗺️ 路线图
 
 - [ ] 支持增量开发
 - [ ] 样式与内容校验
 - [ ] 组件库集成
+- [ ] 支持 Vue.js 和 Svelte
+- [ ] 自定义设计系统集成
 
-## 贡献
+## 🤝 贡献
 
 我们欢迎贡献！
 
 ```bash
-git clone https://github.com/your-org/coderio.git
+git clone https://github.com/MigoXLab/coderio.git
 cd coderio
 pnpm install
 pnpm build
 ```
 
-## 许可证
+## 📄 许可证
 
 Apache-2.0 © CodeRio 贡献者
-
----
-
-<div align="center">
-
-**用 ❤️ 为开发者打造**
-
-</div>
