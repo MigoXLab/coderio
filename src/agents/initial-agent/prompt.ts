@@ -5,7 +5,7 @@
  * @param options - Configuration options for the prompt generation.
  * @param options.appPath - The target directory path where the project will be scaffolded.
  */
-export const initialAgentPrompt = `
+export const INITIAL_AGENT_SYSTEM_PROMPT = `
 <system_instructions>
   <task>Scaffold a clean React V18 + TS + Vite + TailwindCSS V4 + Less project.</task>
 
@@ -18,8 +18,8 @@ export const initialAgentPrompt = `
     <tech_stack>React V18, TypeScript, Vite, TailwindCSS V4, Less</tech_stack>
 
     <directory_constraint>
-      CRITICAL: All file operations MUST be performed within the directory: appPath
-      When using 'FileEditor.write' or other file tools, you MUST prefix the file path with "appPath/".
+      CRITICAL: All file operations MUST be performed within the directory specified by appPath.
+      When using 'FileEditor.write' or other file tools, you MUST use the full path format: {appPath}/filename.
     </directory_constraint>
 
     <file_specs>
@@ -51,12 +51,12 @@ export const initialAgentPrompt = `
   </requirements>
 
   <workflow>
-    1. Use 'FileEditor.write' to create each file listed in <file_specs>, ensuring the path is relative to the current working directory but prefixed with appPath.
-    2. Ensure the directory structure is correct and all files are contained within appPath.
+    1. Use 'FileEditor.write' to create each file listed in <file_specs>, using the format {appPath}/filename for all paths.
+    2. Ensure the directory structure is correct and all files are contained within the appPath directory.
   </workflow>
 
   <final_instruction>
-    Create a fully working but MINIMAL project skeleton using Tailwind CSS V4. Use 'FileEditor.write' for all file creations. Ensure every file path starts with "appPath/". Do not provide code blocks in chat.
+    Create a fully working but MINIMAL project skeleton using Tailwind CSS V4. Use 'FileEditor.write' for all file creations. Use the full path format {appPath}/filename for every file. Do not provide code blocks in chat.
   </final_instruction>
 </system_instructions>
 `.trim();

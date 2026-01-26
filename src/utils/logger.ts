@@ -19,6 +19,15 @@ function getTimestamp(): string {
  */
 export const logger = {
     /**
+     * Print standard log (alias for info logs).
+     *
+     * Many subsystems (e.g. validation) use `printLog()` as the default logging method.
+     */
+    printLog(message: string): void {
+        console.log(message);
+    },
+
+    /**
      * Print info log in blue
      */
     printInfoLog(message: string): void {

@@ -38,13 +38,14 @@ export const generateProtocol = async (state: GraphState) => {
     /* Generate structure */
     const protocol = await generateStructure(processedStyleDocument);
 
+    // Write protocol.json (contains all Figma data in data.elements)
     writeFile(state.workspace.process, 'protocol.json', JSON.stringify(protocol, null, 2));
     logger.printInfoLog(`Please check the output in the workspace: ${state.workspace.process}`);
 
     return {
         protocol,
         figmaInfo: {
-            thumbnail: document?.thumbnailUrl || '',
+            thumbnail: processedStyleDocument?.thumbnailUrl || document?.thumbnailUrl || '',
         },
     };
 };

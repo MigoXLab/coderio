@@ -23,6 +23,7 @@ export const registerD2PCommand = (program: Command) => {
                     figmaInfo: { thumbnail: '' },
                     protocol: undefined,
                     messages: [],
+                    config: {},
                 });
 
                 logger.printSuccessLog('Successfully completed Design to Protocol conversion!');

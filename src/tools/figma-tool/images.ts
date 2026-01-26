@@ -256,16 +256,11 @@ export const hasAnyTextNodeWithCharacters = (node: FigmaFrameInfo): boolean => {
  * @param outputDir - Output directory path
  * @returns Local file path
  */
-export async function downloadImage(url: string, filename: string, imageDir?: string): Promise<string> {
-    if (!url || !filename || !imageDir) {
+export async function downloadImage(url: string, filename?: string, imageDir?: string, base64?: boolean): Promise<string> {
+    if (!url || (!base64 && (!filename || !imageDir))) {
         return '';
     }
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(imageDir)) {
-        fs.mkdirSync(imageDir, { recursive: true });
-    }
 
-    const filepath = path.join(imageDir, filename);
     const maxRetries = MAX_DOWNLOAD_RETRIES;
     let lastError: unknown;
 
@@ -276,8 +271,20 @@ export async function downloadImage(url: string, filename: string, imageDir?: st
                 timeout: DOWNLOAD_TIMEOUT_MS,
             });
 
-            fs.writeFileSync(filepath, Buffer.from(response.data));
-            return filepath;
+            if (base64) {
+                return Buffer.from(response.data).toString('base64');
+            } else {
+                if (!imageDir || !filename) {
+                    return '';
+                }
+                // Create directory if it doesn't exist
+                if (!fs.existsSync(imageDir)) {
+                    fs.mkdirSync(imageDir, { recursive: true });
+                }
+                const filepath = path.join(imageDir, filename);
+                fs.writeFileSync(filepath, Buffer.from(response.data));
+                return filepath;
+            }
         } catch (error) {
             lastError = error;
             // Don't wait on the last attempt

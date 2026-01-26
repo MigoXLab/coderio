@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
 
 # Build output
 dist/
@@ -12,6 +11,8 @@ dist/
 *.swp
 *.swo
 *~
+.claude/
+.cursor/
 
 # OS
 .DS_Store

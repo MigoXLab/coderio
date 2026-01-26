@@ -2,7 +2,16 @@ import tseslint from 'typescript-eslint';
 
 export default [
     {
-        ignores: ['dist/**', 'node_modules/**', 'scripts/**', 'examples/**', '*.config.ts', '*.config.js', 'coderio/**'],
+        ignores: [
+            '**/dist/**',
+            '**/node_modules/**',
+            'coderio/**',
+            'scripts/**',
+            'examples/**',
+            'src/tools/report-tool/template/**',
+            '*.config.ts',
+            '*.config.js',
+        ],
     },
     ...tseslint.configs.recommended,
     ...tseslint.configs.recommendedTypeChecked,
