@@ -1,7 +1,7 @@
-import { createCommitAgent } from '../../../../agents/commit-agent';
-import { formatGitCommitInstruction } from '../../../../agents/commit-agent/instruction';
-import { logger } from '../../../../utils/logger';
-import type { GitCommitOptions, GitCommitResult } from '../../types';
+import { createCommitAgent } from '../../../agents/commit-agent';
+import { formatGitCommitInstruction } from '../../../agents/commit-agent/instruction';
+import { logger } from '../../../utils/logger';
+import type { GitCommitOptions, GitCommitResult } from '../types';
 import path from 'path';
 
 /**

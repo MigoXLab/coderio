@@ -6,9 +6,9 @@
  * Delegates to ReportTool for visualization and HTML generation.
  */
 
-import { logger } from '../../../../utils/logger';
-import { ReportTool } from '../../../../tools/report-tool';
-import type { ReportOptions, ReportResult } from '../../types';
+import { logger } from '../../../utils/logger';
+import { ReportTool } from '../../../tools/report-tool';
+import type { ReportOptions, ReportResult } from '../types';
 
 /**
  * Generate complete validation report: userReport structure + HTML file.
