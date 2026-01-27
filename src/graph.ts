@@ -1,5 +1,5 @@
 import { StateGraph, START, END } from '@langchain/langgraph';
-import { GraphNode } from './types/graph-types';
+import { GraphNode, ValidationConfig } from './types/graph-types';
 import { GraphStateAnnotation } from './state';
 import { initialProject } from './nodes/initial';
 import { generateProtocol } from './nodes/process';
@@ -10,7 +10,7 @@ import { generateCode } from './nodes/code';
 import { initializeSqliteSaver, promptCheckpointChoice } from './utils/checkpoint';
 import { logger } from './utils/logger';
 
-export async function design2code(url: string): Promise<void> {
+export async function design2code(url: string, reportOnly?: boolean): Promise<void> {
     const urlInfo = parseFigmaUrl(url);
     const threadId = urlInfo.projectName!;
     const workspace = initWorkspace(threadId);
@@ -48,6 +48,7 @@ export async function design2code(url: string): Promise<void> {
 
     // If resuming from checkpoint, pass null to let LangGraph resume from saved state
     // Otherwise, pass initial state to start fresh
+    const validationMode: ValidationConfig['validationMode'] = reportOnly ? 'reportOnly' : 'full';
     const state =
         resume === true
             ? null
@@ -55,6 +56,9 @@ export async function design2code(url: string): Promise<void> {
                   messages: [],
                   urlInfo,
                   workspace,
+                  config: {
+                      validationMode,
+                  },
               };
     await graph.invoke(state, config);
 
