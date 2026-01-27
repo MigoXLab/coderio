@@ -9,9 +9,10 @@ export const registerD2CCommand = (program: Command) => {
         .alias('d2c')
         .description('Generate frontend code from design')
         .option('-s, --source <url>', 'Figma Link')
-        .action(async (opts: { source: string }) => {
+        .option('-r, --reportonly', 'Run a single validation pass and generate report (no code edits)')
+        .action(async (opts: { source: string; reportonly?: boolean }) => {
             try {
-                await design2code(opts.source);
+                await design2code(opts.source, opts.reportonly);
 
                 logger.printSuccessLog('Successfully completed code generation from design! Happy coding!');
             } catch (error) {
