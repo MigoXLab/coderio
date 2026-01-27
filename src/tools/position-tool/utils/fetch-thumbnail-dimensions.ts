@@ -48,11 +48,8 @@ export async function fetchThumbnailDimensions(figmaThumbnailUrl: string): Promi
         const metadata = await sharp(imageBuffer).metadata();
 
         if (!metadata.width || !metadata.height) {
-            logger.printTestLog('⚠️  Failed to extract Figma thumbnail dimensions');
             return undefined;
         }
-
-        logger.printTestLog(`✅ Fetched Figma thumbnail dimensions: ${metadata.width}×${metadata.height}px`);
 
         return {
             width: metadata.width,
@@ -60,7 +57,7 @@ export async function fetchThumbnailDimensions(figmaThumbnailUrl: string): Promi
         };
     } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        logger.printTestLog(`⚠️  Failed to fetch Figma thumbnail: ${errorMsg}`);
+        logger.printWarnLog(`Failed to fetch Figma thumbnail: ${errorMsg}`);
         return undefined;
     }
 }
