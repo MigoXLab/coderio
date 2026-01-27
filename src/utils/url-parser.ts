@@ -14,13 +14,13 @@ export const parseFigmaUrl = (url: string): FigmaUrlInfo => {
     let nodeId: string | null = null;
 
     try {
-        const urlObj = new URL(url);
+        const urlObj = new URL(decodeURIComponent(url));
         const pathParts = urlObj.pathname.split('/').filter(Boolean);
-
         if (pathParts.length >= 3) {
             fileId = pathParts[pathParts.length - 2] || null;
             const fileName = pathParts[pathParts.length - 1];
             name = fileName ? encodeURI(fileName).toLowerCase() : 'untitled';
+            name = name.length > 20 ? name.substring(0, 20) : name;
         }
 
         nodeId = urlObj.searchParams.get('node-id') || null;
