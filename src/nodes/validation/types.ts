@@ -31,9 +31,9 @@ import type { ComponentAggregationData } from '../../tools/position-tool/types';
  */
 export interface GitCommitOptions {
     /**
-     * Absolute path to the git repository to commit.
+     * Absolute path to the app directory to commit.
      */
-    repoPath?: string;
+    appPath?: string;
 
     /**
      * Current iteration number (optional).

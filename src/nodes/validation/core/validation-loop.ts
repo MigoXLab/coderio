@@ -37,7 +37,6 @@ import { VisualizationTool } from '../../../tools/visualization-tool';
 import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';
 import { validatePositions } from './validate-position';
 import { downloadImage } from '../../../tools/figma-tool/images';
-import type { WorkspaceStructure } from '../../../types/workspace-types';
 
 function filterComponentsToFix(misaligned: MisalignedComponent[], positionThreshold: number): MisalignedComponent[] {
     return misaligned.filter(comp => {
@@ -132,21 +131,13 @@ function saveProcessedJson(outputDir: string, processedOutput: ProcessedOutput):
 }
 
 // Helper functions for reducing code duplication
-async function performCommit(repoPath: string, iteration: number | undefined, stage: string): Promise<void> {
-    const commitResult = await commit({ repoPath, iteration });
+async function performCommit(appPath: string, iteration: number | undefined, stage: string): Promise<void> {
+    const commitResult = await commit({ appPath, iteration });
     if (!commitResult.success) {
         logger.printWarnLog(`Git commit (${stage}) failed: ${commitResult.message}`);
     } else if (iteration === undefined) {
         logger.printSuccessLog(`Initial project committed successfully, starting validation loop...`);
     }
-}
-
-async function buildAndCommit(workspace: WorkspaceStructure, iteration: number, stage: string): Promise<void> {
-    const buildCheck = await launch(workspace.app);
-    if (!buildCheck.success) {
-        throw new Error(buildCheck.error);
-    }
-    await performCommit(workspace.app, iteration, stage);
 }
 
 function saveIterationAndProcessedJson(
@@ -197,24 +188,24 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     };
     const mode: 'reportOnly' | 'full' = config.mode ?? 'full';
     const maxIterations = mode === 'reportOnly' ? 1 : config.maxIterations;
-    const launchTool = new LaunchTool();
     const visualizationTool = new VisualizationTool();
 
     // Commit initial generated code before validation loop starts
     await performCommit(workspace.app, undefined, 'initial');
 
+    // Launch agent handles: pnpm i, build, fix errors, AND start dev server
     const result = await launch(workspace.app);
     if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error ?? 'Launch failed');
     }
 
-    const serverRes = await launchTool.startDevServer(workspace.app, 'npm run dev', 60000);
-    if (!serverRes.success || !serverRes.url || !serverRes.port || !serverRes.serverKey) {
-        throw new Error(serverRes.error ?? 'Failed to start dev server.');
+    // Launch agent now returns server metadata
+    if (!result.serverKey || !result.url || !result.port) {
+        throw new Error('Launch agent did not return server metadata (serverKey, url, port)');
     }
 
-    const currentServerUrl = serverRes.url;
-    const serverKey = serverRes.serverKey;
+    const currentServerUrl = result.url;
+    const serverKey = result.serverKey;
 
     try {
         // Extract unified validation context from protocol (single traversal)
@@ -349,7 +340,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 );
 
                 if (serverKey) {
-                    await buildAndCommit(workspace, iteration, `iteration ${iteration}`);
+                    await performCommit(workspace.app, iteration, `iteration ${iteration}`);
                 }
                 break;
             }
@@ -389,7 +380,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             );
 
             if (serverKey) {
-                await buildAndCommit(workspace, iteration, `launch (iteration ${iteration})`);
+                await performCommit(workspace.app, iteration, `iteration ${iteration}`);
             }
 
             logger.printInfoLog(`Iteration ${iteration} complete\n`);
@@ -484,6 +475,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         // Cleanup: Stop dev server if it was started by this validation loop
         if (serverKey) {
             logger.printInfoLog('Cleaning up dev server...');
+            const launchTool = new LaunchTool();
             await launchTool.stopDevServer(serverKey).catch((err: unknown) => {
                 logger.printWarnLog(`Failed to stop dev server: ${err instanceof Error ? err.message : String(err)}`);
             });

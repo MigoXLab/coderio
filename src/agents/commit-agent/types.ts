@@ -4,13 +4,13 @@
 
 /**
  * Parameters for commit agent instruction.
- * Used to specify the git repository and commit details.
+ * Used to specify the app directory and commit details.
  */
 export interface CommitAgentParams {
     /**
-     * Absolute path to the git repository to commit.
+     * Absolute path to the app directory to commit.
      */
-    repoPath: string;
+    appPath: string;
 
     /**
      * Current iteration number (optional).

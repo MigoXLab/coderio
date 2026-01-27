@@ -13,3 +13,16 @@ export interface LaunchAgentParams {
      */
     appPath: string;
 }
+
+/**
+ * Launch agent output schema.
+ * Represents the result from the LaunchAgent after starting the dev server.
+ */
+export interface LaunchAgentResult {
+    success: boolean;
+    serverKey?: string;
+    url?: string;
+    port?: number;
+    message?: string;
+    error?: string;
+}
