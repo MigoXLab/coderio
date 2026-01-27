@@ -4,7 +4,7 @@
 
 高保真还原设计稿的前端工程生成智能体
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio) [![Contributors](https://img.shields.io/github/contributors/MigoXLab/coderio)](https://github.com/MigoXLab/coderio/graphs/contributors)
 
 [English](README.md) | [简体中文](README_zh-CN.md)
 
@@ -222,6 +222,14 @@ cd coderio
 pnpm install
 pnpm build
 ```
+
+### 贡献者
+
+感谢所有贡献者！🎉
+
+<a href="https://github.com/MigoXLab/coderio/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=MigoXLab/coderio" />
+</a>
 
 ## 📄 许可证
 
