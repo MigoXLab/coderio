@@ -13,7 +13,9 @@ import { logger } from './logger';
         │   ├── validation/          # Validation reports, screenshots, and processed.json
         │   └── ...                  # Other process artifacts
         ├── reports.html             # Validation reports summary
-        └── coderio-cli.db           # Cache database (if any)
+        └── checkpoint/              # Cache
+            ├── coderio-cli.db          
+            └── checkpoint.json         
 */
 
 export const initWorkspace = (subPath: string, rootPath?: string, appName?: string): WorkspaceStructure => {
@@ -24,14 +26,15 @@ export const initWorkspace = (subPath: string, rootPath?: string, appName?: stri
 
     const absoluteRoot = path.resolve(finalRoot);
     const processDir = path.join(absoluteRoot, 'process');
+    const checkpointDir = path.join(absoluteRoot, 'checkpoint');
 
     return {
         root: absoluteRoot,
         app: path.join(absoluteRoot, app),
         process: processDir,
         reports: path.join(absoluteRoot, 'reports.html'),
-        db: path.join(absoluteRoot, 'coderio-cli.db'),
-        checkpoint: path.join(absoluteRoot, 'checkpoint.json'),
+        db: path.join(checkpointDir, 'coderio-cli.db'),
+        checkpoint: path.join(checkpointDir, 'checkpoint.json'),
     };
 };
 

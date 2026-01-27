@@ -64,7 +64,7 @@ export async function processNode(state: GraphState, cache: CodeCache): Promise<
     if (skippedCount > 0) {
         logger.printInfoLog(`⏭️  Skipped ${skippedCount} cached components`);
     }
-    logger.printSuccessLog(`✅ Generated ${processedCount} components`);
+    logger.printSuccessLog(`Generated ${processedCount} components`);
     return processedCount;
 }
 
@@ -261,7 +261,7 @@ export async function injectRootComponentToApp(state: GraphState, cache: CodeCac
         // Mark as injected and save immediately
         saveAppInjected(cache, state.workspace);
 
-        logger.printSuccessLog(`✅ Successfully injected ${componentName} into App.tsx`);
+        logger.printSuccessLog(`Successfully injected ${componentName} into App.tsx`);
     } catch (error) {
         logger.printErrorLog(`Failed to inject root component: ${(error as Error).message}`);
         // Don't throw - allow the process to continue even if injection fails

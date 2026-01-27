@@ -148,7 +148,7 @@ export class DevServerManager {
             outputTail: () => out.trim(),
         };
 
-        logger.printSuccessLog(`✅ Dev server ready at ${url}`);
+        logger.printSuccessLog(`Dev server ready at ${url}`);
         return this.handle;
     }
 
