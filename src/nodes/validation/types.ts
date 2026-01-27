@@ -263,6 +263,10 @@ export interface ReportOptions {
     outputDir: string;
     /** Server URL for report metadata */
     serverUrl: string;
+    /** Path to saved render_marked screenshot from last validation iteration */
+    savedRenderMarkedPath: string;
+    /** Path to saved target_marked screenshot from last validation iteration */
+    savedTargetMarkedPath: string;
 }
 
 /**

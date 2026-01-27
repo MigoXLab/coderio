@@ -242,6 +242,9 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         let currentSae = 0;
         let lastMisalignedCount = 0;
         let lastValidationResult: ValidationIterationResult | undefined;
+        // Track paths to last iteration's individual screenshots for report reuse
+        let lastRenderMarkedPath: string | undefined;
+        let lastTargetMarkedPath: string | undefined;
 
         for (let iteration = 1; iteration <= maxIterations; iteration++) {
             logger.printLog(`\n${'='.repeat(60)}`);
@@ -275,7 +278,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printInfoLog(`Misaligned: ${misaligned.length}`);
 
             // Generate iteration screenshot using VisualizationTool
-            const comparisonScreenshotPath = await visualizationTool.generateIterationScreenshot(
+            const screenshotResult = await visualizationTool.generateIterationScreenshot(
                 misaligned,
                 currentServerUrl,
                 figmaThumbnailUrl,
@@ -284,6 +287,21 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 path.join(outputDir, 'comparison_screenshots', `iteration_${iteration}.webp`),
                 cachedFigmaThumbnailBase64
             );
+
+            // Save individual annotated screenshots to disk for report reuse
+            if (screenshotResult.renderMarked && screenshotResult.targetMarked) {
+                const comparisonDir = path.join(outputDir, 'comparison_screenshots');
+                lastRenderMarkedPath = path.join(comparisonDir, `iteration_${iteration}_render_marked.webp`);
+                lastTargetMarkedPath = path.join(comparisonDir, `iteration_${iteration}_target_marked.webp`);
+
+                const sharp = (await import('sharp')).default;
+                await sharp(Buffer.from(screenshotResult.renderMarked.split(',')[1]!, 'base64')).toFile(lastRenderMarkedPath);
+                await sharp(Buffer.from(screenshotResult.targetMarked.split(',')[1]!, 'base64')).toFile(lastTargetMarkedPath);
+            }
+
+            // Use combined screenshot for judger visual context in next iteration
+            const comparisonScreenshotPath = screenshotResult.combinedPath;
+            previousScreenshotPath = comparisonScreenshotPath; // Pass to judger in next iteration
 
             const misalignedToFix = filterComponentsToFix(misaligned, config.positionThreshold);
             logger.printInfoLog(
@@ -375,7 +393,6 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             }
 
             logger.printInfoLog(`Iteration ${iteration} complete\n`);
-            previousScreenshotPath = comparisonScreenshotPath;
         }
 
         const validationPassed = currentMae <= config.targetMae;
@@ -408,6 +425,11 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 throw new Error('No validation results available for report generation');
             }
 
+            // Validate that we have saved screenshots
+            if (!lastRenderMarkedPath || !lastTargetMarkedPath) {
+                throw new Error('No saved screenshots available for report generation');
+            }
+
             const reportResult = await report({
                 validationResult: lastValidationResult,
                 figmaThumbnailUrl,
@@ -415,6 +437,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 designOffset: { x: designOffset[0], y: designOffset[1] },
                 outputDir,
                 serverUrl: currentServerUrl,
+                savedRenderMarkedPath: lastRenderMarkedPath,
+                savedTargetMarkedPath: lastTargetMarkedPath,
             });
 
             // Update misaligned count from final report (may differ from last iteration)

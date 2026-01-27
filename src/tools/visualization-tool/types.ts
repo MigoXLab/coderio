@@ -38,3 +38,16 @@ export interface AnnotateRenderResult {
     renderSnap: string;
     renderMarked: string;
 }
+
+/**
+ * Result from generating iteration screenshot with individual annotated screenshots.
+ * Used to save individual screenshots for report reuse while keeping combined screenshot for judger.
+ */
+export interface IterationScreenshotResult {
+    /** Base64 data URI - annotated browser screenshot */
+    renderMarked: string;
+    /** Base64 data URI - annotated Figma screenshot */
+    targetMarked: string;
+    /** Path to combined side-by-side screenshot (for judger visual context) */
+    combinedPath: string;
+}
