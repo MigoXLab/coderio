@@ -15,13 +15,14 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 ## 📑 Table of Contents
 
 - [What is CodeRio?](#what-is-coderio)
-- [Key Features](#key-features)
-- [Quick Start](#quick-start)
-- [All Commands](#all-commands)
-- [How It Works](#how-it-works)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+- [Examples](#-examples)
+- [Quick Start](#-quick-start)
+- [All Commands](#-all-commands)
+- [Key Features](#-key-features)
+- [How It Works](#-how-it-works)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
@@ -30,59 +31,14 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 CodeRio is an intelligent **Figma-to-Code** automation tool that transforms designs into production-ready React code. Unlike traditional converters, CodeRio employs a multi-agent system that validates visual accuracy and iteratively refines misalignments, pursuing high-fidelity UI restoration.
 
 **Perfect for:**
+
 - 🎯 Frontend developers who want accurate design implementation
 - 🚀 Teams looking to accelerate development workflows
 - 💎 Designers who want their vision precisely realized in code
 
-## Key Features
+## ✨ Examples
 
-### 1. Intelligent Design Protocol Generation
-
-Generates comprehensive frontend protocols combining page component structure, CSS code, and static assets:
-
-- **Component Hierarchy**: Automatically identifies component structure and data states, forming a component hierarchy skeleton that aligns with frontend development practices
-- **Style Extraction**: Translates Figma JSON into CSS properties, including colors, spacing, shadows, animations, etc.
-- **Asset Optimization**: Automatically identifies and processes image nodes
-
-```typescript
-interface IProtocol {
-  id: string;                    // Component identifier (e.g., "Header", "Hero")
-  data: {
-    name: string;                // Component name
-    purpose: string;             // Semantic description
-    elements: FigmaFrameInfo[];  // Original Figma node data
-    layout?: LayoutInfo;         // Position, size, spacing, direction
-    componentName?: string;      // Reusable component identifier
-    props?: PropDefinition[];    // Component props schema
-    states?: StateData[];        // Component state variations
-  };
-  children?: IProtocol[];        // Nested child components
-}
-```
-
-### 2. Visual Validation & Calibration
-
-Ensures pixel-perfect accuracy with automated visual testing:
-
-- **Position Calibration**: Measures exact element positioning using computer vision
-- **Visual Diff Reports**: Interactive HTML reports with heatmaps and side-by-side comparisons
-- **Automated Refinement**: Iteratively fixes misalignments until accuracy threshold is met
-- **Quantifiable Metrics**: MAE, visual image assistance
-
-**Visual Report Features:**
-- Annotated screenshots highlighting misalignments
-- Heatmap overlays showing pixel differences
-- Component-level accuracy breakdown
-
-### 3. Checkpoint & Resume
-
-Built-in interruption recovery system:
-
-- **Auto-Checkpointing**: Saves state after each major operation
-- **Resume from Anywhere**: Pick up exactly where you left off
-- **Crash Recovery**: Handles network failures, API timeouts, process interruptions
-
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Prerequisites
 
@@ -123,77 +79,47 @@ EOF
 ```bash
 # Convert Figma design to validated code
 coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
-
-# Output: ./coderio/<design-name_node-id>/my-app/
 ```
 
 CodeRio will:
+
 1. ✅ Fetch Figma design and generate protocol
 2. ✅ Create React + TypeScript + Tailwind CSS code
 3. ✅ Launch dev server and capture screenshots
 4. ✅ Validate visual accuracy and refine misalignments
 5. ✅ Generate interactive validation report
 
-#### 🚀 Run Generated Project
-
-Navigate to the generated project directory, install dependencies, and start the dev server:
+### 5. Run Your Project
 
 ```bash
-# Navigate to project directory
+# Navigate to generated project
 cd coderio/<design-name_node-id>/my-app
 
 # Install dependencies
 pnpm install
 
-# Start development server
+# Start dev server
 pnpm dev
 
-# Project will be available at http://localhost:5173
+# 🎉 Open http://localhost:5173
 ```
 
-#### 📊 View Validation Report
+### 6. View Validation Report
 
 ```bash
 # Open validation report in browser
-open coderio/<design-name_node-id>/validation/report.html
+open coderio/<design-name_node-id>/validation/index.html
 ```
 
-#### 📁 Output Structure
+## 📖 All Commands
 
-After running `coderio d2c`, you'll get:
-
-```
-coderio/<design-name_node-id>/
-├── my-app/                    # Generated React project
-│   ├── src/
-│   │   ├── components/        # React components
-│   │   ├── assets/            # Images and resources
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── vite.config.ts
-├── process/
-│   ├── protocol.json          # Design protocol (IProtocol)
-│   └── images.json            # Image metadata
-├── validation/
-│   ├── comparison_screenshots/ # Visual comparison images
-│   │   ├── design.png         # Original Figma design
-│   │   ├── generated.png      # Generated page screenshot
-│   │   └── diff.png           # Visual diff with heatmap
-│   ├── index.html             # Interactive validation report
-│   └── processed.json         # Validation results data
-└── checkpoint.json            # Resume checkpoint for recovery
-```
-
-## All Commands
-
-| Command | Alias | Description |
-|---------|-------|-------------|
-| `design2code` | `d2c` | Full pipeline: Figma → Protocol → Code → Validation |
-| `design2protocol` | `d2p` | Extract design protocol only |
-| `protocol2code` | `p2c` | Generate code from existing protocol |
-| `validate` | `val` | Run validation on generated code |
-| `images` | - | Download and process Figma assets |
+| Command           | Alias | Description                                         |
+| ----------------- | ----- | --------------------------------------------------- |
+| `design2code`     | `d2c` | Full pipeline: Figma → Protocol → Code → Validation |
+| `design2protocol` | `d2p` | Extract design protocol only                        |
+| `protocol2code`   | `p2c` | Generate code from existing protocol                |
+| `validate`        | `val` | Run validation on generated code                    |
+| `images`          | -     | Download and process Figma assets                   |
 
 ### Step-by-Step Workflow
 
@@ -206,11 +132,60 @@ coderio d2p -s 'https://www.figma.com/design/.../...'
 # Step 2: Generate code from protocol
 coderio p2c -p './coderio/<design-name_node-id>/process/protocol.json'
 
-# Step 3: Run validation
-// todo
+# Step 3: Run validation (coming soon)
+# coderio val -p './coderio/<design-name_node-id>/my-app'
 ```
 
-## How It Works
+## 💎 Key Features
+
+### 1. Intelligent Design Protocol Generation
+
+Generates comprehensive frontend protocols combining page component structure, CSS code, and static assets:
+
+- **Component Hierarchy**: Automatically identifies component structure and data states, forming a component hierarchy skeleton that aligns with frontend development practices
+- **Style Extraction**: Translates Figma JSON into CSS properties, including colors, spacing, shadows, animations, etc.
+- **Asset Optimization**: Automatically identifies and processes image nodes
+
+```typescript
+interface Protocol {
+    id: string; // Component identifier (e.g., "Header", "Hero")
+    data: {
+        name: string; // Component name
+        purpose: string; // Semantic description
+        elements: FigmaFrameInfo[]; // Original Figma node data
+        layout?: LayoutInfo; // Position, size, spacing, direction
+        componentName?: string; // Reusable component identifier
+        props?: PropDefinition[]; // Component props schema
+        states?: StateData[]; // Component state variations
+    };
+    children?: Protocol[]; // Nested child components
+}
+```
+
+### 2. Visual Validation & Calibration
+
+Ensures pixel-perfect accuracy with automated visual testing:
+
+- **Position Calibration**: Measures exact element positioning using computer vision
+- **Visual Diff Reports**: Interactive HTML reports with heatmaps and side-by-side comparisons
+- **Automated Refinement**: Iteratively fixes misalignments until accuracy threshold is met
+- **Quantifiable Metrics**: MAE, visual image assistance
+
+**Visual Report Features:**
+
+- Annotated screenshots highlighting misalignments
+- Heatmap overlays showing pixel differences
+- Component-level accuracy breakdown
+
+### 3. Checkpoint & Resume
+
+Built-in interruption recovery system:
+
+- **Auto-Checkpointing**: Saves state after each major operation
+- **Resume from Anywhere**: Pick up exactly where you left off
+- **Crash Recovery**: Handles network failures, API timeouts, process interruptions
+
+## 🛠️ How It Works
 
 CodeRio uses a sophisticated multi-agent pipeline:
 
@@ -229,15 +204,17 @@ Figma Design → Protocol → Code → Launch → Validate → Refine → Report
 5. **Refinement**: Automatically fixes misalignments
 6. **Reporting**: Generates interactive visual report
 
-## Roadmap
+## 🗺️ Roadmap
 
 - [ ] Support for incremental development
 - [ ] Style and content validation
 - [ ] Component library integration
+- [ ] Vue.js and Svelte support
+- [ ] Custom design system integration
 
-## Contributing
+## 🤝 Contributing
 
-We welcome contributions! 
+We welcome contributions!
 
 ```bash
 git clone https://github.com/MigoXLab/coderio.git
@@ -246,14 +223,6 @@ pnpm install
 pnpm build
 ```
 
-## License
+## 📄 License
 
 Apache-2.0 © CodeRio Contributors
-
----
-
-<div align="center">
-
-**Built with ❤️ for developers**
-
-</div>

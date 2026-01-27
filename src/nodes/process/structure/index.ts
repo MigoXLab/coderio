@@ -1,5 +1,5 @@
 import type { FigmaFrameInfo } from '../../../types/figma-types';
-import type { IProtocol } from '../../../types';
+import type { Protocol } from '../../../types';
 import { callModel } from '../../../utils/call-model';
 import { logger } from '../../../utils/logger';
 import { generateStructurePrompt } from './prompt';
@@ -51,13 +51,13 @@ export const generateStructure = async (figma: FigmaFrameInfo) => {
 
         // Parse AI response
         const jsonContent = extractJSON(structureResult);
-        const parsedStructure = JSON.parse(jsonContent) as IProtocol | IProtocol[];
+        const parsedStructure = JSON.parse(jsonContent) as Protocol | Protocol[];
 
         // Post-process structure: normalize names, populate elements, annotate paths
         logger.printInfoLog('Processing structure tree...');
         postProcessStructure(parsedStructure, frames);
 
-        const protocol = (Array.isArray(parsedStructure) ? parsedStructure[0] : parsedStructure) as IProtocol;
+        const protocol = (Array.isArray(parsedStructure) ? parsedStructure[0] : parsedStructure) as Protocol;
 
         // Extract component props and states for reusable components
         if (frames && protocol) {
