@@ -4,7 +4,7 @@ import { logger } from '../../utils/logger';
 import { callModel } from '../../utils/call-model';
 import { promisePool } from '../../utils/promise-pool';
 import { generateFramePrompt, generateComponentPrompt, injectRootComponentPrompt } from './prompt';
-import { IProtocol } from '../../types';
+import { Protocol } from '../../types';
 import { createFiles, writeFile } from '../../utils/file';
 import { DEFAULT_APP_CONTENT, DEFAULT_STYLING } from './constants';
 import path from 'path';
@@ -34,7 +34,7 @@ export async function processNode(state: GraphState, cache: CodeCache): Promise<
     let processedCount = 0;
     let skippedCount = 0;
 
-    const processSingleNode = async (currentNode: IProtocol) => {
+    const processSingleNode = async (currentNode: Protocol) => {
         const componentName = currentNode.data.name || currentNode.data.componentName || 'UnknownComponent';
         const nodeId = currentNode.id;
 
@@ -71,10 +71,10 @@ export async function processNode(state: GraphState, cache: CodeCache): Promise<
 /**
  * Flatten tree into array using post-order traversal
  */
-function flattenPostOrder(node: IProtocol): IProtocol[] {
-    const result: IProtocol[] = [];
+function flattenPostOrder(node: Protocol): Protocol[] {
+    const result: Protocol[] = [];
 
-    function traverse(n: IProtocol) {
+    function traverse(n: Protocol) {
         n.children?.forEach(child => traverse(child));
         result.push(n);
     }
@@ -86,7 +86,7 @@ function flattenPostOrder(node: IProtocol): IProtocol[] {
 /**
  * Detect which rendering modes are used in this frame
  */
-function detectRenderingModes(node: IProtocol): {
+function detectRenderingModes(node: Protocol): {
     hasStates: boolean;
     hasIndependentChildren: boolean;
 } {
@@ -107,7 +107,7 @@ function detectRenderingModes(node: IProtocol): {
  * Generate a frame/container component
  * Frames compose multiple child components based on layout
  */
-export async function generateFrame(node: IProtocol, state: GraphState, assetFilesList: string, progressInfo: string): Promise<void> {
+export async function generateFrame(node: Protocol, state: GraphState, assetFilesList: string, progressInfo: string): Promise<void> {
     const frameName = node.data.name;
     logger.printInfoLog(`${progressInfo} 🖼️  Generating Frame: ${frameName}`);
 
@@ -146,7 +146,7 @@ export async function generateFrame(node: IProtocol, state: GraphState, assetFil
  * Generate a component (leaf or reusable)
  * Components are self-contained UI elements driven by props
  */
-export async function generateComponent(node: IProtocol, state: GraphState, assetFilesList: string, progressInfo: string): Promise<void> {
+export async function generateComponent(node: Protocol, state: GraphState, assetFilesList: string, progressInfo: string): Promise<void> {
     const componentName = node.data.componentName || node.data.name || 'UnknownComponent';
     const componentPath = node.data.componentPath || node.data.path || '';
 

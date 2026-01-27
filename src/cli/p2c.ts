@@ -3,7 +3,7 @@ import { initWorkspace } from '../utils/workspace';
 import { logger } from '../utils/logger';
 import { readFile } from 'fs/promises';
 import { generateCode } from '../nodes/code';
-import { IProtocol } from '../types/protocol-types';
+import { Protocol } from '../types/protocol-types';
 import { GraphState } from '../state';
 import { initialProject } from '../nodes/initial';
 
@@ -17,7 +17,7 @@ export const registerP2CCommand = (program: Command) => {
         .action(async (opts: { protocol: string }) => {
             try {
                 const protocolContent = await readFile(opts.protocol, 'utf-8');
-                const protocolData = JSON.parse(protocolContent) as IProtocol;
+                const protocolData = JSON.parse(protocolContent) as Protocol;
                 const workspace = initWorkspace(protocolData.id);
                 const state: GraphState = {
                     protocol: protocolData,

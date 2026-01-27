@@ -31,12 +31,12 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 CodeRio is an intelligent **Figma-to-Code** automation tool that transforms designs into production-ready React code. Unlike traditional converters, CodeRio employs a multi-agent system that validates visual accuracy and iteratively refines misalignments, pursuing high-fidelity UI restoration.
 
 **Perfect for:**
+
 - 🎯 Frontend developers who want accurate design implementation
 - 🚀 Teams looking to accelerate development workflows
 - 💎 Designers who want their vision precisely realized in code
 
 ## ✨ Examples
-
 
 ## 🚀 Quick Start
 
@@ -82,6 +82,7 @@ coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
 ```
 
 CodeRio will:
+
 1. ✅ Fetch Figma design and generate protocol
 2. ✅ Create React + TypeScript + Tailwind CSS code
 3. ✅ Launch dev server and capture screenshots
@@ -112,13 +113,13 @@ open coderio/<design-name_node-id>/validation/index.html
 
 ## 📖 All Commands
 
-| Command | Alias | Description |
-|---------|-------|-------------|
-| `design2code` | `d2c` | Full pipeline: Figma → Protocol → Code → Validation |
-| `design2protocol` | `d2p` | Extract design protocol only |
-| `protocol2code` | `p2c` | Generate code from existing protocol |
-| `validate` | `val` | Run validation on generated code |
-| `images` | - | Download and process Figma assets |
+| Command           | Alias | Description                                         |
+| ----------------- | ----- | --------------------------------------------------- |
+| `design2code`     | `d2c` | Full pipeline: Figma → Protocol → Code → Validation |
+| `design2protocol` | `d2p` | Extract design protocol only                        |
+| `protocol2code`   | `p2c` | Generate code from existing protocol                |
+| `validate`        | `val` | Run validation on generated code                    |
+| `images`          | -     | Download and process Figma assets                   |
 
 ### Step-by-Step Workflow
 
@@ -146,18 +147,18 @@ Generates comprehensive frontend protocols combining page component structure, C
 - **Asset Optimization**: Automatically identifies and processes image nodes
 
 ```typescript
-interface IProtocol {
-  id: string;                    // Component identifier (e.g., "Header", "Hero")
-  data: {
-    name: string;                // Component name
-    purpose: string;             // Semantic description
-    elements: FigmaFrameInfo[];  // Original Figma node data
-    layout?: LayoutInfo;         // Position, size, spacing, direction
-    componentName?: string;      // Reusable component identifier
-    props?: PropDefinition[];    // Component props schema
-    states?: StateData[];        // Component state variations
-  };
-  children?: IProtocol[];        // Nested child components
+interface Protocol {
+    id: string; // Component identifier (e.g., "Header", "Hero")
+    data: {
+        name: string; // Component name
+        purpose: string; // Semantic description
+        elements: FigmaFrameInfo[]; // Original Figma node data
+        layout?: LayoutInfo; // Position, size, spacing, direction
+        componentName?: string; // Reusable component identifier
+        props?: PropDefinition[]; // Component props schema
+        states?: StateData[]; // Component state variations
+    };
+    children?: Protocol[]; // Nested child components
 }
 ```
 
@@ -171,6 +172,7 @@ Ensures pixel-perfect accuracy with automated visual testing:
 - **Quantifiable Metrics**: MAE, visual image assistance
 
 **Visual Report Features:**
+
 - Annotated screenshots highlighting misalignments
 - Heatmap overlays showing pixel differences
 - Component-level accuracy breakdown
@@ -212,7 +214,7 @@ Figma Design → Protocol → Code → Launch → Validate → Refine → Report
 
 ## 🤝 Contributing
 
-We welcome contributions! 
+We welcome contributions!
 
 ```bash
 git clone https://github.com/MigoXLab/coderio.git

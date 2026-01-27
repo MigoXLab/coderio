@@ -1,4 +1,4 @@
-import type { IProtocol } from '../../../types/protocol-types';
+import type { Protocol } from '../../../types/protocol-types';
 import type { FigmaPositionAndSize } from '../../../types/figma-types';
 
 /**
@@ -23,7 +23,7 @@ export interface SimplifiedFigmaNode {
 /**
  * Extended node type with potential top-level componentName (non-standard AI format).
  */
-export interface ExtendedFrameStructNode extends IProtocol {
+export interface ExtendedFrameStructNode extends Protocol {
     componentName?: string;
 }
 

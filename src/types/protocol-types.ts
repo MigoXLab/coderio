@@ -6,13 +6,13 @@ import type { FigmaFrameInfo } from './figma-types';
  * The protocol is the intermediate representation (IR) between Figma design and generated code.
  * It contains component hierarchy, semantic information, layout data, and reusable component definitions.
  */
-export interface IProtocol {
+export interface Protocol {
     /** Unique component identifier (e.g., "Header", "ProductCard") */
     id: string;
     /** Component data including name, metadata, structure, and rendering config */
     data: FrameData;
     /** Nested child components */
-    children?: IProtocol[] | null;
+    children?: Protocol[] | null;
 }
 
 /**

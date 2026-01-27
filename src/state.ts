@@ -1,6 +1,6 @@
 import { Annotation, MessagesAnnotation } from '@langchain/langgraph';
 import type { FigmaUrlInfo } from './types/figma-types';
-import type { IProtocol, GlobalFigmaInfo, ValidationConfig } from './types';
+import type { Protocol, GlobalFigmaInfo, ValidationConfig } from './types';
 import { WorkspaceStructure } from './types/workspace-types';
 
 export const GraphStateAnnotation = Annotation.Root({
@@ -8,7 +8,7 @@ export const GraphStateAnnotation = Annotation.Root({
     urlInfo: Annotation<FigmaUrlInfo>(),
     workspace: Annotation<WorkspaceStructure>(),
     figmaInfo: Annotation<GlobalFigmaInfo>(),
-    protocol: Annotation<IProtocol | undefined>(),
+    protocol: Annotation<Protocol | undefined>(),
     config: Annotation<ValidationConfig>(),
 });
 
