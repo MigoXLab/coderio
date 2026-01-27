@@ -32,7 +32,7 @@ async function installChromiumBrowsers(): Promise<void> {
                 installPromise = null;
                 if (code === 0) {
                     installCompleted = true;
-                    logger.printSuccessLog('✅ Playwright Chromium installation finished.');
+                    logger.printSuccessLog('Playwright Chromium installation finished.');
                     resolve();
                 } else {
                     reject(new Error(`Playwright install exited with code ${code}`));
