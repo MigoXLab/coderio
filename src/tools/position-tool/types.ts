@@ -6,7 +6,7 @@
  * - Internal utils may re-export from here via `utils/types.ts`
  */
 
-import type { IProtocol } from '../../types/protocol-types';
+import type { Protocol } from '../../types/protocol-types';
 import type { ElementMetadataRegistry, ValidationContext } from '../../types/validation-types';
 import type { ComponentAggregationData } from './utils/aggregate-elements';
 
@@ -15,7 +15,7 @@ import type { ComponentAggregationData } from './utils/aggregate-elements';
  */
 export interface BrowserPositionInput {
     /** Protocol structure tree */
-    protocol: IProtocol;
+    protocol: Protocol;
     /** Unified validation context containing all Figma data with normalized positions */
     validationContext: ValidationContext;
     url: string;

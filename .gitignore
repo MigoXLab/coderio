@@ -36,3 +36,6 @@ pnpm-debug.log*
 
 # Coderio
 coderio/
+
+# Editor files
+.vscode/

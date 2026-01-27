@@ -75,7 +75,8 @@ export const executeFigmaAndImagesActions = async (
     if (!document) {
         throw new Error('Failed to fetch and clean Figma document');
     }
-    logger.printSuccessLog(`Figma document fetched and cleaned successfully: ${document.name}`);
+    writeFile(processDir, 'figma.json', JSON.stringify(document, null, 2));
+    logger.printSuccessLog(`Figma document fetched and cleaned successfully`);
 
     /* Detect and download images from Figma document */
     const downloadResult: { successCount: number; failCount: number; imageNodesMap: Map<string, ImageNode> } =
