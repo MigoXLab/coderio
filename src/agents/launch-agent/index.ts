@@ -3,8 +3,10 @@ import type { ModelConfig } from 'evoltagent';
 import { LAUNCH_AGENT_PROMPT } from './prompt';
 import { getModelConfig } from '../../utils/config';
 import { AGENT_CONTEXT_WINDOW_TOKENS, MAX_OUTPUT_TOKENS } from '../../constants';
+import { parseLaunchResult } from './utils';
 
 export { launchAgentInstruction } from './instruction';
+export type { LaunchAgentResult } from './types';
 
 export function createLaunchAgent(): Agent {
     const modelConfig: ModelConfig = {
@@ -19,6 +21,10 @@ export function createLaunchAgent(): Agent {
         system: LAUNCH_AGENT_PROMPT,
         tools: [
             'CommandLineTool.execute',
+            'CommandLineTool.list',
+            'CommandLineTool.stop',
+            'LaunchTool.startDevServer',
+            'LaunchTool.stopDevServer',
             'FileEditor.read',
             'FileEditor.find',
             'FileEditor.findAndReplace',
@@ -27,5 +33,6 @@ export function createLaunchAgent(): Agent {
         ],
         modelConfig,
         verbose: 2,
+        postProcessor: parseLaunchResult,
     });
 }

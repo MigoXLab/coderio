@@ -1,7 +1,7 @@
 import { tools } from 'evoltagent';
 import * as path from 'path';
 
-import type { AnnotateRenderResult, CombineOptions, MisalignedComponentData } from './types';
+import type { AnnotateRenderResult, CombineOptions, MisalignedComponentData, IterationScreenshotResult } from './types';
 import type { MisalignedComponent } from '../../types/validation-types';
 import { annotateRenderWithPlaywright } from './utils/annotate-render';
 import { annotateTargetWithPlaywright } from './utils/annotate-target';
@@ -102,7 +102,7 @@ import { logger } from '../../utils/logger';
                 optional: true,
             },
         ],
-        returns: { type: 'string', description: 'Output path (empty string if no misaligned components)' },
+        returns: { type: 'object', description: 'IterationScreenshotResult with renderMarked, targetMarked, and combinedPath' },
     },
 })
 export class VisualizationTool {
@@ -166,7 +166,7 @@ export class VisualizationTool {
      * Generate annotated comparison screenshot for a single iteration.
      * This is a convenience method that orchestrates the full screenshot workflow.
      *
-     * @returns Output path, or empty string if no misaligned components or on error
+     * @returns IterationScreenshotResult with individual annotated screenshots and combined path
      */
     async generateIterationScreenshot(
         misalignedComponents: MisalignedComponent[],
@@ -176,9 +176,9 @@ export class VisualizationTool {
         designOffset: { x: number; y: number },
         outputPath: string,
         cachedFigmaThumbnailBase64?: string
-    ): Promise<string> {
+    ): Promise<IterationScreenshotResult> {
         if (misalignedComponents.length === 0) {
-            return '';
+            return { renderMarked: '', targetMarked: '', combinedPath: '' };
         }
 
         try {
@@ -193,15 +193,19 @@ export class VisualizationTool {
                 ? await this.annotateTargetFromBase64(cachedFigmaThumbnailBase64, misalignedData, viewport, designOffset)
                 : await this.annotateTarget(figmaThumbnailUrl, misalignedData, viewport, designOffset);
 
-            // Combine into side-by-side comparison
+            // Combine into side-by-side comparison (needed for judger visual context in next iteration)
             await this.combine(render.renderMarked, targetMarked, outputPath);
 
             logger.printInfoLog(`Saved comparison screenshot: ${path.basename(outputPath)}`);
-            return outputPath;
+            return {
+                renderMarked: render.renderMarked,
+                targetMarked,
+                combinedPath: outputPath,
+            };
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             logger.printWarnLog(`Failed to generate iteration screenshot: ${errorMsg}`);
-            return '';
+            return { renderMarked: '', targetMarked: '', combinedPath: '' };
         }
     }
 

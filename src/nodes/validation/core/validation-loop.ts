@@ -37,7 +37,6 @@ import { VisualizationTool } from '../../../tools/visualization-tool';
 import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';
 import { validatePositions } from './validate-position';
 import { downloadImage } from '../../../tools/figma-tool/images';
-import type { WorkspaceStructure } from '../../../types/workspace-types';
 
 function filterComponentsToFix(misaligned: MisalignedComponent[], positionThreshold: number): MisalignedComponent[] {
     return misaligned.filter(comp => {
@@ -132,21 +131,13 @@ function saveProcessedJson(outputDir: string, processedOutput: ProcessedOutput):
 }
 
 // Helper functions for reducing code duplication
-async function performCommit(repoPath: string, iteration: number | undefined, stage: string): Promise<void> {
-    const commitResult = await commit({ repoPath, iteration });
+async function performCommit(appPath: string, iteration: number | undefined, stage: string): Promise<void> {
+    const commitResult = await commit({ appPath, iteration });
     if (!commitResult.success) {
         logger.printWarnLog(`Git commit (${stage}) failed: ${commitResult.message}`);
     } else if (iteration === undefined) {
         logger.printSuccessLog(`Initial project committed successfully, starting validation loop...`);
     }
-}
-
-async function buildAndCommit(workspace: WorkspaceStructure, iteration: number, stage: string): Promise<void> {
-    const buildCheck = await launch(workspace.app);
-    if (!buildCheck.success) {
-        throw new Error(buildCheck.error);
-    }
-    await performCommit(workspace.app, iteration, stage);
 }
 
 function saveIterationAndProcessedJson(
@@ -197,24 +188,24 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     };
     const mode: 'reportOnly' | 'full' = config.mode ?? 'full';
     const maxIterations = mode === 'reportOnly' ? 1 : config.maxIterations;
-    const launchTool = new LaunchTool();
     const visualizationTool = new VisualizationTool();
 
     // Commit initial generated code before validation loop starts
     await performCommit(workspace.app, undefined, 'initial');
 
+    // Launch agent handles: pnpm i, build, fix errors, AND start dev server
     const result = await launch(workspace.app);
     if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error ?? 'Launch failed');
     }
 
-    const serverRes = await launchTool.startDevServer(workspace.app, 'npm run dev', 60000);
-    if (!serverRes.success || !serverRes.url || !serverRes.port || !serverRes.serverKey) {
-        throw new Error(serverRes.error ?? 'Failed to start dev server.');
+    // Launch agent now returns server metadata
+    if (!result.serverKey || !result.url || !result.port) {
+        throw new Error('Launch agent did not return server metadata (serverKey, url, port)');
     }
 
-    const currentServerUrl = serverRes.url;
-    const serverKey = serverRes.serverKey;
+    const currentServerUrl = result.url;
+    const serverKey = result.serverKey;
 
     try {
         // Extract unified validation context from protocol (single traversal)
@@ -242,6 +233,9 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         let currentSae = 0;
         let lastMisalignedCount = 0;
         let lastValidationResult: ValidationIterationResult | undefined;
+        // Track paths to last iteration's individual screenshots for report reuse
+        let lastRenderMarkedPath: string | undefined;
+        let lastTargetMarkedPath: string | undefined;
 
         for (let iteration = 1; iteration <= maxIterations; iteration++) {
             logger.printLog(`\n${'='.repeat(60)}`);
@@ -275,7 +269,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printInfoLog(`Misaligned: ${misaligned.length}`);
 
             // Generate iteration screenshot using VisualizationTool
-            const comparisonScreenshotPath = await visualizationTool.generateIterationScreenshot(
+            const screenshotResult = await visualizationTool.generateIterationScreenshot(
                 misaligned,
                 currentServerUrl,
                 figmaThumbnailUrl,
@@ -284,6 +278,21 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 path.join(outputDir, 'comparison_screenshots', `iteration_${iteration}.webp`),
                 cachedFigmaThumbnailBase64
             );
+
+            // Save individual annotated screenshots to disk for report reuse
+            if (screenshotResult.renderMarked && screenshotResult.targetMarked) {
+                const comparisonDir = path.join(outputDir, 'comparison_screenshots');
+                lastRenderMarkedPath = path.join(comparisonDir, `iteration_${iteration}_render_marked.webp`);
+                lastTargetMarkedPath = path.join(comparisonDir, `iteration_${iteration}_target_marked.webp`);
+
+                const sharp = (await import('sharp')).default;
+                await sharp(Buffer.from(screenshotResult.renderMarked.split(',')[1]!, 'base64')).toFile(lastRenderMarkedPath);
+                await sharp(Buffer.from(screenshotResult.targetMarked.split(',')[1]!, 'base64')).toFile(lastTargetMarkedPath);
+            }
+
+            // Use combined screenshot for judger visual context in next iteration
+            const comparisonScreenshotPath = screenshotResult.combinedPath;
+            previousScreenshotPath = comparisonScreenshotPath; // Pass to judger in next iteration
 
             const misalignedToFix = filterComponentsToFix(misaligned, config.positionThreshold);
             logger.printInfoLog(
@@ -331,7 +340,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 );
 
                 if (serverKey) {
-                    await buildAndCommit(workspace, iteration, `iteration ${iteration}`);
+                    await performCommit(workspace.app, iteration, `iteration ${iteration}`);
                 }
                 break;
             }
@@ -371,11 +380,10 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             );
 
             if (serverKey) {
-                await buildAndCommit(workspace, iteration, `launch (iteration ${iteration})`);
+                await performCommit(workspace.app, iteration, `iteration ${iteration}`);
             }
 
             logger.printInfoLog(`Iteration ${iteration} complete\n`);
-            previousScreenshotPath = comparisonScreenshotPath;
         }
 
         const validationPassed = currentMae <= config.targetMae;
@@ -408,6 +416,11 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 throw new Error('No validation results available for report generation');
             }
 
+            // Validate that we have saved screenshots
+            if (!lastRenderMarkedPath || !lastTargetMarkedPath) {
+                throw new Error('No saved screenshots available for report generation');
+            }
+
             const reportResult = await report({
                 validationResult: lastValidationResult,
                 figmaThumbnailUrl,
@@ -415,6 +428,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 designOffset: { x: designOffset[0], y: designOffset[1] },
                 outputDir,
                 serverUrl: currentServerUrl,
+                savedRenderMarkedPath: lastRenderMarkedPath,
+                savedTargetMarkedPath: lastTargetMarkedPath,
             });
 
             // Update misaligned count from final report (may differ from last iteration)
@@ -460,6 +475,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         // Cleanup: Stop dev server if it was started by this validation loop
         if (serverKey) {
             logger.printInfoLog('Cleaning up dev server...');
+            const launchTool = new LaunchTool();
             await launchTool.stopDevServer(serverKey).catch((err: unknown) => {
                 logger.printWarnLog(`Failed to stop dev server: ${err instanceof Error ? err.message : String(err)}`);
             });

@@ -6,19 +6,19 @@ import path from 'path';
 
 /**
  * Public API: commit changes using commit agent.
- * Delegates to the commit-agent, passing repoPath via instruction.
+ * Delegates to the commit-agent, passing appPath via instruction.
  */
 export async function commit(options?: GitCommitOptions): Promise<GitCommitResult> {
     try {
-        if (!options?.repoPath) {
-            throw new Error('commit() requires options.repoPath');
+        if (!options?.appPath) {
+            throw new Error('commit() requires options.appPath');
         }
 
-        const repoPath = path.resolve(options.repoPath);
+        const appPath = path.resolve(options.appPath);
         const agent = createCommitAgent();
 
         const instruction = formatGitCommitInstruction({
-            repoPath,
+            appPath,
             iteration: options.iteration,
         });
 

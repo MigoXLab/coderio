@@ -36,6 +36,10 @@ export interface ReportGenerationRequest {
     // Output configuration
     outputDir: string;
     serverUrl: string;
+
+    // Saved screenshot paths from last validation iteration
+    savedRenderMarkedPath: string;
+    savedTargetMarkedPath: string;
 }
 
 export interface ReportGenerationResult {
