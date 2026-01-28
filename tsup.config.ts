@@ -9,7 +9,7 @@ export default defineConfig({
         index: 'src/index.ts',
         cli: 'src/cli/index.ts',
     },
-    // Use ESM - modern Node.js (18+) handles mixed CJS/ESM well
+    // Use ESM format with proper CJS interop
     format: ['esm'],
     dts: true,
     splitting: false,
@@ -18,15 +18,11 @@ export default defineConfig({
     minify: false,
     target: 'node18',
     outDir: 'dist',
-    // Use esbuild's platform setting for better Node.js compatibility
     platform: 'node',
-    // Mark problematic CJS packages as external to avoid bundling issues
+    // All dependencies are external by default (automatic)
+    // Explicitly list only special cases for documentation purposes
     external: [
-        /^@langchain\//,  // Don't bundle langchain packages
-        'openai',         // OpenAI SDK (has form-data issues)
-        'axios',
-        'form-data',
-        'combined-stream',
+        /^@langchain\//, // Scoped package with many submodules
     ],
     // Inject version at build time
     define: {
