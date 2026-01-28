@@ -49,7 +49,7 @@ export class ReportTool {
      * Generate visual validation report from validation results.
      *
      * This method ONLY does visualization and formatting:
-     * - Annotates browser and Figma screenshots with error markers
+     * - Loads saved annotated screenshots from last validation iteration (avoids port mismatch)
      * - Generates pixel difference heatmap
      * - Builds userReport structure
      *
@@ -70,27 +70,16 @@ export class ReportTool {
         const misalignedData = visualizationTool['formatForVisualization'](validationResult.misalignedComponents);
         logger.printInfoLog(`Final misaligned components: ${misalignedData.length}`);
 
-        // Generate annotated screenshots
-        const render = await visualizationTool.annotateRender(request.serverUrl, misalignedData, validationResult.viewport);
+        // Load saved annotated screenshots from last validation iteration
+        const renderMarkedBuffer = await fsPromises.readFile(request.savedRenderMarkedPath);
+        const targetMarkedBuffer = await fsPromises.readFile(request.savedTargetMarkedPath);
 
-        // Use cached thumbnail if available to avoid redundant download
-        const targetMarked = request.cachedFigmaThumbnailBase64
-            ? await visualizationTool.annotateTargetFromBase64(
-                  request.cachedFigmaThumbnailBase64,
-                  misalignedData,
-                  validationResult.viewport,
-                  request.designOffset
-              )
-            : await visualizationTool.annotateTarget(
-                  request.figmaThumbnailUrl,
-                  misalignedData,
-                  validationResult.viewport,
-                  request.designOffset
-              );
+        const renderMarked = `data:image/webp;base64,${renderMarkedBuffer.toString('base64')}`;
+        const targetMarked = `data:image/webp;base64,${targetMarkedBuffer.toString('base64')}`;
 
         const screenshots = {
-            renderSnap: validationResult.screenshots?.renderSnap || render.renderSnap,
-            renderMarked: render.renderMarked,
+            renderSnap: validationResult.screenshots?.renderSnap || renderMarked,
+            renderMarked,
             targetMarked,
         };
 

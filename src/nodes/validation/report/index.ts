@@ -27,6 +27,8 @@ export async function report(options: ReportOptions): Promise<ReportResult> {
             designOffset: options.designOffset,
             outputDir: options.outputDir,
             serverUrl: options.serverUrl,
+            savedRenderMarkedPath: options.savedRenderMarkedPath,
+            savedTargetMarkedPath: options.savedTargetMarkedPath,
         });
 
         // Step 2: Generate HTML file from userReport

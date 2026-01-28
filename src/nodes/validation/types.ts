@@ -31,9 +31,9 @@ import type { ComponentAggregationData } from '../../tools/position-tool/types';
  */
 export interface GitCommitOptions {
     /**
-     * Absolute path to the git repository to commit.
+     * Absolute path to the app directory to commit.
      */
-    repoPath?: string;
+    appPath?: string;
 
     /**
      * Current iteration number (optional).
@@ -263,6 +263,10 @@ export interface ReportOptions {
     outputDir: string;
     /** Server URL for report metadata */
     serverUrl: string;
+    /** Path to saved render_marked screenshot from last validation iteration */
+    savedRenderMarkedPath: string;
+    /** Path to saved target_marked screenshot from last validation iteration */
+    savedTargetMarkedPath: string;
 }
 
 /**

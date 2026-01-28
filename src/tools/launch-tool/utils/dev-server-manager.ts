@@ -48,14 +48,65 @@ async function isPortAvailable(port: number): Promise<boolean> {
     });
 }
 
-export async function getFreePort(startPort: number = DEFAULT_PORT): Promise<number> {
-    const maxAttempts = 50;
-    for (let port = startPort; port < startPort + maxAttempts; port++) {
-        if (await isPortAvailable(port)) {
-            return port;
+/**
+ * Calculate deterministic port from workspace path hash.
+ * Same workspace always gets the same port for consistency.
+ *
+ * @param workspacePath - Absolute path to workspace root
+ * @param basePort - Base port for calculation (default: 5200, avoids common 5173-5180)
+ * @returns Hash-based port (basePort to basePort + 999)
+ */
+function calculateHashPort(workspacePath: string, basePort: number = 5200): number {
+    // Simple hash function - same input always produces same output
+    let hash = 0;
+    for (let i = 0; i < workspacePath.length; i++) {
+        hash = (hash << 5) - hash + workspacePath.charCodeAt(i);
+        hash = hash & hash; // Convert to 32bit integer
+    }
+
+    // Map to port range (basePort to basePort + 999)
+    const offset = Math.abs(hash) % 1000;
+    return basePort + offset;
+}
+
+/**
+ * Get available port using hash-based selection strategy.
+ * Tries hash-based port first, then nearby ports (±10 range).
+ *
+ * @param workspacePath - Absolute path to workspace (used for port calculation)
+ * @param _startPort - Unused (kept for API compatibility)
+ * @returns Available port number
+ * @throws Error if no ports available in ±10 range around hash-based port
+ */
+export async function getFreeHashPort(workspacePath: string, _startPort: number = DEFAULT_PORT): Promise<number> {
+    // Calculate this workspace's hash-based port
+    const preferredPort = calculateHashPort(workspacePath);
+
+    // Try preferred port first
+    if (await isPortAvailable(preferredPort)) {
+        logger.printInfoLog(`Using workspace-preferred port: ${preferredPort}`);
+        return preferredPort;
+    }
+
+    // If preferred port is taken, try nearby ports (±10 range)
+    // This handles edge case where same workspace runs twice simultaneously
+    logger.printInfoLog(`Preferred port ${preferredPort} occupied, trying nearby ports...`);
+    for (let offset = 1; offset <= 10; offset++) {
+        const portUp = preferredPort + offset;
+        const portDown = preferredPort - offset;
+
+        if (await isPortAvailable(portUp)) {
+            logger.printInfoLog(`Using nearby port: ${portUp} (preferred was ${preferredPort})`);
+            return portUp;
+        }
+        if (portDown > 1024 && (await isPortAvailable(portDown))) {
+            logger.printInfoLog(`Using nearby port: ${portDown} (preferred was ${preferredPort})`);
+            return portDown;
         }
     }
-    throw new Error(`No free ports found starting from ${startPort}`);
+
+    // All ports in ±10 range are occupied
+    throw new Error(`No available ports found in workspace-preferred range (${preferredPort - 10} to ${preferredPort + 10})`);
 }
 
 async function waitForServerReady(url: string, timeoutMs: number): Promise<boolean> {
@@ -81,7 +132,7 @@ async function waitForServerReady(url: string, timeoutMs: number): Promise<boole
 export class DevServerManager {
     private handle: DevServerHandle | null = null;
 
-    constructor(private readonly params: { repoPath: string; runCommand: string }) {}
+    constructor(private readonly params: { appPath: string; runCommand: string }) {}
 
     get current(): DevServerHandle | null {
         return this.handle;
@@ -92,7 +143,7 @@ export class DevServerManager {
             return this.handle;
         }
 
-        const port = await getFreePort();
+        const port = await getFreeHashPort(this.params.appPath);
         const url = buildDevServerUrl(port);
         const { executable, args, needsDoubleDash } = parseCommandWithPortSupport(this.params.runCommand);
         const normalizedExecutable = normalizeExecutable(executable);
@@ -101,7 +152,7 @@ export class DevServerManager {
         logger.printInfoLog(`Starting dev server: ${normalizedExecutable} ${commandArgs.join(' ')}`);
 
         const child = spawn(normalizedExecutable, commandArgs, {
-            cwd: this.params.repoPath,
+            cwd: this.params.appPath,
             stdio: ['ignore', 'pipe', 'pipe'],
             env: {
                 ...process.env,
