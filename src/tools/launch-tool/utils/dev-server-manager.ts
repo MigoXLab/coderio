@@ -49,14 +49,14 @@ async function isPortAvailable(port: number): Promise<boolean> {
 }
 
 /**
- * Calculate workspace-preferred port from path hash.
- * Same workspace always gets same preferred port for consistency.
+ * Calculate deterministic port from workspace path hash.
+ * Same workspace always gets the same port for consistency.
  *
  * @param workspacePath - Absolute path to workspace root
  * @param basePort - Base port for calculation (default: 5200, avoids common 5173-5180)
- * @returns Preferred port (basePort to basePort + 999)
+ * @returns Hash-based port (basePort to basePort + 999)
  */
-function getWorkspacePreferredPort(workspacePath: string, basePort: number = 5200): number {
+function calculateHashPort(workspacePath: string, basePort: number = 5200): number {
     // Simple hash function - same input always produces same output
     let hash = 0;
     for (let i = 0; i < workspacePath.length; i++) {
@@ -70,16 +70,17 @@ function getWorkspacePreferredPort(workspacePath: string, basePort: number = 520
 }
 
 /**
- * Get free port for a specific workspace.
- * Tries workspace-preferred port first, then falls back to nearby ports.
+ * Get available port using hash-based selection strategy.
+ * Tries hash-based port first, then nearby ports (±10 range).
  *
  * @param workspacePath - Absolute path to workspace (used for port calculation)
- * @param startPort - Fallback start port if preferred range is exhausted (default: 5173)
- * @returns Free port number
+ * @param _startPort - Unused (kept for API compatibility)
+ * @returns Available port number
+ * @throws Error if no ports available in ±10 range around hash-based port
  */
-export async function getFreePortForWorkspace(workspacePath: string, startPort: number = DEFAULT_PORT): Promise<number> {
-    // Calculate this workspace's preferred port
-    const preferredPort = getWorkspacePreferredPort(workspacePath);
+export async function getFreeHashPort(workspacePath: string, _startPort: number = DEFAULT_PORT): Promise<number> {
+    // Calculate this workspace's hash-based port
+    const preferredPort = calculateHashPort(workspacePath);
 
     // Try preferred port first
     if (await isPortAvailable(preferredPort)) {
@@ -104,26 +105,8 @@ export async function getFreePortForWorkspace(workspacePath: string, startPort: 
         }
     }
 
-    // Final fallback: original getFreePort behavior
-    logger.printWarnLog(
-        `Workspace-preferred port range (${preferredPort - 10} to ${preferredPort + 10}) unavailable. ` +
-            `Falling back to sequential scan from ${startPort}`
-    );
-    return await getFreePort(startPort);
-}
-
-/**
- * Keep getFreePort as fallback
- * Used when workspace-preferred range is exhausted
- */
-export async function getFreePort(startPort: number = DEFAULT_PORT): Promise<number> {
-    const maxAttempts = 50;
-    for (let port = startPort; port < startPort + maxAttempts; port++) {
-        if (await isPortAvailable(port)) {
-            return port;
-        }
-    }
-    throw new Error(`No free ports found starting from ${startPort}`);
+    // All ports in ±10 range are occupied
+    throw new Error(`No available ports found in workspace-preferred range (${preferredPort - 10} to ${preferredPort + 10})`);
 }
 
 async function waitForServerReady(url: string, timeoutMs: number): Promise<boolean> {
@@ -160,7 +143,7 @@ export class DevServerManager {
             return this.handle;
         }
 
-        const port = await getFreePortForWorkspace(this.params.appPath);
+        const port = await getFreeHashPort(this.params.appPath);
         const url = buildDevServerUrl(port);
         const { executable, args, needsDoubleDash } = parseCommandWithPortSupport(this.params.runCommand);
         const normalizedExecutable = normalizeExecutable(executable);
