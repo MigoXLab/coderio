@@ -1,7 +1,13 @@
 import { HumanMessage } from '@langchain/core/messages';
 import { ChatOpenAI } from '@langchain/openai';
+import { resolve } from 'path';
+import { homedir } from 'os';
+import { appendFileSync, mkdirSync, existsSync } from 'fs';
 import { logger } from './logger';
 import { getModelConfig, type ModelConfig } from './config';
+
+// Generate run ID once per process
+const RUN_ID = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5); // Remove milliseconds
 
 /**
  * Content part types for multimodal messages
@@ -100,6 +106,20 @@ export async function callModel(options: CallModelOptions): Promise<string> {
         if (!message.text) {
             throw new Error('Model returned empty response');
         }
+
+        // Append response to ~/.coderio directory with run ID
+        const coderioDir = resolve(homedir(), '.coderio');
+        if (!existsSync(coderioDir)) {
+            mkdirSync(coderioDir, { recursive: true });
+        }
+
+        const filename = `responses_${RUN_ID}.txt`;
+        const filePath = resolve(coderioDir, filename);
+        const timestamp = new Date().toISOString();
+        const separator = '\n' + '='.repeat(80) + '\n';
+        const content = `${separator}[${timestamp}] Model: ${config.model}\n${separator}\n${message.text}\n`;
+
+        appendFileSync(filePath, content);
 
         return message.text;
     } catch (error) {
