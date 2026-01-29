@@ -190,22 +190,9 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
     const maxIterations = mode === 'reportOnly' ? 1 : config.maxIterations;
     const visualizationTool = new VisualizationTool();
 
-    // Commit initial generated code before validation loop starts
-    await performCommit(workspace.app, undefined, 'initial');
-
-    // Launch agent handles: pnpm i, build, fix errors, AND start dev server
-    const result = await launch(workspace.app);
-    if (!result.success) {
-        throw new Error(result.error ?? 'Launch failed');
-    }
-
-    // Launch agent now returns server metadata
-    if (!result.serverKey || !result.url || !result.port) {
-        throw new Error('Launch agent did not return server metadata (serverKey, url, port)');
-    }
-
-    const currentServerUrl = result.url;
-    const serverKey = result.serverKey;
+    // Variables to track server state (will be initialized in iteration 1)
+    let currentServerUrl: string | undefined;
+    let serverKey: string | undefined;
 
     try {
         // Extract unified validation context from protocol (single traversal)
@@ -242,8 +229,24 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printLog(`Iteration ${iteration}/${maxIterations}`);
             logger.printLog(`${'='.repeat(60)}`);
 
+            // If this is iteration 1, we need to launch first to have a server for validation
+            if (iteration === 1) {
+                logger.printInfoLog('Initial launch: installing dependencies, building, fixing errors...');
+                const launchResult = await launch(workspace.app, {
+                    skipDependencyInstall: false,
+                });
+
+                if (!launchResult.success) {
+                    throw new Error(`Initial launch failed: ${launchResult.error}`);
+                }
+
+                currentServerUrl = launchResult.url!;
+                serverKey = launchResult.serverKey!;
+                logger.printSuccessLog(`Dev server ready at ${currentServerUrl}`);
+            }
+
             const validationResult = await validatePositions({
-                serverUrl: currentServerUrl,
+                serverUrl: currentServerUrl!,
                 figmaThumbnailUrl,
                 protocol,
                 iteration,
@@ -271,7 +274,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             // Generate iteration screenshot using VisualizationTool
             const screenshotResult = await visualizationTool.generateIterationScreenshot(
                 misaligned,
-                currentServerUrl,
+                currentServerUrl!,
                 figmaThumbnailUrl,
                 validationResult.viewport,
                 { x: designOffset[0], y: designOffset[1] },
@@ -361,9 +364,32 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 componentLogs.push(log);
             }
 
-            // Commit refiner changes (component fixes)
+            // Launch after refiner to catch any errors and rebuild
+            logger.printInfoLog('Re-launching dev server after refiner changes...');
+
+            // Stop current server
+            const launchTool = new LaunchTool();
+            await launchTool.stopDevServer(serverKey!).catch(() => {
+                logger.printWarnLog('Failed to stop previous server');
+            });
+
+            // Launch with skipDependencyInstall (deps don't change)
+            const launchResult = await launch(workspace.app, {
+                skipDependencyInstall: true,
+            });
+
+            if (!launchResult.success) {
+                throw new Error(`Launch failed after refiner at iteration ${iteration}: ${launchResult.error}`);
+            }
+
+            currentServerUrl = launchResult.url!;
+            serverKey = launchResult.serverKey!;
+
+            logger.printSuccessLog(`Dev server restarted at ${currentServerUrl}`);
+
+            // Commit AFTER launch (ensures working state)
             if (mode === 'full') {
-                await performCommit(workspace.app, iteration, `refiner (iteration ${iteration})`);
+                await performCommit(workspace.app, iteration, `iteration ${iteration}`);
             }
 
             saveIterationAndProcessedJson(
@@ -378,10 +404,6 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 outputDir,
                 config.targetMae
             );
-
-            if (serverKey) {
-                await performCommit(workspace.app, iteration, `iteration ${iteration}`);
-            }
 
             logger.printInfoLog(`Iteration ${iteration} complete\n`);
         }
@@ -409,6 +431,11 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 misalignedCount: lastMisalignedCount,
             },
         };
+
+        // Ensure server was launched (should always be true after iteration 1)
+        if (!currentServerUrl || !serverKey) {
+            throw new Error('Server was not launched properly during validation');
+        }
 
         // Generate final validation report using report() subnode
         try {
