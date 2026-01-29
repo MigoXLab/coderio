@@ -1,5 +1,5 @@
 import { defineConfig } from 'tsup';
-import { readFileSync } from 'fs';
+import { readFileSync, cpSync, existsSync } from 'fs';
 
 // Read version from package.json at build time
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8')) as { version: string };
@@ -27,5 +27,19 @@ export default defineConfig({
     // Inject version at build time
     define: {
         __VERSION__: JSON.stringify(pkg.version),
+    },
+    // Copy report template to dist after build
+    onSuccess: async () => {
+        const templateSrc = 'src/tools/report-tool/template/dist';
+        const templateDest = 'dist/tools/report-tool/template';
+
+        if (existsSync(templateSrc)) {
+            console.log(`\nCopying report template from ${templateSrc} to ${templateDest}...`);
+            cpSync(templateSrc, templateDest, { recursive: true });
+            console.log('✓ Report template copied successfully');
+        } else {
+            console.warn(`⚠ Warning: Report template source not found at ${templateSrc}`);
+            console.warn('  Run "pnpm run build:report" first to build the template');
+        }
     },
 });
