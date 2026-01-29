@@ -49,12 +49,20 @@ CodeRio is an intelligent **Figma-to-Code** automation tool that transforms desi
 ### 2. Installation
 
 ```bash
-# Install globally
+# Install globally (recommended)
 npm install -g coderio
 
-# Or using pnpm (recommended)
+# Or using pnpm
 pnpm add -g coderio
 ```
+
+> **Note for pnpm v9+ users**: If you see a warning about "Ignored build scripts", run:
+>
+> ```bash
+> pnpm approve-builds
+> ```
+>
+> This allows native dependencies (better-sqlite3, sharp) to compile properly.
 
 ### 3. Configuration
 
