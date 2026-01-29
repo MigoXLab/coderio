@@ -1,5 +1,13 @@
 import { createLaunchAgent, launchAgentInstruction, type LaunchAgentResult } from '../../../agents/launch-agent';
 
+export interface LaunchConfig {
+    /**
+     * Skip dependency installation (pnpm i).
+     * Set to true for iterations 2+ where dependencies haven't changed.
+     */
+    skipDependencyInstall?: boolean;
+}
+
 export interface LaunchResult {
     success: boolean;
     message?: string;
@@ -10,14 +18,19 @@ export interface LaunchResult {
     port?: number;
 }
 
-export const launch = async (appPath: string): Promise<LaunchResult> => {
+export const launch = async (appPath: string, config?: LaunchConfig): Promise<LaunchResult> => {
     if (!appPath) {
         throw new Error('appPath is required');
     }
 
     try {
         // Agent.run() returns the parsed LaunchAgentResult via postProcessor
-        const agentResult = (await createLaunchAgent().run(launchAgentInstruction({ appPath }))) as LaunchAgentResult;
+        const agentResult = (await createLaunchAgent().run(
+            launchAgentInstruction({
+                appPath,
+                skipDependencyInstall: config?.skipDependencyInstall,
+            })
+        )) as LaunchAgentResult;
 
         // If agent explicitly failed, return the error
         if (agentResult.success === false) {
