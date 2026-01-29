@@ -15,12 +15,7 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
     try {
         // Check for empty response (agent may have hit limits or errors)
         if (!response || response.trim().length === 0) {
-            logger.printErrorLog(`[JudgerAgent] Agent returned empty response`);
-            logger.printErrorLog(`This usually means:`);
-            logger.printErrorLog(`  1. Agent made tool calls but never generated final output`);
-            logger.printErrorLog(`  2. Context window exhausted after tool results added`);
-            logger.printErrorLog(`  3. Model timeout or API error`);
-            logger.printErrorLog(`  4. Max output tokens too small for response`);
+            logger.printWarnLog(`[JudgerAgent] Agent returned empty response`);
             throw new Error('Agent returned empty response after tool execution');
         }
 
@@ -29,10 +24,10 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
         const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
 
         if (!jsonMatch) {
-            logger.printErrorLog(`[JudgerAgent] No JSON code block found in response`);
-            logger.printErrorLog(`Response preview (first 500 chars):\n${response.substring(0, 500)}`);
+            logger.printWarnLog(`[JudgerAgent] No JSON code block found in response`);
+            logger.printWarnLog(`Response preview (first 500 chars):\n${response.substring(0, 500)}`);
             if (response.length > 500) {
-                logger.printErrorLog(`Last 500 chars:\n${response.substring(Math.max(0, response.length - 500))}`);
+                logger.printWarnLog(`Last 500 chars:\n${response.substring(Math.max(0, response.length - 500))}`);
             }
             throw new Error('No JSON code block found in agent response. Expected format: ```json\\n{...}\\n```');
         }
@@ -40,15 +35,15 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
         const jsonStr = jsonMatch[1];
 
         if (!jsonStr || jsonStr.trim().length === 0) {
-            logger.printErrorLog(`[JudgerAgent] Empty JSON content in code block`);
+            logger.printWarnLog(`[JudgerAgent] Empty JSON content in code block`);
             throw new Error('Empty JSON content in code block');
         }
 
         return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
     } catch (error) {
         // Provide detailed error context for debugging
-        logger.printErrorLog(`[JudgerAgent] Failed to parse diagnosis JSON`);
-        logger.printErrorLog(`Response length: ${response.length} characters`);
+        logger.printWarnLog(`[JudgerAgent] Failed to parse diagnosis JSON`);
+        logger.printWarnLog(`Response length: ${response.length} characters`);
 
         if (error instanceof Error) {
             throw new Error(`Post-processor failed: ${error.message}`);

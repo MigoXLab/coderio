@@ -12,6 +12,13 @@ export interface LaunchAgentParams {
      * The agent will install dependencies, build, and start the dev server.
      */
     appPath: string;
+
+    /**
+     * Skip dependency installation (pnpm i).
+     * Set to true for iterations 2+ where dependencies haven't changed.
+     * Defaults to false (install dependencies).
+     */
+    skipDependencyInstall?: boolean;
 }
 
 /**
