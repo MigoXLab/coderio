@@ -9,7 +9,7 @@ import { createFiles, writeFile } from '../../utils/file';
 import { DEFAULT_APP_CONTENT, DEFAULT_STYLING } from './constants';
 import path from 'path';
 import { extractCode, extractFiles } from '../../utils/parser';
-import { resolveAppSrc, resolveComponentPath } from '../../utils/workspace';
+import { workspaceManager } from '../../utils/workspace';
 import { CodeCache, isComponentGenerated, saveComponentGenerated, isAppInjected, saveAppInjected } from '../../utils/code-cache';
 
 /**
@@ -137,7 +137,7 @@ export async function generateFrame(node: Protocol, state: GraphState, assetFile
 
     // Save generated files
     const componentPath = node.data.path || '';
-    const filePath = resolveAppSrc(state.workspace, resolveComponentPath(componentPath));
+    const filePath = workspaceManager.resolveAppSrc(state.workspace, workspaceManager.resolveComponentPath(componentPath));
     saveGeneratedCode(code, filePath);
     logger.printSuccessLog(`Successfully generated frame: ${frameName}`);
 }
@@ -167,7 +167,7 @@ export async function generateComponent(node: Protocol, state: GraphState, asset
     });
 
     // Save generated files
-    const filePath = resolveAppSrc(state.workspace, resolveComponentPath(componentPath));
+    const filePath = workspaceManager.resolveAppSrc(state.workspace, workspaceManager.resolveComponentPath(componentPath));
     saveGeneratedCode(code, filePath);
     logger.printSuccessLog(`Successfully generated component: ${componentName}`);
 }
@@ -194,7 +194,7 @@ function saveGeneratedCode(code: string, filePath: string): void {
  */
 function getAssetFilesList(state: GraphState) {
     try {
-        const assetsDir = resolveAppSrc(state.workspace, 'assets');
+        const assetsDir = workspaceManager.resolveAppSrc(state.workspace, 'assets');
 
         if (!fs.existsSync(assetsDir)) {
             return '';
@@ -222,7 +222,7 @@ export async function injectRootComponentToApp(state: GraphState, cache: CodeCac
         logger.printInfoLog('💉 Injecting root component into App.tsx...');
 
         // Construct App.tsx path
-        const appTsxPath = resolveAppSrc(state.workspace, 'App.tsx');
+        const appTsxPath = workspaceManager.resolveAppSrc(state.workspace, 'App.tsx');
 
         // Read existing App.tsx or use default template
         let appContent: string;

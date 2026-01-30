@@ -6,4 +6,5 @@ export interface WorkspaceStructure {
     reports: string;
     db: string;
     checkpoint: string;
+    debug: string;
 }

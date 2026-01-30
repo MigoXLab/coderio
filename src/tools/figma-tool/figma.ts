@@ -1,5 +1,5 @@
 import { FigmaFrameInfo, FigmaImageFormat, FigmaColorObject } from '../../types/figma-types';
-import axios from 'axios';
+import { get } from '../../utils/axios';
 import { logger } from '../../utils/logger';
 
 /**
@@ -12,14 +12,14 @@ import { logger } from '../../utils/logger';
 export const fetchFigmaNode = async (fileId: string, nodeId: string, token: string): Promise<FigmaFrameInfo | undefined> => {
     const url = `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`;
     try {
-        const response = await axios.get<{ nodes: Record<string, { document: FigmaFrameInfo }> }>(url, {
+        const data = await get<{ nodes: Record<string, { document: FigmaFrameInfo }> }>(url, {
             headers: {
                 'X-Figma-Token': token,
             },
         });
         // format node id to match the format in the response
-        const resData = response?.data?.nodes?.[nodeId];
-        return resData?.document || undefined;
+        const resData = data.nodes?.[nodeId];
+        return resData?.document;
     } catch (error) {
         logger.printErrorLog(`Failed to fetch Figma node: ${error instanceof Error ? error.message : 'Unknown error'}`);
         return undefined;
@@ -42,7 +42,7 @@ export const fetchFigmaImages = async (
 ): Promise<Record<string, string>> => {
     const url = `https://api.figma.com/v1/images/${fileId}`;
     try {
-        const response = await axios.get<{ images: Record<string, string> }>(url, {
+        const data = await get<{ images: Record<string, string> }>(url, {
             headers: {
                 'X-Figma-Token': token,
             },
@@ -51,7 +51,7 @@ export const fetchFigmaImages = async (
                 format: format || 'png',
             },
         });
-        const images = response.data?.images || {};
+        const images = data.images || {};
         // format node id to match the format from response to request
         return Object.fromEntries(Object.entries(images));
     } catch (error) {

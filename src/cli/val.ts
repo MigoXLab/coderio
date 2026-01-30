@@ -6,7 +6,8 @@ import type { Protocol } from '../types/protocol-types';
 import type { ValidationConfig } from '../types/graph-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
-import { initWorkspace } from '../utils/workspace';
+import { workspaceManager } from '../utils/workspace';
+import { WorkspaceStructure } from '../types';
 
 type ValCommandOptions = {
     workspace?: string;
@@ -39,7 +40,7 @@ export function registerValidateCommand(program: Command): void {
         .action(async (opts: ValCommandOptions) => {
             try {
                 // Determine workspace and project name
-                let workspace: ReturnType<typeof initWorkspace>;
+                let workspace: WorkspaceStructure;
                 let projectName: string;
 
                 if (opts.workspace) {
@@ -47,11 +48,11 @@ export function registerValidateCommand(program: Command): void {
                     const workspacePath = path.resolve(opts.workspace);
                     const parentPath = path.dirname(path.dirname(workspacePath)); // Go up to parent of 'coderio' folder
                     projectName = path.basename(workspacePath);
-                    workspace = initWorkspace(projectName, parentPath);
+                    workspace = workspaceManager.initWorkspace(projectName, parentPath);
                 } else {
                     // Default: use current directory name as project name
                     projectName = path.basename(process.env.CODERIO_CLI_USER_CWD ?? process.cwd());
-                    workspace = initWorkspace(projectName);
+                    workspace = workspaceManager.initWorkspace(projectName);
                 }
 
                 const protocolPath = path.join(workspace.process, 'protocol.json');
