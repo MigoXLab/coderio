@@ -5,15 +5,16 @@ import { initialProject } from './nodes/initial';
 import { generateProtocol } from './nodes/process';
 import { runValidation } from './nodes/validation';
 import { parseFigmaUrl } from './utils/url-parser';
-import { deleteWorkspace, initWorkspace } from './utils/workspace';
+import { workspaceManager } from './utils/workspace';
 import { generateCode } from './nodes/code';
 import { initializeSqliteSaver, promptCheckpointChoice } from './utils/checkpoint';
 import { logger } from './utils/logger';
+import { callModel } from './utils/call-model';
 
 export async function design2code(url: string, reportOnly?: boolean): Promise<void> {
     const urlInfo = parseFigmaUrl(url);
     const threadId = urlInfo.projectName!;
-    const workspace = initWorkspace(threadId);
+    const workspace = workspaceManager.initWorkspace(threadId);
 
     // Initialize SqliteSaver with the database path
     let checkpointer = initializeSqliteSaver(workspace.db);
@@ -23,13 +24,18 @@ export async function design2code(url: string, reportOnly?: boolean): Promise<vo
 
     // If not resuming, delete workspace and reinitialize checkpointer
     if (resume !== true) {
-        deleteWorkspace(workspace);
+        workspaceManager.deleteWorkspace(workspace);
         logger.printInfoLog('Starting fresh...');
         // Reinitialize checkpointer after deleting workspace
         checkpointer = initializeSqliteSaver(workspace.db);
     } else {
         logger.printInfoLog('Resuming from cache...');
     }
+
+    await callModel({
+        question: '请介绍你自己，你是什么模型',
+        streaming: false,
+    });
 
     // Compile graph with checkpointer (after potential reinitialization)
     const graph = new StateGraph(GraphStateAnnotation)

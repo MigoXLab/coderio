@@ -79,6 +79,9 @@ model:
 
 figma:
   token: your-figma-token-here
+
+debug:
+  enabled: false
 EOF
 ```
 

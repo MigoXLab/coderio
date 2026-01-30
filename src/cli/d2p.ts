@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { generateProtocol } from '../nodes/process';
 import { parseFigmaUrl } from '../utils/url-parser';
-import { initWorkspace } from '../utils/workspace';
+import { workspaceManager } from '../utils/workspace';
 import { logger } from '../utils/logger';
 
 // f2p command: Figma to Protocol
@@ -15,7 +15,7 @@ export const registerD2PCommand = (program: Command) => {
             try {
                 const { source } = opts;
                 const urlInfo = parseFigmaUrl(source);
-                const workspace = initWorkspace(urlInfo.name);
+                const workspace = workspaceManager.initWorkspace(urlInfo.name);
 
                 await generateProtocol({
                     urlInfo,

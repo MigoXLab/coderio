@@ -20,7 +20,7 @@ import type {
     ValidationContext,
     ValidationFrameInfo,
 } from '../../../../types/validation-types';
-import { resolveAppSrc, resolveComponentPath } from '../../../../utils/workspace';
+import { workspaceManager } from '../../../../utils/workspace';
 import type { WorkspaceStructure } from '../../../../types/workspace-types';
 
 /**
@@ -191,7 +191,7 @@ export function extractComponentPaths(context: ValidationContext, workspace: Wor
     const paths: Record<string, string> = {};
     for (const [id, info] of context.components) {
         if (info.path) {
-            paths[id] = resolveAppSrc(workspace, resolveComponentPath(info.path));
+            paths[id] = workspaceManager.resolveAppSrc(workspace, workspaceManager.resolveComponentPath(info.path));
         }
     }
     return paths;
