@@ -4,7 +4,7 @@ import { homedir } from 'os';
 import yaml from 'js-yaml';
 
 // Configuration directory in user's home
-const CONFIG_DIR = resolve(homedir(), '.coderio');
+export const CONFIG_DIR = resolve(homedir(), '.coderio');
 const CONFIG_FILE = resolve(CONFIG_DIR, 'config.yaml');
 
 /**
@@ -25,11 +25,20 @@ export interface FigmaConfig {
 }
 
 /**
+ * Debug configuration interface
+ */
+export interface DebugConfig {
+    enabled: boolean;
+    outputDir?: string;
+}
+
+/**
  * Configuration file structure
  */
 interface Config {
     model: ModelConfig;
     figma: FigmaConfig;
+    debug?: DebugConfig;
 }
 
 // Cache for loaded configuration
@@ -91,6 +100,15 @@ export function getFigmaConfig(): FigmaConfig {
         throw new Error('Figma configuration not found in config.yaml');
     }
     return config.figma;
+}
+
+/**
+ * Get debug configuration from config.yaml
+ * @returns Debug configuration (defaults to disabled if not specified)
+ */
+export function getDebugConfig(): DebugConfig {
+    const config = loadConfig();
+    return config.debug || { enabled: false };
 }
 
 /**

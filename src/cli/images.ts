@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { parseFigmaUrl } from '../utils/url-parser';
-import { initWorkspace } from '../utils/workspace';
+import { workspaceManager } from '../utils/workspace';
 import { logger } from '../utils/logger';
 import { executeFigmaAndImagesActions } from '../nodes/process';
 
@@ -15,7 +15,7 @@ export const registerImagesCommand = (program: Command) => {
             try {
                 const { source } = opts;
                 const urlInfo = parseFigmaUrl(source);
-                const workspace = initWorkspace(urlInfo.name);
+                const workspace = workspaceManager.initWorkspace(urlInfo.name);
                 await executeFigmaAndImagesActions(urlInfo, workspace.root, workspace.root);
 
                 logger.printSuccessLog('Successfully completed detection of images from Figma document!');

@@ -1,7 +1,9 @@
 import { HumanMessage } from '@langchain/core/messages';
 import { ChatOpenAI } from '@langchain/openai';
 import { logger } from './logger';
-import { getModelConfig, type ModelConfig } from './config';
+import { getDebugConfig, getModelConfig, type ModelConfig } from './config';
+import { writeFile } from './file';
+import { workspaceManager } from './workspace';
 
 /**
  * Content part types for multimodal messages
@@ -58,7 +60,7 @@ export async function callModel(options: CallModelOptions): Promise<string> {
     }
 
     try {
-        const agentModel = new ChatOpenAI({
+        const requestConfig = {
             modelName: config.model,
             apiKey: config.apiKey,
             configuration: {
@@ -74,7 +76,8 @@ export async function callModel(options: CallModelOptions): Promise<string> {
             }),
             ...(!streaming && { streamUsage: true }),
             ...(responseFormat && { modelKwargs: { response_format: responseFormat } }),
-        });
+        };
+        const agentModel = new ChatOpenAI(requestConfig);
 
         // Build multimodal content parts: text + image_url
         const contentParts: ContentPart[] = [];
@@ -99,6 +102,20 @@ export async function callModel(options: CallModelOptions): Promise<string> {
 
         if (!message.text) {
             throw new Error('Model returned empty response');
+        }
+
+        const debugConfig = getDebugConfig();
+        const isDebugEnabled = debugConfig.enabled;
+        if (isDebugEnabled) {
+            const debugContent = [
+                '------------config------------',
+                JSON.stringify(requestConfig, null, 2),
+                '------------request------------',
+                JSON.stringify(contentParts, null, 2),
+                '------------response------------',
+                JSON.stringify(message.text, null, 2),
+            ].join('\n');
+            writeFile(workspaceManager.path?.debug ?? '', `model_${new Date().toISOString()}.md`, debugContent);
         }
 
         return message.text;
