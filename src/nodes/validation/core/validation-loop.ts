@@ -225,9 +225,16 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         let lastTargetMarkedPath: string | undefined;
 
         for (let iteration = 1; iteration <= maxIterations; iteration++) {
-            logger.printLog(`\n${'='.repeat(60)}`);
-            logger.printLog(`Iteration ${iteration}/${maxIterations}`);
-            logger.printLog(`${'='.repeat(60)}`);
+            // Use different logging for reportOnly mode
+            if (mode === 'reportOnly') {
+                logger.printLog(`\n${'='.repeat(60)}`);
+                logger.printLog(`Running validation (report-only mode)`);
+                logger.printLog(`${'='.repeat(60)}`);
+            } else {
+                logger.printLog(`\n${'='.repeat(60)}`);
+                logger.printLog(`Iteration ${iteration}/${maxIterations}`);
+                logger.printLog(`${'='.repeat(60)}`);
+            }
 
             // If this is iteration 1, we need to launch first to have a server for validation
             if (iteration === 1) {
@@ -243,6 +250,11 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 currentServerUrl = launchResult.url!;
                 serverKey = launchResult.serverKey!;
                 logger.printSuccessLog(`Dev server ready at ${currentServerUrl}`);
+
+                // In reportOnly mode, commit the initial state after successful launch
+                if (mode === 'reportOnly') {
+                    await performCommit(workspace.app, undefined, 'initial state');
+                }
             }
 
             const validationResult = await validatePositions({
@@ -271,7 +283,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printInfoLog(`SAE: ${currentSae.toFixed(2)}px`);
             logger.printInfoLog(`Misaligned: ${misaligned.length}`);
 
-            // Generate iteration screenshot using VisualizationTool
+            // Generate validation screenshot using VisualizationTool
             const screenshotResult = await visualizationTool.generateIterationScreenshot(
                 misaligned,
                 currentServerUrl!,
@@ -298,9 +310,13 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             previousScreenshotPath = comparisonScreenshotPath; // Pass to judger in next iteration
 
             const misalignedToFix = filterComponentsToFix(misaligned, config.positionThreshold);
-            logger.printInfoLog(
-                `Skipping ${misaligned.length - misalignedToFix.length} components with error <= ${config.positionThreshold}px`
-            );
+            if (mode === 'reportOnly') {
+                // In reportOnly mode, we don't fix anything, so no need to log about skipping
+            } else {
+                logger.printInfoLog(
+                    `Skipping ${misaligned.length - misalignedToFix.length} components with error <= ${config.positionThreshold}px`
+                );
+            }
 
             for (const comp of misalignedToFix) {
                 recordComponentPosition(comp, iteration, componentHistory);
@@ -309,7 +325,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             const componentLogs: ComponentCorrectionLog[] = [];
 
             if (mode === 'reportOnly') {
-                logger.printInfoLog('Report-only mode enabled: skipping judger/refiner iterations and code edits.');
+                logger.printInfoLog('Report-only mode: skipping component refinement, saving validation report...');
 
                 saveIterationAndProcessedJson(
                     iterations,
@@ -348,6 +364,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 break;
             }
 
+            // Full mode: proceed with component refinement
             logger.printInfoLog(`Refining ${misalignedToFix.length} components...`);
 
             const refinementContext: RefinementContext = {
@@ -405,7 +422,9 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 config.targetMae
             );
 
-            logger.printInfoLog(`Iteration ${iteration} complete\n`);
+            if (mode !== 'reportOnly') {
+                logger.printInfoLog(`Iteration ${iteration} complete\n`);
+            }
         }
 
         const validationPassed = currentMae <= config.targetMae;
