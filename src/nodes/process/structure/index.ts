@@ -48,6 +48,7 @@ export const generateStructure = async (figma: FigmaFrameInfo) => {
             imageUrls: thumbnailUrl,
             maxTokens: 20000,
             responseFormat: { type: 'json_object' },
+            maxTokens: 20240,
         });
 
         // Parse AI response
