@@ -90,6 +90,7 @@ export const generateStructurePrompt = (options: { positions: string; width?: st
 
   <output_format>
     Return ONLY a single valid JSON object (no markdown code blocks).
+    Output MUST be COMPACT (no pretty-printing): avoid indentation/newlines as much as possible.
     Follow this schema exactly:
     {
       "id": "ComponentName",
@@ -102,12 +103,13 @@ export const generateStructurePrompt = (options: { positions: string; width?: st
           "boundingBox": { "top": 0, "left": 0, "width": 0, "height": 0 },
           "relativeBoundingBox": { "top": 0, "left": 0, "width": 0, "height": 0 },
           "spacing": { "next": 0 },
-          "layoutDirection": "VERTICAL"  // or "HORIZONTAL"
+          "layoutDirection": "VERTICAL"
         }
-        // Note: layoutGroups will be automatically added by post-processing if layoutDirection is HORIZONTAL
       },
       "children": []
     }
+
+    layoutDirection MUST be one of: "VERTICAL" | "HORIZONTAL" | "NONE"
     
     **Layout Groups**:
     - Do NOT generate \`layoutGroups\` field in your output

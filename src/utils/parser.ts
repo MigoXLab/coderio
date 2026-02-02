@@ -24,14 +24,17 @@ export function extractJSON(response: string): string {
         return jsonBlockMatch[1].trim();
     }
 
-    // Try to match generic ``` ... ``` format
+    // Try to match generic ``` ... ``` format (with newlines around content)
     const codeBlockMatch = response.match(/```\s*\n([\s\S]*?)\n```/);
     if (codeBlockMatch && codeBlockMatch[1]) {
         return codeBlockMatch[1].trim();
     }
 
-    // If no markdown code blocks found, return original content trimmed
-    return response.trim();
+    // Fallback: no proper code block; use full content but strip loose markdown fences.
+    // Some models return raw JSON with trailing "```" (e.g. ...]```) or leading ```\n.
+    let cleaned = response.trim();
+    cleaned = cleaned.replace(/^\s*```(?:json)?\s*\n?/g, '').replace(/\s*```+\s*$/g, '');
+    return cleaned;
 }
 
 /**
