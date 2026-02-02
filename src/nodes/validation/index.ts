@@ -9,6 +9,7 @@ import type { GraphState } from '../../state';
 import { METRIC_DECIMAL_PLACES } from './constants';
 import { logger } from '../../utils/logger';
 import { validationLoop } from './core/validation-loop';
+import { commit } from './commit/index';
 
 /**
  * LangGraph node: run validation on the generated app and write a report into the workspace.
@@ -24,6 +25,18 @@ export const runValidation = async (state: GraphState): Promise<void> => {
     }
 
     const mode = state.config?.validationMode ?? 'full';
+    // Code-only mode: skip validation, only commit and exit
+    if (mode === 'codeOnly') {
+        logger.printInfoLog('Code-only mode: skipping validation, committing generated code...');
+        const commitResult = await commit({ appPath: state.workspace.app });
+        if (!commitResult.success) {
+            logger.printWarnLog(`Git commit failed: ${commitResult.message}`);
+        } else {
+            logger.printSuccessLog('Git commit completed successfully!');
+        }
+        return;
+    }
+
     const outputDir = path.join(state.workspace.process, 'validation');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
