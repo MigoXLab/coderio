@@ -46,7 +46,6 @@ export const generateStructure = async (figma: FigmaFrameInfo) => {
         const structureResult = await callModel({
             question: prompt,
             imageUrls: thumbnailUrl,
-            maxTokens: 20000,
             responseFormat: { type: 'json_object' },
             maxTokens: 20240,
         });

@@ -422,9 +422,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 config.targetMae
             );
 
-            if (mode !== 'reportOnly') {
-                logger.printInfoLog(`Iteration ${iteration} complete\n`);
-            }
+            // This path is only reached in full mode (reportOnly breaks out earlier)
+            logger.printInfoLog(`Iteration ${iteration} complete\n`);
         }
 
         const validationPassed = currentMae <= config.targetMae;
