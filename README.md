@@ -225,7 +225,7 @@ Figma Design → Protocol → Code → Launch → Validate → Refine → Report
 
 ## 🤝 Contributing
 
-We welcome contributions!
+Contributions are welcome!
 
 ```bash
 git clone https://github.com/MigoXLab/coderio.git
