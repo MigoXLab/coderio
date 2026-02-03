@@ -35,6 +35,7 @@ export const INITIAL_AGENT_SYSTEM_PROMPT = `
           - "dev": "pnpm exec vite"
           - "build": "pnpm exec tsc && pnpm exec vite build"
           - "preview": "pnpm exec vite preview"
+        * IMPORTANT: Do NOT add "coderio" as a dependency - it's only a build tool, not a runtime dependency.
       - \`vite.config.ts\`: Configure React and TailwindCSS V4 plugins. MUST include path alias configuration:
         * Add \`resolve.alias\` with \`@\` pointing to \`path.resolve(__dirname, './src')\`
         * Import \`path\` from 'node:path'

@@ -71,7 +71,7 @@ export async function processNode(state: GraphState, cache: CodeCache): Promise<
 /**
  * Flatten tree into array using post-order traversal
  */
-function flattenPostOrder(node: Protocol): Protocol[] {
+export function flattenPostOrder(node: Protocol): Protocol[] {
     const result: Protocol[] = [];
 
     function traverse(n: Protocol) {
@@ -86,7 +86,7 @@ function flattenPostOrder(node: Protocol): Protocol[] {
 /**
  * Detect which rendering modes are used in this frame
  */
-function detectRenderingModes(node: Protocol): {
+export function detectRenderingModes(node: Protocol): {
     hasStates: boolean;
     hasIndependentChildren: boolean;
 } {
@@ -175,7 +175,7 @@ export async function generateComponent(node: Protocol, state: GraphState, asset
 /**
  * Helper function to save generated code (handles both single and multi-file output)
  */
-function saveGeneratedCode(code: string, filePath: string): void {
+export function saveGeneratedCode(code: string, filePath: string): void {
     const files = extractFiles(code);
 
     if (files.length > 0) {

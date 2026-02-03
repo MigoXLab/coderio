@@ -9,6 +9,8 @@ export default [
             'scripts/**',
             'examples/**',
             'src/tools/report-tool/template/**',
+            'coverage/**',
+            'tests/**',
             '*.config.ts',
             '*.config.js',
         ],

@@ -8,3 +8,4 @@ export * from './graph-types';
 export * from './protocol-types';
 export * from './figma-types';
 export * from './validation-types';
+export * from '../nodes/process/structure/types';
