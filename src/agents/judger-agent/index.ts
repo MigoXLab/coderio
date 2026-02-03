@@ -41,7 +41,7 @@ export function createJudgerAgent(options: {
     }
 
     // System tools (string-based, globally registered)
-    const systemTools: string[] = ['FileEditor.read', 'FileEditor.find', 'ThinkTool.execute'];
+    const systemTools: string[] = ['FileEditor.read', 'FileEditor.find'];
 
     // Update HierarchyTool instance context if structure provided
     // Tools are already registered via @tools decorator - just update execute methods

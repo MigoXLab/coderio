@@ -81,6 +81,24 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
         logger.printLog(`     Error type: ${diagnosis.errorType}`);
         logger.printLog(`     Fix instructions: ${diagnosis.refineInstructions?.length || 0}`);
 
+        // Skip refiner if no instructions (judger failed to analyze)
+        if (!diagnosis.refineInstructions || diagnosis.refineInstructions.length === 0) {
+            const history = componentHistory[comp.componentId];
+            return {
+                componentId: comp.componentId,
+                componentPath: comp.path,
+                elementIds: comp.elementIds,
+                validationReport: comp.validationReport,
+                diagnosis,
+                refinerResult: {
+                    success: false,
+                    summary: ['Skipped - no instructions from judger'],
+                    editsApplied: 0,
+                },
+                positionHistory: history ? [...history] : undefined,
+            };
+        }
+
         logger.printLog(`  Applying fixes to ${comp.name}...`);
         const refiner = createRefinerAgent(workspace.app);
         const refinerInstruction = formatRefinerInstruction(comp, diagnosis, componentPaths);
@@ -109,7 +127,7 @@ async function refineComponent(comp: MisalignedComponent, context: RefinementCon
         };
     } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        logger.printWarnLog(`  FAILED ${comp.name}: ${errorMsg}. Skipping component refinement.`);
+        logger.printInfoLog(`${comp.name}: ${errorMsg}`);
 
         const history = componentHistory[comp.componentId];
         return {
@@ -279,9 +297,9 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             const misaligned = validationResult.misalignedComponents;
             lastMisalignedCount = misaligned.length;
 
-            logger.printInfoLog(`MAE: ${currentMae.toFixed(2)}px (target: <=${config.targetMae}px)`);
-            logger.printInfoLog(`SAE: ${currentSae.toFixed(2)}px`);
-            logger.printInfoLog(`Misaligned: ${misaligned.length}`);
+            logger.printLog(`MAE: ${currentMae.toFixed(2)}px (target: <=${config.targetMae}px)`);
+            logger.printLog(`SAE: ${currentSae.toFixed(2)}px`);
+            logger.printLog(`Misaligned: ${misaligned.length}`);
 
             // Generate validation screenshot using VisualizationTool
             const screenshotResult = await visualizationTool.generateIterationScreenshot(

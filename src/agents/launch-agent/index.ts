@@ -29,7 +29,6 @@ export function createLaunchAgent(): Agent {
             'FileEditor.find',
             'FileEditor.findAndReplace',
             'FileEditor.write',
-            'ThinkTool.execute',
         ],
         modelConfig,
         verbose: 2,
