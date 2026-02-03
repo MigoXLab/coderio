@@ -3,6 +3,7 @@
  */
 
 import type { LaunchAgentResult } from './types';
+import { logger } from '../../utils/logger';
 
 /**
  * Extract launch result from agent response.
@@ -12,7 +13,11 @@ import type { LaunchAgentResult } from './types';
 export function parseLaunchResult(response: string): Promise<LaunchAgentResult> {
     // Check for empty response
     if (!response || response.trim().length === 0) {
-        throw new Error('Agent returned empty response');
+        logger.printInfoLog('Launch agent returned empty response');
+        return Promise.resolve({
+            success: false,
+            error: 'Agent returned empty response',
+        });
     }
 
     // Extract JSON from markdown code block
@@ -20,21 +25,41 @@ export function parseLaunchResult(response: string): Promise<LaunchAgentResult> 
     const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
 
     if (!jsonMatch) {
-        throw new Error('No JSON code block found in agent response');
+        logger.printInfoLog('Launch agent response missing JSON block');
+        return Promise.resolve({
+            success: false,
+            error: 'No JSON code block found in agent response',
+        });
     }
 
     const jsonStr = jsonMatch[1];
 
     if (!jsonStr || jsonStr.trim().length === 0) {
-        throw new Error('Empty JSON content in code block');
+        logger.printInfoLog('Launch agent response has empty JSON');
+        return Promise.resolve({
+            success: false,
+            error: 'Empty JSON content in code block',
+        });
     }
 
-    const parsed = JSON.parse(jsonStr) as LaunchAgentResult;
+    try {
+        const parsed = JSON.parse(jsonStr) as LaunchAgentResult;
 
-    // Validate required fields if success is true
-    if (parsed.success === true && (!parsed.serverKey || !parsed.url || !parsed.port)) {
-        throw new Error('Agent returned success=true but missing required fields');
+        // Validate required fields if success is true
+        if (parsed.success === true && (!parsed.serverKey || !parsed.url || !parsed.port)) {
+            logger.printInfoLog('Launch agent success response missing required fields');
+            return Promise.resolve({
+                success: false,
+                error: 'Missing required fields (serverKey, url, or port)',
+            });
+        }
+
+        return Promise.resolve(parsed);
+    } catch (error) {
+        logger.printInfoLog(`Launch agent response JSON parse failed: ${error instanceof Error ? error.message : String(error)}`);
+        return Promise.resolve({
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+        });
     }
-
-    return Promise.resolve(parsed);
 }

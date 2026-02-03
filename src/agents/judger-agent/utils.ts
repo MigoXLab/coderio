@@ -4,6 +4,7 @@
 
 import { SystemToolStore, FunctionCallingStore } from 'evoltagent';
 import type { JudgerDiagnosis } from './types';
+import { logger } from '../../utils/logger';
 
 /**
  * Extract JSON diagnosis from agent response.
@@ -13,7 +14,15 @@ import type { JudgerDiagnosis } from './types';
 export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
     // Check for empty response (agent may have hit limits or errors)
     if (!response || response.trim().length === 0) {
-        throw new Error('Agent returned empty response');
+        logger.printInfoLog('Judger agent returned empty response, skipping refinement for this iteration');
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable, do not apply any edits',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
     }
 
     // Extract JSON from markdown code block
@@ -21,16 +30,44 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
     const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
 
     if (!jsonMatch) {
-        throw new Error('No JSON code block found in agent response');
+        logger.printInfoLog('Judger agent response missing JSON block, skipping refinement for this iteration');
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable, do not apply any edits',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
     }
 
     const jsonStr = jsonMatch[1];
 
     if (!jsonStr || jsonStr.trim().length === 0) {
-        throw new Error('Empty JSON content in code block');
+        logger.printInfoLog('Judger agent response has empty JSON, skipping refinement for this iteration');
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable, do not apply any edits',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
     }
 
-    return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
+    try {
+        return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
+    } catch (error) {
+        logger.printInfoLog(`Judger agent response JSON parse failed: ${error instanceof Error ? error.message : String(error)}`);
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
+    }
 }
 
 /**
