@@ -4,7 +4,6 @@
 
 import { SystemToolStore, FunctionCallingStore } from 'evoltagent';
 import type { JudgerDiagnosis } from './types';
-import { logger } from '../../utils/logger';
 
 /**
  * Extract JSON diagnosis from agent response.
@@ -12,43 +11,26 @@ import { logger } from '../../utils/logger';
  * @returns Parsed JudgerDiagnosis object
  */
 export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
-    try {
-        // Check for empty response (agent may have hit limits or errors)
-        if (!response || response.trim().length === 0) {
-            throw new Error('Agent returned empty response after tool execution');
-        }
-
-        // Extract JSON from markdown code block
-        // The evoltagent library strips <TaskCompletion> tags before calling postProcessor
-        const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
-
-        if (!jsonMatch) {
-            logger.printWarnLog(`[JudgerAgent] No JSON code block found in response`);
-            logger.printWarnLog(`Response preview (first 500 chars):\n${response.substring(0, 500)}`);
-            if (response.length > 500) {
-                logger.printWarnLog(`Last 500 chars:\n${response.substring(Math.max(0, response.length - 500))}`);
-            }
-            throw new Error('No JSON code block found in agent response. Expected format: ```json\\n{...}\\n```');
-        }
-
-        const jsonStr = jsonMatch[1];
-
-        if (!jsonStr || jsonStr.trim().length === 0) {
-            logger.printWarnLog(`[JudgerAgent] Empty JSON content in code block`);
-            throw new Error('Empty JSON content in code block');
-        }
-
-        return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
-    } catch (error) {
-        // Provide detailed error context for debugging
-        logger.printWarnLog(`[JudgerAgent] Failed to parse diagnosis JSON`);
-        logger.printWarnLog(`Response length: ${response.length} characters`);
-
-        if (error instanceof Error) {
-            throw new Error(`Post-processor failed: ${error.message}`);
-        }
-        throw new Error(`Post-processor failed: ${String(error)}`);
+    // Check for empty response (agent may have hit limits or errors)
+    if (!response || response.trim().length === 0) {
+        throw new Error('Agent returned empty response');
     }
+
+    // Extract JSON from markdown code block
+    // The evoltagent library strips <TaskCompletion> tags before calling postProcessor
+    const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
+
+    if (!jsonMatch) {
+        throw new Error('No JSON code block found in agent response');
+    }
+
+    const jsonStr = jsonMatch[1];
+
+    if (!jsonStr || jsonStr.trim().length === 0) {
+        throw new Error('Empty JSON content in code block');
+    }
+
+    return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
 }
 
 /**
