@@ -234,6 +234,27 @@ pnpm install
 pnpm build
 ```
 
+### Development & Testing
+
+```bash
+# Run tests
+pnpm test
+
+# Watch mode for development
+pnpm test:watch
+
+# Generate coverage report
+pnpm test:coverage
+
+# Type checking
+pnpm typecheck
+
+# Linting
+pnpm lint
+```
+
+For testing guidelines, see [tests/README.md](tests/README.md)
+
 ### Contributors
 
 Thanks to all our contributors! 🎉

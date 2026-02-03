@@ -38,5 +38,9 @@ pnpm-debug.log*
 *.tmp
 .cache/
 
+# Test coverage
+coverage/
+.nyc_output/
+
 # Coderio
 coderio/
