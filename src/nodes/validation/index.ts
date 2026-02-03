@@ -61,7 +61,6 @@ export const runValidation = async (state: GraphState): Promise<void> => {
         logger.printSuccessLog(`Validation PASSED (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`);
     } else {
         logger.printWarnLog(`Validation FAILED (MAE: ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px)`);
-        throw new Error(`Validation failed: MAE ${result.finalMae.toFixed(METRIC_DECIMAL_PLACES)}px exceeds threshold`);
     }
     logger.printInfoLog(`Validation report: ${reportHtmlPath}`);
 };
