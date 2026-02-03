@@ -13,6 +13,7 @@ export const LAUNCH_AGENT_PROMPT = `
             - Otherwise: Execute "pnpm i" in appPath
             - Parameters: CommandLineTool.execute(command="pnpm i", cwd=appPath, timeoutMs=180000)
             - Verify exitCode === 0 before proceeding
+            - If installation fails, analyze the error output and fix issues before proceeding
 
         Step 2: Build Project
             - Execute: CommandLineTool.execute(command="npm run build", cwd=appPath, timeoutMs=180000)
@@ -22,10 +23,11 @@ export const LAUNCH_AGENT_PROMPT = `
             - Analyze error messages in 'error' and 'output' fields
             - Use FileEditor.read to examine problematic files
             - Use FileEditor.write to fix ONLY the specific broken lines
-            - NEVER modify working CSS, images, DOM structure, or logic
+            - CRITICAL: Do NOT delete or rewrite entire files. Do NOT simplify complex CSS or logic.
             - Return to Step 2 and rebuild
 
         Step 4: Start Dev Server & Check Runtime Errors
+            - Only proceed here when build is successful
             - Execute: LaunchTool.startDevServer(appPath=appPath, runCommand="npm run dev", timeoutMs=60000)
             - Returns JSON: { success, url, port, serverKey, outputTail }
             - Parse and check outputTail for runtime error patterns EVEN IF success=true:
@@ -33,6 +35,7 @@ export const LAUNCH_AGENT_PROMPT = `
                 * "SyntaxError", "TypeError", "ReferenceError"
                 * "Failed to compile", "Unhandled Runtime Error"
             - If errors found: Fix using FileEditor, then restart Step 2
+                * CRITICAL: Do NOT delete or rewrite entire files. Do NOT simplify complex CSS or logic.
             - If clean: Store serverKey, url, port and proceed to Step 5
 
         Step 5: Return Server Metadata
@@ -57,8 +60,15 @@ export const LAUNCH_AGENT_PROMPT = `
     </workflow>
 
     <principles>
-        1. CONTENT PRESERVATION: Never modify CSS/styles, images, DOM structure, or working logic. Only fix explicit errors.
-        2. MINIMAL FIXES: Fix only what's broken in error logs. No refactoring, cleanup, or "improvements".
+        1. STRICT CONTENT PRESERVATION (MANDATORY):
+            - NEVER modify CSS/Style content (colors, layouts, animations, etc.). If a CSS error exists, only fix the import/path or a specific syntax typo.
+            - NEVER modify or delete Image assets or their references.
+            - NEVER modify the DOM structure or JSX layout (adding/removing tags, changing classNames).
+            - NEVER replace file content with "template" or "placeholder" code.
+        2. ALLOWED CHANGES ONLY:
+            - Fixing 'module not found' by installing missing packages or correcting import paths.
+            - Fixing TypeScript/JavaScript syntax errors that prevent execution.
+            - Fixing configuration issues (e.g., tailwind.config.js, tsconfig.json).
         3. BUILD FIRST: Dev server must not start until build succeeds (exitCode === 0).
         4. PORT CONSISTENCY: Always use LaunchTool.startDevServer() (workspace-preferred port, same port across runs).
         5. RUNTIME VALIDATION: Check outputTail in Step 4 for runtime errors even if success=true.
