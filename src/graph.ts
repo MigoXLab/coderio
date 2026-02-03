@@ -11,7 +11,7 @@ import { initializeSqliteSaver, promptCheckpointChoice } from './utils/checkpoin
 import { logger } from './utils/logger';
 import { callModel } from './utils/call-model';
 
-export async function design2code(url: string, reportOnly?: boolean, codeOnly?: boolean): Promise<void> {
+export async function design2code(url: string, mode?: ValidationConfig['validationMode']): Promise<void> {
     const urlInfo = parseFigmaUrl(url);
     const threadId = urlInfo.projectName!;
     const workspace = workspaceManager.initWorkspace(threadId);
@@ -54,7 +54,7 @@ export async function design2code(url: string, reportOnly?: boolean, codeOnly?: 
 
     // If resuming from checkpoint, pass null to let LangGraph resume from saved state
     // Otherwise, pass initial state to start fresh
-    const validationMode: ValidationConfig['validationMode'] = codeOnly ? 'codeOnly' : reportOnly ? 'reportOnly' : 'full';
+    const validationMode: ValidationConfig['validationMode'] = mode ?? 'full';
     const state =
         resume === true
             ? null
