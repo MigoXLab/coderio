@@ -1,6 +1,33 @@
 import { Command } from 'commander';
 import { logger } from '../utils/logger';
 import { design2code } from '../graph';
+import type { ValidationConfig } from '../types/graph-types';
+
+/**
+ * Validate and map CLI mode parameter to internal validationMode.
+ * @param mode - The mode string from CLI
+ * @returns The mapped ValidationConfig mode, or null if invalid
+ */
+function getValidationMode(mode: string): ValidationConfig['validationMode'] | null {
+    const validModes = ['code', 'with-report', 'full'] as const;
+    type ValidMode = (typeof validModes)[number];
+    const isValidMode = (m: string): m is ValidMode => {
+        return validModes.includes(m as ValidMode);
+    };
+
+    if (!isValidMode(mode)) {
+        return null;
+    }
+
+    // Map CLI mode to internal validationMode
+    const modeMap: Record<ValidMode, ValidationConfig['validationMode']> = {
+        code: 'codeOnly',
+        'with-report': 'reportOnly',
+        full: 'full',
+    };
+
+    return modeMap[mode];
+}
 
 // d2c command: Design to Code
 export const registerD2CCommand = (program: Command) => {
@@ -9,12 +36,22 @@ export const registerD2CCommand = (program: Command) => {
         .alias('d2c')
         .description('Generate frontend code from design')
         .option('-s, --source <url>', 'Figma Link')
-        .option('-r, --reportonly', 'Run a single validation pass and generate report (no code edits)')
-        .option('-c, --codeonly', 'Generate component code only without validation')
-        .action(async (opts: { source: string; reportonly?: boolean; codeonly?: boolean }) => {
+        .option(
+            '-m, --mode [type]',
+            'Execution mode: code (generate component code only), with-report (single validation and generate report), full (iterative validation)',
+            'full'
+        )
+        .action(async (opts: { source: string; mode?: string }) => {
             try {
-                const { source, reportonly, codeonly } = opts;
-                await design2code(source, reportonly, codeonly);
+                const { source, mode = 'full' } = opts;
+
+                const validationMode = getValidationMode(mode);
+                if (!validationMode) {
+                    logger.printErrorLog(`Invalid mode: ${mode}. Must be one of: code, with-report, full`);
+                    process.exit(1);
+                }
+
+                await design2code(source, validationMode);
 
                 logger.printSuccessLog('Successfully completed code generation from design! Happy coding!');
             } catch (error) {
