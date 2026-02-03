@@ -12,43 +12,61 @@ import { logger } from '../../utils/logger';
  * @returns Parsed JudgerDiagnosis object
  */
 export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
+    // Check for empty response (agent may have hit limits or errors)
+    if (!response || response.trim().length === 0) {
+        logger.printInfoLog('Judger agent returned empty response, skipping refinement for this iteration');
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable, do not apply any edits',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
+    }
+
+    // Extract JSON from markdown code block
+    // The evoltagent library strips <TaskCompletion> tags before calling postProcessor
+    const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
+
+    if (!jsonMatch) {
+        logger.printInfoLog('Judger agent response missing JSON block, skipping refinement for this iteration');
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable, do not apply any edits',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
+    }
+
+    const jsonStr = jsonMatch[1];
+
+    if (!jsonStr || jsonStr.trim().length === 0) {
+        logger.printInfoLog('Judger agent response has empty JSON, skipping refinement for this iteration');
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable, do not apply any edits',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
+    }
+
     try {
-        // Check for empty response (agent may have hit limits or errors)
-        if (!response || response.trim().length === 0) {
-            logger.printWarnLog(`[JudgerAgent] Agent returned empty response`);
-            throw new Error('Agent returned empty response after tool execution');
-        }
-
-        // Extract JSON from markdown code block
-        // The evoltagent library strips <TaskCompletion> tags before calling postProcessor
-        const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
-
-        if (!jsonMatch) {
-            logger.printWarnLog(`[JudgerAgent] No JSON code block found in response`);
-            logger.printWarnLog(`Response preview (first 500 chars):\n${response.substring(0, 500)}`);
-            if (response.length > 500) {
-                logger.printWarnLog(`Last 500 chars:\n${response.substring(Math.max(0, response.length - 500))}`);
-            }
-            throw new Error('No JSON code block found in agent response. Expected format: ```json\\n{...}\\n```');
-        }
-
-        const jsonStr = jsonMatch[1];
-
-        if (!jsonStr || jsonStr.trim().length === 0) {
-            logger.printWarnLog(`[JudgerAgent] Empty JSON content in code block`);
-            throw new Error('Empty JSON content in code block');
-        }
-
         return Promise.resolve(JSON.parse(jsonStr) as JudgerDiagnosis);
     } catch (error) {
-        // Provide detailed error context for debugging
-        logger.printWarnLog(`[JudgerAgent] Failed to parse diagnosis JSON`);
-        logger.printWarnLog(`Response length: ${response.length} characters`);
-
-        if (error instanceof Error) {
-            throw new Error(`Post-processor failed: ${error.message}`);
-        }
-        throw new Error(`Post-processor failed: ${String(error)}`);
+        logger.printInfoLog(`Judger agent response JSON parse failed: ${error instanceof Error ? error.message : String(error)}`);
+        return Promise.resolve({
+            errorType: 'pixel_misalignment',
+            rootCause: 'Agent analysis unavailable',
+            visualEvidence: 'N/A',
+            codeEvidence: 'N/A',
+            refineInstructions: [],
+            toolsUsed: [],
+        });
     }
 }
 
