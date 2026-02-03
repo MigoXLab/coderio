@@ -15,7 +15,6 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
     try {
         // Check for empty response (agent may have hit limits or errors)
         if (!response || response.trim().length === 0) {
-            logger.printWarnLog(`[JudgerAgent] Agent returned empty response`);
             throw new Error('Agent returned empty response after tool execution');
         }
 

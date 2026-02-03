@@ -14,12 +14,6 @@ export function parseLaunchResult(response: string): Promise<LaunchAgentResult> 
     try {
         // Check for empty response
         if (!response || response.trim().length === 0) {
-            logger.printErrorLog(`[LaunchAgent] Agent returned empty response`);
-            logger.printErrorLog(`This usually means:`);
-            logger.printErrorLog(`  1. Agent made tool calls but never generated final output`);
-            logger.printErrorLog(`  2. Context window exhausted after tool results added`);
-            logger.printErrorLog(`  3. Model timeout or API error`);
-            logger.printErrorLog(`  4. Max output tokens too small for response`);
             throw new Error('Agent returned empty response after tool execution');
         }
 
