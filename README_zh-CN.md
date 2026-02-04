@@ -6,7 +6,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio) [![Contributors](https://img.shields.io/github/contributors/MigoXLab/coderio)](https://github.com/MigoXLab/coderio/graphs/contributors)
 
-💬 联系方式：[微信群](https://aicarrier.feishu.cn/docx/KTZCddG2VoarFExTqBEcS55QnRd) ｜ <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">邮箱</a>
+💬 联系方式：<a href="https://aicarrier.feishu.cn/docx/KTZCddG2VoarFExTqBEcS55QnRd" target="_blank">微信群</a> ｜ <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">邮箱</a>
 
 [English](README.md) | [简体中文](README_zh-CN.md)
 
@@ -41,11 +41,19 @@ CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计�
 
 ## ✨ 示例展示
 
-### 案例：落地页 (使用 CLI，--mode full）
+### 案例：使用 CLI，--mode full
 
 本示例展示了一个从 Figma 转换而来的落地页。它包含页眉、主要内容区域和页脚，展示了 CodeRio 处理复杂布局和组件结构的能力。
 
-[查看验证报告](https://htmlpreview.github.io/?https://github.com/MigoXLab/coderio/blob/main/examples/case1/report.html)
+<a href="https://static.openxlab.org.cn/coderio/report.html" target="_blank">📊 查看交互式验证报告</a>
+
+### 案例：在 Cursor 中使用 Skill 开发
+
+CodeRio 支持作为 Skill 集成到 Cursor 中使用。您只需在对话框中输入 **“请帮我创建一个 React 工程，高保真还原设计稿”**，并提供输出目录、设计稿链接及 Figma Token，Agent 即可引导您逐步完成网页生成。
+
+对于落地页（Landing Page）类页面，CodeRio 能达到 **高保真还原** 标准，精确还原图片与样式，并自动对卡片等组件进行 **复用封装**，生成的代码完全符合 **前端开发规范**。
+
+<a href="https://static.openxlab.org.cn/coderio/coderio-skill-demo.mp4" target="_blank">🎥 观看演示视频</a>
 
 ## 🚀 快速开始
 

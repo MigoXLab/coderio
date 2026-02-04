@@ -6,7 +6,7 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio) [![Contributors](https://img.shields.io/github/contributors/MigoXLab/coderio)](https://github.com/MigoXLab/coderio/graphs/contributors)
 
-💬 Contact: [WeChat Group](https://aicarrier.feishu.cn/docx/KTZCddG2VoarFExTqBEcS55QnRd) | <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">Email</a>
+💬 Contact: <a href="https://aicarrier.feishu.cn/docx/KTZCddG2VoarFExTqBEcS55QnRd" target="_blank">WeChat Group</a> | <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">Email</a>
 
 [English](README.md) | [简体中文](README_zh-CN.md)
 
@@ -42,11 +42,17 @@ CodeRio is an intelligent **Figma-to-Code** automation tool that transforms desi
 
 ## ✨ Examples
 
-### Case: Landing Page (CLI with --mode full) 
+### Case: CLI with --mode full
 
-This example demonstrates a landing page converted from Figma. It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts and component structures.
+This example demonstrates a landing page converted from Figma. It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts, multiple images and component structures.
 
-[View Validation Report](https://htmlpreview.github.io/?https://github.com/MigoXLab/coderio/blob/main/examples/case1/report.html)
+<a href="https://static.openxlab.org.cn/coderio/report.html" target="_blank">📊 View Interactive Validation Report</a>
+
+### Case: Development with Cursor Skill
+
+CodeRio can be seamlessly integrated into Cursor as a Skill. Simply input a prompt like **"Create a React project and restore this design with high fidelity,"** along with your output directory, Figma URL, and Token. The Agent will guide you step-by-step through the page generation process. For Landing Pages, it achieves **high-fidelity restoration**, accurately reproducing images and styles. It also automatically encapsulates reusable components (such as cards) and strictly adheres to **frontend development best practices**.
+
+<a href="https://static.openxlab.org.cn/coderio/coderio-skill-demo.mp4" target="_blank">🎥 Watch Demo Video</a>
 
 ## 🚀 Quick Start
 
