@@ -1,10 +1,13 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
 
 # Build output
-dist/
+/dist/
+@dist/
 *.tsbuildinfo
+
+# But keep template dist
+!src/tools/report-tool/template/dist/
 
 # IDE
 .vscode/launch.json
@@ -12,6 +15,8 @@ dist/
 *.swp
 *.swo
 *~
+.claude/
+.cursor/
 
 # OS
 .DS_Store
@@ -32,3 +37,10 @@ pnpm-debug.log*
 # Temporary files
 *.tmp
 .cache/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Coderio
+coderio/

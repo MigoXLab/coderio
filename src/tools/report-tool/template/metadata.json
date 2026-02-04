@@ -1,0 +1,5 @@
+{
+  "name": "CodeRio Design2Code",
+  "description": "A professional frontend engineering tool to compare design mockups with implemented code, featuring pixel-perfect overlay comparison and detailed component feedback.",
+  "requestFramePermissions": []
+}

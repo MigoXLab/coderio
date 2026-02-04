@@ -1,0 +1,77 @@
+import type { FigmaFrameInfo } from '../../../types/figma-types';
+import type { Protocol } from '../../../types';
+import { callModel } from '../../../utils/call-model';
+import { logger } from '../../../utils/logger';
+import { generateStructurePrompt } from './prompt';
+import { extractNodePositionsHierarchical, postProcessStructure, populateComponentProps } from './utils';
+import { extractJSON } from '../../../utils/parser';
+
+/**
+ * Structure node - generates component hierarchy from Figma design
+ *
+ * Responsibilities:
+ * 1. Analyzes Figma frame structure using AI model
+ * 2. Extracts component relationships and data
+ * 3. Generates file paths and naming conventions
+ * 4. Populates component props and states for code generation
+ *
+ * @param state - Current graph state
+ * @returns Updated state with protocol
+ */
+export const generateStructure = async (figma: FigmaFrameInfo) => {
+    const frames = figma.frames || figma.children;
+    const imageWidth = figma.absoluteBoundingBox?.width;
+    const thumbnailUrl = figma.thumbnailUrl;
+
+    if (!frames || frames.length === 0) {
+        logger.printErrorLog('No processed frames found in state');
+        throw new Error('No processed frames found');
+    }
+
+    logger.printInfoLog('Starting structure analysis...');
+
+    try {
+        // Extract hierarchical position data from Figma frames
+        const positions = extractNodePositionsHierarchical(frames);
+        const positionsJson = JSON.stringify(positions);
+
+        // Generate structure using AI
+        const prompt = generateStructurePrompt({
+            positions: positionsJson,
+            width: imageWidth ? String(imageWidth) : '1440',
+        });
+
+        logger.printInfoLog('Calling AI model to generate component structure...');
+
+        const structureResult = await callModel({
+            question: prompt,
+            imageUrls: thumbnailUrl,
+            responseFormat: { type: 'json_object' },
+            maxTokens: 20240,
+        });
+
+        // Parse AI response
+        const jsonContent = extractJSON(structureResult);
+        const parsedStructure = JSON.parse(jsonContent) as Protocol | Protocol[];
+
+        // Post-process structure: normalize names, populate elements, annotate paths
+        logger.printInfoLog('Processing structure tree...');
+        postProcessStructure(parsedStructure, frames);
+
+        const protocol = (Array.isArray(parsedStructure) ? parsedStructure[0] : parsedStructure) as Protocol;
+
+        // Extract component props and states for reusable components
+        if (frames && protocol) {
+            logger.printInfoLog('Extracting component properties and states...');
+            await populateComponentProps(protocol, frames, thumbnailUrl);
+        }
+
+        logger.printSuccessLog('Component structure generated successfully');
+
+        return protocol;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.printErrorLog(`Error generating component structure: ${errorMessage}`);
+        throw new Error(`Failed to parse component structure: ${errorMessage}`);
+    }
+};

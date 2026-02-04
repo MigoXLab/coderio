@@ -1,29 +1,16 @@
-#!/usr/bin/env node
+// ============= All Types Export =============
+// Export all types for internal use and advanced users
+export * from './types/index';
 
-// Save the user's current working directory before any operations
-process.env.CODERIO_CLI_USER_CWD = process.cwd();
-
-import { Command } from 'commander';
-import { registerCommands } from './commands';
-
-async function main(argv: string[]): Promise<void> {
-    const program = new Command();
-
-    // Register all commands
-    registerCommands(program);
-
-    if (argv.length <= 2) {
-        program.help({ error: false });
-        return;
-    }
-
-    // Parse arguments
-    await program.parseAsync(argv);
-}
-
-main(process.argv).catch(err => {
-    const error = err as Error;
-    // TODO: Handle error
-    console.error(error.message || String(error));
-    process.exit(1);
-});
+// ============= SKILL API Exports =============
+// Export all skill-api utilities for IDE integration (Cursor, Claude Code, etc.)
+// This includes:
+// - Type exports: Protocol, FrameData, FigmaFrameInfo, FigmaUrlInfo, WorkspaceStructure
+// - Initial agent: INITIAL_AGENT_SYSTEM_PROMPT, initialAgentInstruction
+// - Figma processing: executeFigmaAndImagesActions, figmaTool
+// - Protocol utilities: extractNodePositionsHierarchical, postProcessStructure, etc.
+// - Prompt generation: generateStructurePrompt, extractDataListPrompt
+// - Helper functions: extractComponentGroups, prepareComponentDataForAI, etc.
+// - JSON parser: extractJSON
+// - Naming utilities: toKebabCase
+export * from './skill-api';
