@@ -7,6 +7,7 @@ export default [
             '**/node_modules/**',
             'coderio/**',
             'scripts/**',
+            'skills/**',
             'examples/**',
             'src/tools/report-tool/template/**',
             'coverage/**',
