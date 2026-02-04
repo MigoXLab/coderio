@@ -1,6 +1,6 @@
 {
     "name": "coderio",
-    "version": "0.1.2",
+    "version": "1.0.0",
     "description": "A modern CLI development tool built with TypeScript",
     "type": "module",
     "bin": {
