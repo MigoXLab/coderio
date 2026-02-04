@@ -53,7 +53,8 @@ https://github.com/user-attachments/assets/bd0c3f18-e98a-4050-bf22-46b198fadac2
 
 CodeRio 支持作为 Skill 集成到 Cursor 中使用。您只需在对话框中输入 **“请帮我创建一个 React 工程，高保真还原设计稿”**，并提供输出目录、设计稿链接([设计稿链接](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=30-8264&t=FB3Hohq2nsH7ZFts-4))及 Figma Token，Agent 即可引导您逐步完成网页生成。对于落地页（Landing Page）类页面，CodeRio 能达到 **高保真还原** 标准，精确还原图片与样式，并自动对卡片等组件进行 **复用封装**，生成的代码完全符合 **前端开发规范**。
 
-https://github.com/user-attachments/assets/a66dc680-f68d-4121-b416-aa6b778bd895
+
+https://github.com/user-attachments/assets/43817e97-ffd2-40e3-9d33-78ee55b2ec2d
 
 ## 🚀 快速开始
 
@@ -236,10 +237,6 @@ interface Protocol {
 ## 🤝 贡献
 
 我们欢迎贡献！感谢所有贡献者！🎉
-
-<a href="https://github.com/MigoXLab/coderio/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=MigoXLab/coderio" />
-</a>
 
 ## 📄 许可证
 

@@ -54,7 +54,8 @@ https://github.com/user-attachments/assets/bd0c3f18-e98a-4050-bf22-46b198fadac2
 
 CodeRio can be seamlessly integrated into Cursor as a Skill. Simply input a prompt like **"Create a React project and restore this design with high fidelity,"** along with your output directory, Figma URL([Design Link](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=30-8264&t=FB3Hohq2nsH7ZFts-4)), and Token. The Agent will guide you step-by-step through the page generation process. For Landing Pages, it achieves **high-fidelity restoration**, accurately reproducing images and styles. It also automatically encapsulates reusable components (such as cards) and strictly adheres to **frontend development best practices**.
 
-https://github.com/user-attachments/assets/a66dc680-f68d-4121-b416-aa6b778bd895
+
+https://github.com/user-attachments/assets/43817e97-ffd2-40e3-9d33-78ee55b2ec2d
 
 ## 🚀 Quick Start
 
@@ -235,24 +236,9 @@ Beyond visual fidelity, the generated code is built for long-term maintenance:
 - [ ] Vue.js and Svelte support
 - [ ] Custom design system integration
 
-## 🤝 Contributing
+### 🤝 Contributors
 
-we welcome contributions!
-
-```bash
-git clone https://github.com/MigoXLab/coderio.git
-cd coderio
-pnpm install
-pnpm build
-```
-
-### Contributors
-
-Thanks to all our contributors! 🎉
-
-<a href="https://github.com/MigoXLab/coderio/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=MigoXLab/coderio" />
-</a>
+Welcome to contribute. Thanks to all our contributors! 🎉
 
 ## 📄 License
 
