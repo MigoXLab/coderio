@@ -17,6 +17,7 @@ import type {
     Dict,
 } from '../../types/validation-types';
 import type { WorkspaceStructure } from '../../types/workspace-types';
+import { ValidationMode } from '../../types/graph-types';
 
 import type { JudgerDiagnosis } from '../../agents/judger-agent/types';
 import type { RefinerResult } from '../../agents/refiner-agent/types';
@@ -160,7 +161,7 @@ export interface ValidationLoopConfig {
      * - reportOnly: run a single validation pass and generate a report (no code edits).
      * - full: run iterative actor-critic refinement loop (may edit code + commit markers).
      */
-    mode?: 'reportOnly' | 'full';
+    mode?: ValidationMode.ReportOnly | ValidationMode.Full;
 }
 
 /**

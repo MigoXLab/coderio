@@ -3,7 +3,6 @@
  * Handles PNG -> WebP conversion and base64 encoding.
  */
 
-import sharp from 'sharp';
 import type { Page } from 'playwright';
 
 /**
@@ -28,6 +27,7 @@ export async function captureAsWebP(page: Page, options: { fullPage?: boolean } 
  * Converts a raw image buffer to WebP base64 data URI.
  */
 export async function bufferToWebPDataUri(buffer: Buffer): Promise<string> {
+    const sharp = (await import('sharp')).default;
     const webpBuffer = await sharp(buffer).webp({ quality: SCREENSHOT_WEBP_QUALITY }).toBuffer();
     return `data:image/webp;base64,${webpBuffer.toString('base64')}`;
 }

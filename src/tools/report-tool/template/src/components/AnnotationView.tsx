@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 // import { AlertCircle } from 'lucide-react';
 
 interface AnnotationViewProps {
@@ -7,6 +7,35 @@ interface AnnotationViewProps {
 }
 
 const AnnotationView: React.FC<AnnotationViewProps> = ({ designUrl, pageUrl }) => {
+    const designRef = useRef<HTMLDivElement>(null);
+    const pageRef = useRef<HTMLDivElement>(null);
+    const isSyncingDesign = useRef(false);
+    const isSyncingPage = useRef(false);
+
+    const handleDesignScroll = () => {
+        if (!designRef.current || !pageRef.current) return;
+        if (isSyncingDesign.current) {
+            isSyncingDesign.current = false;
+            return;
+        }
+
+        isSyncingPage.current = true;
+        pageRef.current.scrollTop = designRef.current.scrollTop;
+        pageRef.current.scrollLeft = designRef.current.scrollLeft;
+    };
+
+    const handlePageScroll = () => {
+        if (!designRef.current || !pageRef.current) return;
+        if (isSyncingPage.current) {
+            isSyncingPage.current = false;
+            return;
+        }
+
+        isSyncingDesign.current = true;
+        designRef.current.scrollTop = pageRef.current.scrollTop;
+        designRef.current.scrollLeft = pageRef.current.scrollLeft;
+    };
+
     return (
         <div className="flex h-full w-full gap-4">
             {/* Left: Design Mockup */}
@@ -15,7 +44,11 @@ const AnnotationView: React.FC<AnnotationViewProps> = ({ designUrl, pageUrl }) =
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Design</span>
                     <div className="w-2 h-2 rounded-full bg-slate-300"></div>
                 </div>
-                <div className="flex-1 relative overflow-auto bg-slate-100/50">
+                <div 
+                    ref={designRef}
+                    onScroll={handleDesignScroll}
+                    className="flex-1 relative overflow-auto bg-slate-100/50"
+                >
                     <img src={designUrl} alt="Design" className="w-full h-auto object-contain object-top" />
                 </div>
             </div>
@@ -33,7 +66,11 @@ const AnnotationView: React.FC<AnnotationViewProps> = ({ designUrl, pageUrl }) =
                         <ExternalLink size={14} />
                     </a> */}
                 </div>
-                <div className="flex-1 relative bg-white">
+                <div 
+                    ref={pageRef}
+                    onScroll={handlePageScroll}
+                    className="flex-1 relative overflow-auto bg-white"
+                >
                     <img src={pageUrl} alt="Design" className="w-full h-auto object-contain object-top" />
                     {/* Fallback overlay for demo purposes since localhost might not be running for the user */}
                     {/* <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-slate-900/5">

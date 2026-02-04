@@ -1,0 +1,74 @@
+[
+  {
+    "id": "728:11687",
+    "name": "ul",
+    "format": "svg",
+    "url": "@/assets/ul-728-11687.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/246494d8-86b1-402d-8fef-fb6620a0b15d",
+    "success": true
+  },
+  {
+    "id": "728:11712",
+    "name": "svg",
+    "format": "svg",
+    "url": "@/assets/svg-728-11712.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1eb74d4b-c5cf-42f9-9dcd-e9498ee241cd",
+    "success": true
+  },
+  {
+    "id": "728:11716",
+    "name": "div",
+    "format": "svg",
+    "url": "@/assets/div-728-11716.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/dc7f94a7-1a07-49e8-a6cf-8a2fbd0c8d62",
+    "success": true
+  },
+  {
+    "id": "728:11786",
+    "name": "svg",
+    "format": "svg",
+    "url": "@/assets/svg-728-11786.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/5ffc6444-270e-4ed3-881a-56cdd30e58d6",
+    "success": true
+  },
+  {
+    "id": "728:11792",
+    "name": "div:after",
+    "format": "svg",
+    "url": "@/assets/div-after-728-11792.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/f75e2ac9-95c0-4e78-ad22-130779b0d483",
+    "success": true
+  },
+  {
+    "id": "728:11797",
+    "name": "div:after",
+    "format": "svg",
+    "url": "@/assets/div-after-728-11797.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3e512994-cc61-4494-b551-1678a3bd514b",
+    "success": true
+  },
+  {
+    "id": "728:11802",
+    "name": "div:after",
+    "format": "svg",
+    "url": "@/assets/div-after-728-11802.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/2fefe2bb-0134-48ba-9a08-0a09d3efad14",
+    "success": true
+  },
+  {
+    "id": "728:11813",
+    "name": "svg",
+    "format": "svg",
+    "url": "@/assets/svg-728-11813.svg",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/72d803d1-e637-4e81-a8f1-02a90b7b1737",
+    "success": true
+  },
+  {
+    "id": "728:11286",
+    "name": "main",
+    "format": "png",
+    "url": "@/assets/main-728-11286.png",
+    "remote": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/60df7b03-47c7-4481-8d4f-bf5148b8debf",
+    "success": true
+  }
+]

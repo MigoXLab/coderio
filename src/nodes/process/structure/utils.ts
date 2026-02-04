@@ -323,6 +323,89 @@ export function postProcessStructure(structure?: Protocol | Protocol[] | null, f
 }
 
 /**
+ * Extract component groups from protocol children
+ * Groups components by their componentName for batch processing
+ *
+ * @param protocol - The protocol node to analyze
+ * @returns Map of componentName to array of instances
+ */
+export function extractComponentGroups(node: Protocol): Map<string, Protocol[]> {
+    if (!node || !node.children || node.children.length === 0) return new Map();
+    const componentGroups = new Map<string, Protocol[]>();
+    const validChildren = node.children.filter(c => c && c.data);
+
+    validChildren.forEach(child => {
+        const name = child.data.componentName;
+        if (name) {
+            if (!componentGroups.has(name)) {
+                componentGroups.set(name, []);
+            }
+            componentGroups.get(name)!.push(child);
+        }
+    });
+
+    return componentGroups;
+}
+
+/**
+ * Applies props and state to the protocol node
+ * @param parsed - The parsed data list response
+ * @param node - The protocol node to apply the props and state to
+ * @param compName - The name of the component
+ * @param group - The group of components
+ * @param isList - Whether the component is a list
+ */
+export function applyPropsAndStateToProtocol(
+    parsed: ParsedDataListResponse,
+    node: Protocol,
+    compName: string,
+    group: Protocol[],
+    isList: boolean
+): void {
+    if (parsed && parsed.state && Array.isArray(parsed.state)) {
+        if (isList) {
+            if (!node.data.states) {
+                node.data.states = [];
+            }
+
+            node.data.states.push({
+                state: parsed.state,
+                componentName: compName,
+                componentPath: group[0]?.data.componentPath || '',
+            });
+
+            const originalChildren: Protocol[] = node.children || [];
+            const newChildren: Protocol[] = [];
+            const processedComponentNames = new Set<string>();
+
+            for (const child of originalChildren) {
+                const childName = child.data.componentName;
+                if (childName === compName) {
+                    if (!processedComponentNames.has(childName)) {
+                        child.data.name = childName;
+                        child.id = childName;
+                        const cleanKebabName = toKebabCase(childName);
+                        child.data.kebabName = cleanKebabName;
+                        delete child.data.path;
+
+                        if (parsed.props && Array.isArray(parsed.props)) {
+                            child.data.props = parsed.props;
+                        }
+
+                        newChildren.push(child);
+                        processedComponentNames.add(childName);
+                    }
+                } else {
+                    newChildren.push(child);
+                }
+            }
+
+            node.children = newChildren;
+        }
+    }
+}
+
+/**
  * Extracts component properties and states from repeated component instances
  * For components that appear multiple times (e.g., cards in a grid), this function:
  * 1. Groups instances by componentName
@@ -337,18 +420,7 @@ export function postProcessStructure(structure?: Protocol | Protocol[] | null, f
 export async function populateComponentProps(node: Protocol, frames: FigmaFrameInfo[], thumbnailUrl?: string): Promise<void> {
     if (!node || !node.children || node.children.length === 0) return;
 
-    const componentGroups = new Map<string, Protocol[]>();
-    const validChildren = node.children.filter(c => c && c.data);
-
-    validChildren.forEach(child => {
-        const name = child.data.componentName;
-        if (name) {
-            if (!componentGroups.has(name)) {
-                componentGroups.set(name, []);
-            }
-            componentGroups.get(name)!.push(child);
-        }
-    });
+    const componentGroups = extractComponentGroups(node);
 
     // Process each component group to extract props and data
     for (const [compName, group] of componentGroups) {
@@ -378,48 +450,7 @@ export async function populateComponentProps(node: Protocol, frames: FigmaFrameI
 
             const json = extractJSON(result);
             const parsed = JSON.parse(json) as ParsedDataListResponse;
-
-            if (parsed && parsed.state && Array.isArray(parsed.state)) {
-                if (isList) {
-                    if (!node.data.states) {
-                        node.data.states = [];
-                    }
-
-                    node.data.states.push({
-                        state: parsed.state,
-                        componentName: compName,
-                        componentPath: group[0]?.data.componentPath || '',
-                    });
-
-                    const originalChildren: Protocol[] = node.children || [];
-                    const newChildren: Protocol[] = [];
-                    const processedComponentNames = new Set<string>();
-
-                    for (const child of originalChildren) {
-                        const childName = child.data.componentName;
-                        if (childName === compName) {
-                            if (!processedComponentNames.has(childName)) {
-                                child.data.name = childName;
-                                child.id = childName;
-                                const cleanKebabName = toKebabCase(childName);
-                                child.data.kebabName = cleanKebabName;
-                                delete child.data.path;
-
-                                if (parsed.props && Array.isArray(parsed.props)) {
-                                    child.data.props = parsed.props;
-                                }
-
-                                newChildren.push(child);
-                                processedComponentNames.add(childName);
-                            }
-                        } else {
-                            newChildren.push(child);
-                        }
-                    }
-
-                    node.children = newChildren;
-                }
-            }
+            applyPropsAndStateToProtocol(parsed, node, compName, group, isList);
         } catch (e) {
             logger.printErrorLog(
                 `Failed to extract data list for ${compName} in ${containerName}: ${e instanceof Error ? e.message : String(e)}`

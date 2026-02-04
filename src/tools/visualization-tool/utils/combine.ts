@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import sharp from 'sharp';
-
 import type { CombineOptions } from '../types';
 import { SCREENSHOT_WEBP_QUALITY } from './image-converter';
 
@@ -26,6 +24,7 @@ export async function combineSideBySide(
     const opts = { ...DEFAULT_OPTIONS, ...options };
 
     try {
+        const sharp = (await import('sharp')).default;
         const leftBase64 = extractBase64Data(renderBase64);
         const rightBase64 = extractBase64Data(targetBase64);
 

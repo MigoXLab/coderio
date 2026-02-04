@@ -1,5 +1,4 @@
 import type { Browser, LaunchOptions } from 'playwright';
-import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { createRequire } from 'module';
 import { dirname, join } from 'path';
@@ -66,6 +65,9 @@ function isMissingExecutableError(error: unknown): boolean {
 
 export async function launchChromiumWithAutoInstall(options: LaunchOptions = {}): Promise<Browser> {
     const launchOptions: LaunchOptions = { headless: true, ...options };
+
+    // Dynamic import to avoid load-time error if playwright is missing
+    const { chromium } = await import('playwright');
 
     try {
         return await chromium.launch(launchOptions);
