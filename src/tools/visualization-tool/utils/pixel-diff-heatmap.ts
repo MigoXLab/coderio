@@ -1,4 +1,3 @@
-import sharp from 'sharp';
 import pixelmatch from 'pixelmatch';
 
 import { logger } from '../../../utils/logger';
@@ -9,6 +8,7 @@ import { bufferToWebPDataUri } from './image-converter';
  * Uses pixelmatch algorithm for perceptually-accurate pixel comparison.
  */
 export async function generatePixelDiffHeatmap(renderSnap: string, targetSnap: string): Promise<string> {
+    const sharp = (await import('sharp')).default;
     const img1Data = await loadImageData(renderSnap);
     const img2Data = await loadImageData(targetSnap);
 
@@ -78,6 +78,7 @@ export async function generatePixelDiffHeatmap(renderSnap: string, targetSnap: s
 }
 
 async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer: Buffer, width: number, height: number): Promise<Buffer> {
+    const sharp = (await import('sharp')).default;
     const outputData = Buffer.alloc(width * height * 3);
 
     const gray1 = new Uint8Array(width * height);
@@ -138,6 +139,7 @@ async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer:
 }
 
 async function loadImageData(dataUri: string): Promise<{ width: number; height: number; data: Buffer }> {
+    const sharp = (await import('sharp')).default;
     if (!dataUri.startsWith('data:')) {
         const axios = (await import('axios')).default;
         const response = await axios.get(dataUri, { responseType: 'arraybuffer', timeout: 30000 });

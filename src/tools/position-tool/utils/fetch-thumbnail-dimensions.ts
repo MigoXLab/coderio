@@ -4,7 +4,6 @@
  */
 
 import axios from 'axios';
-import sharp from 'sharp';
 import { logger } from '../../../utils/logger';
 
 export interface ThumbnailDimensions {
@@ -37,6 +36,7 @@ export async function fetchThumbnailDimensions(figmaThumbnailUrl: string): Promi
     }
 
     try {
+        const sharp = (await import('sharp')).default;
         // Fetch the image from Figma CDN
         const response = await axios.get(figmaThumbnailUrl, {
             responseType: 'arraybuffer',

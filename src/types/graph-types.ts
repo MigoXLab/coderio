@@ -7,6 +7,12 @@ export enum GraphNode {
     CODE = 'code',
 }
 
+export enum ValidationMode {
+    CodeOnly = 'codeOnly',
+    ReportOnly = 'reportOnly',
+    Full = 'full',
+}
+
 export interface GlobalFigmaInfo {
     thumbnail: string;
 }
@@ -22,5 +28,5 @@ export interface ValidationConfig {
      * - reportOnly: run a single validation pass and generate a report (no code edits)
      * - full: run iterative actor-critic refinement loop (may edit code + commit markers)
      */
-    validationMode?: 'codeOnly' | 'reportOnly' | 'full';
+    validationMode?: ValidationMode;
 }

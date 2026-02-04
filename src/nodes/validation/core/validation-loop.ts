@@ -37,6 +37,8 @@ import { VisualizationTool } from '../../../tools/visualization-tool';
 import { extractValidationContext, extractComponentPaths, toElementMetadataRegistry } from '../utils/extraction/extract-protocol-context';
 import { validatePositions } from './validate-position';
 import { downloadImage } from '../../../tools/figma-tool/images';
+import { ensureValidationDependencies } from '../../../utils/dependency-installer';
+import { ValidationMode } from '../../../types/graph-types';
 
 function filterComponentsToFix(misaligned: MisalignedComponent[], positionThreshold: number): MisalignedComponent[] {
     return misaligned.filter(comp => {
@@ -194,6 +196,9 @@ function saveIterationAndProcessedJson(
 }
 
 export async function validationLoop(params: ValidationLoopParams): Promise<ValidationLoopResult> {
+    // Ensure dependencies are installed before starting validation loop
+    await ensureValidationDependencies();
+
     const { protocol, figmaThumbnailUrl, outputDir, workspace } = params;
 
     if (!protocol || !figmaThumbnailUrl || !outputDir || !workspace) {
@@ -204,8 +209,8 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
         ...DEFAULT_VALIDATION_LOOP_CONFIG,
         ...params.config,
     };
-    const mode: 'reportOnly' | 'full' = config.mode ?? 'full';
-    const maxIterations = mode === 'reportOnly' ? 1 : config.maxIterations;
+    const mode: ValidationMode.ReportOnly | ValidationMode.Full = config.mode ?? ValidationMode.Full;
+    const maxIterations = mode === ValidationMode.ReportOnly ? 1 : config.maxIterations;
     const visualizationTool = new VisualizationTool();
 
     // Variables to track server state (will be initialized in iteration 1)
@@ -244,7 +249,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
 
         for (let iteration = 1; iteration <= maxIterations; iteration++) {
             // Use different logging for reportOnly mode
-            if (mode === 'reportOnly') {
+            if (mode === ValidationMode.ReportOnly) {
                 logger.printLog(`\n${'='.repeat(60)}`);
                 logger.printLog(`Running validation (report-only mode)`);
                 logger.printLog(`${'='.repeat(60)}`);
@@ -270,7 +275,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
                 logger.printSuccessLog(`Dev server ready at ${currentServerUrl}`);
 
                 // In reportOnly mode, commit the initial state after successful launch
-                if (mode === 'reportOnly') {
+                if (mode === ValidationMode.ReportOnly) {
                     await performCommit(workspace.app, undefined, 'initial state');
                 }
             }
@@ -328,7 +333,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             previousScreenshotPath = comparisonScreenshotPath; // Pass to judger in next iteration
 
             const misalignedToFix = filterComponentsToFix(misaligned, config.positionThreshold);
-            if (mode === 'reportOnly') {
+            if (mode === ValidationMode.ReportOnly) {
                 // In reportOnly mode, we don't fix anything, so no need to log about skipping
             } else {
                 logger.printInfoLog(
@@ -342,7 +347,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
 
             const componentLogs: ComponentCorrectionLog[] = [];
 
-            if (mode === 'reportOnly') {
+            if (mode === ValidationMode.ReportOnly) {
                 logger.printInfoLog('Report-only mode: skipping component refinement, saving validation report...');
 
                 saveIterationAndProcessedJson(
@@ -423,7 +428,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
             logger.printSuccessLog(`Dev server restarted at ${currentServerUrl}`);
 
             // Commit AFTER launch (ensures working state)
-            if (mode === 'full') {
+            if (mode === ValidationMode.Full) {
                 await performCommit(workspace.app, iteration, `iteration ${iteration}`);
             }
 
@@ -446,7 +451,7 @@ export async function validationLoop(params: ValidationLoopParams): Promise<Vali
 
         const validationPassed = currentMae <= config.targetMae;
         if (!validationPassed) {
-            if (mode === 'reportOnly') {
+            if (mode === ValidationMode.ReportOnly) {
                 logger.printWarnLog(
                     `Validation did not satisfy MAE threshold (${config.targetMae}px) in report-only mode. Final MAE: ${currentMae.toFixed(2)}px`
                 );
