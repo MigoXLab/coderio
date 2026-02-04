@@ -1,9 +1,9 @@
 ---
-name: figma-to-code
+name: design-to-code
 description: Pixel-perfect Figma to React conversion using coderio. Generates production-ready code (TypeScript, Vite, TailwindCSS V4) with high visual fidelity. Features robust error handling, checkpoint recovery, and streamlined execution via helper script.
 ---
 
-# Figma to Code
+# Design to Code
 
 High-fidelity UI restoration from Figma designs to production-ready React + TypeScript components.
 This SKILL uses a **robust helper script** to minimize manual errors and ensure pixel-perfect results.
@@ -168,15 +168,15 @@ async function main() {
             case 'fetch-figma': {
                 const [figmaUrl, figmaToken] = args;
                 if (!figmaUrl || !figmaToken) throw new Error('Usage: fetch-figma <url> <token>');
-                
+
                 const urlInfo = parseFigmaUrl(figmaUrl);
                 console.log('Fetching Figma document...');
                 const { document, imageNodesMap } = await executeFigmaAndImagesActions(urlInfo, assetsDir, processDir, figmaToken);
-                
+
                 const simplified = figmaTool.simplifyImageNodes(document, imageNodesMap);
                 const processed = figmaTool.processedStyle(simplified);
                 fs.writeFileSync(path.join(processDir, 'processed.json'), JSON.stringify(processed, null, 2));
-                
+
                 if (processed.thumbnailUrl) {
                     console.log('Downloading thumbnail...');
                     const base64 = await downloadImage(processed.thumbnailUrl, undefined, undefined, true);
@@ -202,11 +202,11 @@ async function main() {
             case 'save-structure': {
                 const structureJson = fs.readFileSync(path.join(scriptsDir, 'structure-output.json'), 'utf-8');
                 const pDoc = JSON.parse(fs.readFileSync(path.join(processDir, 'processed.json'), 'utf-8'));
-                
+
                 const parsed = JSON.parse(extractJSON(structureJson));
                 const structFrames = pDoc.frames || pDoc.children;
                 postProcessStructure(parsed, structFrames);
-                
+
                 const protocol = Array.isArray(parsed) ? parsed[0] : parsed;
                 fs.writeFileSync(path.join(processDir, 'protocol.json'), JSON.stringify(protocol, null, 2));
                 console.log('Structure saved to process/protocol.json');
@@ -230,12 +230,12 @@ async function main() {
                 const groups2 = extractAllComponentGroups(prot2);
                 const group = groups2.get(compName);
                 if (!group) throw new Error(`Component ${compName} not found`);
-                
+
                 const instances = group.flatMap(g => g.data.elements || []);
                 const simpleNodes = instances
                     .filter(n => typeof n === 'object' && n !== null)
                     .map(n => simplifyFigmaNodeForContent(n));
-                    
+
                 console.log(extractDataListPrompt({
                     containerName: prot2.data.name || 'Container',
                     childComponentName: compName,
@@ -249,15 +249,15 @@ async function main() {
                 const propsJsonPath = path.join(scriptsDir, `${cName}-props.json`);
                 const propsJson = fs.readFileSync(propsJsonPath, 'utf-8');
                 const parsedProps = JSON.parse(extractJSON(propsJson));
-                
+
                 if (!parsedProps.props || parsedProps.props.length === 0) {
                     throw new Error('Validation Failed: Props array is empty.');
                 }
-                
+
                 const prot3 = JSON.parse(fs.readFileSync(path.join(processDir, 'protocol.json'), 'utf-8'));
                 const groups3 = extractAllComponentGroups(prot3);
                 const group3 = groups3.get(cName);
-                
+
                 const parentNode = findParentOfGroup(prot3, cName);
                 if (parentNode) {
                     applyPropsAndStateToProtocol(parsedProps, parentNode, cName, group3, true);
@@ -275,7 +275,7 @@ async function main() {
                 const tasks = flat.map((node, i) => ({
                     index: i,
                     name: node.data.name || node.data.componentName,
-                    path: node.data.path || node.data.componentPath, 
+                    path: node.data.path || node.data.componentPath,
                     isLeaf: !node.children?.length
                 }));
                 fs.writeFileSync(path.join(scriptsDir, 'gen-tasks.json'), JSON.stringify(tasks, null, 2));
@@ -289,7 +289,7 @@ async function main() {
                 const flat2 = flattenPostOrder(prot5);
                 const node = flat2[idx];
                 const assets = fs.readdirSync(assetsDir).join(', ');
-                
+
                 let prompt = '';
                 if (!node.children?.length) {
                     prompt = generateComponentPrompt({
@@ -301,7 +301,7 @@ async function main() {
                 } else {
                     const imports = node.children.map(c => ({
                         name: c.data.name,
-                        path: c.data.path || c.data.componentPath 
+                        path: c.data.path || c.data.componentPath
                     }));
                     const modes = detectRenderingModes(node);
                     prompt = generateFramePrompt({
@@ -332,11 +332,11 @@ You MUST:
                 const idx2 = parseInt(args[0]);
                 const codePath = path.join(scriptsDir, 'code-output.txt');
                 const code = fs.readFileSync(codePath, 'utf-8');
-                
+
                 const prot6 = JSON.parse(fs.readFileSync(path.join(processDir, 'protocol.json'), 'utf-8'));
                 const flat3 = flattenPostOrder(prot6);
                 const node2 = flat3[idx2];
-                
+
                 const componentPath = node2.data.path || node2.data.componentPath;
                 if (!componentPath) throw new Error(`Node ${node2.data.name} has no path`);
 
@@ -382,6 +382,7 @@ node scripts/coderio-skill.mjs fetch-figma "https://figma.com/file/..." "figd_..
 ## Step 1.2: Generate Structure
 
 1.  **Generate Prompt**:
+
     ```bash
     node scripts/coderio-skill.mjs structure-prompt > scripts/structure-prompt.md
     ```
@@ -400,28 +401,31 @@ node scripts/coderio-skill.mjs fetch-figma "https://figma.com/file/..." "figd_..
 ## Step 1.3: Extract Props (Iterative)
 
 1.  **List Components**:
+
     ```bash
     node scripts/coderio-skill.mjs list-components
     ```
 
 2.  **For EACH component in the list**:
-    
+
     a. **Generate Prompt**:
-       ```bash
-       node scripts/coderio-skill.mjs props-prompt "ComponentName" > scripts/current-props-prompt.md
-       ```
-    
+
+    ```bash
+    node scripts/coderio-skill.mjs props-prompt "ComponentName" > scripts/current-props-prompt.md
+    ```
+
     b. **AI Task (Props)**:
-       - **ATTACH**: `process/thumbnail.png` (MANDATORY)
-       - **READ**: `scripts/current-props-prompt.md`
-       - **INSTRUCTION**: "Extract props and state data. Be pixel-perfect with text and image paths."
-       - **SAVE**: Paste the JSON result into `scripts/ComponentName-props.json`.
+    - **ATTACH**: `process/thumbnail.png` (MANDATORY)
+    - **READ**: `scripts/current-props-prompt.md`
+    - **INSTRUCTION**: "Extract props and state data. Be pixel-perfect with text and image paths."
+    - **SAVE**: Paste the JSON result into `scripts/ComponentName-props.json`.
 
     c. **Save & Validate**:
-       ```bash
-       node scripts/coderio-skill.mjs save-props "ComponentName"
-       # If this fails, re-do step 'b' with better attention to the thumbnail
-       ```
+
+    ```bash
+    node scripts/coderio-skill.mjs save-props "ComponentName"
+    # If this fails, re-do step 'b' with better attention to the thumbnail
+    ```
 
 ---
 
@@ -432,6 +436,7 @@ node scripts/coderio-skill.mjs fetch-figma "https://figma.com/file/..." "figd_..
 ```bash
 node scripts/coderio-skill.mjs list-gen-tasks
 ```
+
 This outputs a list of tasks with indices (0, 1, 2...).
 
 ## Step 2.2: Generate Components (Iterative)
@@ -439,6 +444,7 @@ This outputs a list of tasks with indices (0, 1, 2...).
 **For EACH task index (starting from 0)**:
 
 1.  **Generate Prompt**:
+
     ```bash
     node scripts/coderio-skill.mjs code-prompt 0 > scripts/code-prompt.md
     # Replace '0' with current task index

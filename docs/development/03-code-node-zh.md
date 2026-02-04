@@ -38,6 +38,7 @@
 ## 接口
 
 **输入**:
+
 ```typescript
 {
     protocol: Protocol,
@@ -71,12 +72,14 @@ if (isLeaf) {
 ```
 
 **叶子组件：**
+
 - 无子组件
 - 独立的 UI 元素
 - 示例：Button、Icon、Text block、Image
 - 生成完整实现
 
 **容器组件（Frame）：**
+
 - 包含子组件
 - 作为布局容器
 - 示例：Header（包含 Logo + Nav）、ProductGrid（包含 ProductCards）
@@ -85,6 +88,7 @@ if (isLeaf) {
 ### 代码生成（步骤 3 详解）
 
 **传入 LLM 的输入：**
+
 - **协议数据**：组件结构、属性、元素、布局
 - **设计稿缩略图**：Figma 设计截图（视觉参考）
 - **资源文件**：`src/assets/` 中的可用图片
@@ -97,9 +101,9 @@ await callModel({
         frameDetails: JSON.stringify(node.data),
         childrenImports: JSON.stringify(childrenImports),
         styling: JSON.stringify(DEFAULT_STYLING),
-        assetFiles: assetFilesList
+        assetFiles: assetFilesList,
     }),
-    imageUrls: state.figmaInfo.thumbnail  // 🎨 视觉参考
+    imageUrls: state.figmaInfo.thumbnail, // 🎨 视觉参考
 });
 
 // 对于 Component（叶子节点或可复用组件）
@@ -108,13 +112,14 @@ await callModel({
         componentName,
         componentDetails: JSON.stringify(node.data),
         styling: JSON.stringify(DEFAULT_STYLING),
-        assetFiles: assetFilesList
+        assetFiles: assetFilesList,
     }),
-    imageUrls: state.figmaInfo.thumbnail  // 🎨 视觉参考
+    imageUrls: state.figmaInfo.thumbnail, // 🎨 视觉参考
 });
 ```
 
 **为什么缩略图很重要：**
+
 - AI 能看到实际设计，而不仅仅是数据
 - 提高视觉准确性（颜色、间距、对齐）
 - 帮助理解 UI 的语义用途
@@ -139,7 +144,8 @@ export const Button: React.FC<ButtonProps> = ({ children, onClick }) => (
 
 ## 代码缓存
 
-缓存在 `workspace.process/code-cache.json`:
+缓存在 `workspace.checkpoint/checkpoint.json`:
+
 ```typescript
 {
     "Button": {
@@ -157,13 +163,13 @@ export const Button: React.FC<ButtonProps> = ({ children, onClick }) => (
 ```typescript
 export async function generateCode(state: GraphState) {
     const cache = loadCodeCache(state.workspace);
-    
+
     // 生成组件（DFS）
     const totalComponents = await processNode(state, cache);
-    
+
     // 注入根组件
     await injectRootComponentToApp(state, cache);
-    
+
     logger.printSuccessLog(`生成 ${totalComponents} 个组件`);
 }
 ```
@@ -174,7 +180,7 @@ export async function generateCode(state: GraphState) {
 const modelConfig = {
     contextWindowTokens: CODE_CONTEXT_WINDOW,
     maxOutputTokens: CODE_MAX_OUTPUT,
-    temperature: 0.2  // 低温度保持一致性
+    temperature: 0.2, // 低温度保持一致性
 };
 ```
 

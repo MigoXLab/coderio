@@ -55,7 +55,7 @@ Validation Loop (Max 3 Iterations)
     protocol: Protocol,
     figmaInfo: { thumbnail: string },
     workspace: { app: string, process: string },
-    config?: { validationMode?: 'full' | 'quick' }
+    config?: { validationMode?: 'codeOnly' | 'reportOnly' | 'full' }
 }
 ```
 
@@ -133,8 +133,9 @@ await launch(workspace.app, {
 
 ## Validation Modes
 
+- **CodeOnly**: Skip validation and commit generated code
 - **Full** (default): Includes refinement loop, complete report
-- **Quick**: Position check only, minimal report
+- **ReportOnly**: Position check only, minimal report
 
 ## Metrics
 
@@ -171,14 +172,11 @@ export const runValidation = async (state: GraphState) => {
 ```
 validation/
 ├── index.html       # Interactive report
-├── figma.png        # Figma design
-├── rendered.png     # Generated UI
-├── diff.png         # Pixel diff
-├── heatmap.png      # Error heatmap
-└── metadata.json    # Metrics
+├── processed.json   # Processed iterations and final result
+└── comparison_screenshots  # Iteration comparison screenshots
 ```
 
-View: `open validation/index.html`
+View: `open process/validation/index.html`
 
 ## Refinement Loop
 

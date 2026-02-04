@@ -6,6 +6,8 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio) [![Contributors](https://img.shields.io/github/contributors/MigoXLab/coderio)](https://github.com/MigoXLab/coderio/graphs/contributors)
 
+💬 联系方式：[微信群](https://aicarrier.feishu.cn/docx/NRNXdIirXoSQEHxhaqjchUfenzd) ｜ <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">邮箱</a>
+
 [English](README.md) | [简体中文](README_zh-CN.md)
 
 </div>
@@ -30,7 +32,7 @@
 
 CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计稿转换为生产级 React 代码。与传统转换工具不同，CodeRio 采用多智能体系统，能够验证视觉准确度并迭代优化偏差，追求高保真的UI还原和贴合工程师开发规范的代码结构。
 
-![CodeRio 工作原理](@docs/framework.gif)
+![CodeRio 工作原理](./docs/framework.gif)
 
 **适用场景：**
 
@@ -39,6 +41,12 @@ CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计�
 - 💎 期望设计精准实现的设计师
 
 ## ✨ 示例展示
+
+### 案例：落地页 (Landing Page)
+
+本示例展示了一个从 Figma 转换而来的落地页。它包含页眉、主要内容区域和页脚，展示了 CodeRio 处理复杂布局和组件结构的能力。
+
+[查看验证报告](examples/case1/report.html)
 
 ## 🚀 快速开始
 
@@ -76,8 +84,8 @@ pnpm add -g coderio
 mkdir -p ~/.coderio
 cat > ~/.coderio/config.yaml << 'EOF'
 model:
-  provider: anthropic          # anthropic | openai | google
-  model: claude-3-5-sonnet-20241022
+  provider: openai          # anthropic | openai | google
+  model: gemini-3-pro-preview
   baseUrl: https://api.anthropic.com
   apiKey: your-api-key-here
 
@@ -121,7 +129,7 @@ pnpm dev
 
 ```bash
 # 在浏览器中打开验证报告
-open coderio/<设计文件名-页面节点编号>/validation/index.html
+open coderio/<设计文件名-页面节点编号>/process/validation/index.html
 ```
 
 ## 📖 全部命令

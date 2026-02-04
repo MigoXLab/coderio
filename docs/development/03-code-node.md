@@ -139,7 +139,7 @@ export const Button: React.FC<ButtonProps> = ({ children, onClick }) => (
 
 ## Code Cache
 
-Cached in `workspace.process/code-cache.json`:
+Cached in `workspace.checkpoint/checkpoint.json`:
 ```typescript
 {
     "Button": {

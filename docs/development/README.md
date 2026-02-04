@@ -42,7 +42,7 @@ interface GraphState {
     workspace: { root: string; process: string; app: string; };
     protocol?: Protocol;
     figmaInfo?: { thumbnail: string; };
-    config?: { validationMode?: 'full' | 'quick'; };
+    config?: { validationMode?: 'codeOnly' | 'reportOnly' | 'full'; };
 }
 ```
 

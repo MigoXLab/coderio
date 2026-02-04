@@ -6,6 +6,8 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio) [![Contributors](https://img.shields.io/github/contributors/MigoXLab/coderio)](https://github.com/MigoXLab/coderio/graphs/contributors)
 
+💬 Contact: [WeChat Group](https://aicarrier.feishu.cn/docx/NRNXdIirXoSQEHxhaqjchUfenzd) | <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">Email</a>
+
 [English](README.md) | [简体中文](README_zh-CN.md)
 
 </div>
@@ -30,7 +32,7 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 
 CodeRio is an intelligent **Figma-to-Code** automation tool that transforms designs into production-ready React code. Unlike traditional converters, CodeRio employs a multi-agent system that validates visual accuracy and iteratively refines misalignments, pursuing high-fidelity UI restoration and **production-ready code structure tailored for developers**.
 
-![How CodeRio works](@docs/framework.gif)
+![How CodeRio works](./docs/framework.gif)
 
 **Perfect for:**
 
@@ -40,11 +42,17 @@ CodeRio is an intelligent **Figma-to-Code** automation tool that transforms desi
 
 ## ✨ Examples
 
+### Case: Landing Page
+
+This example demonstrates a landing page converted from Figma. It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts and component structures.
+
+[View Validation Report](examples/case1/report.html)
+
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
 
-- Node.js >= 18.0.0 (< 23.0.0)
+- Node.js >= 18.0.0 (< 25.0.0)
 - [Figma Personal Access Token](https://www.figma.com/developers/api#access-tokens)
 - LLM API Key ([Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/))
 
@@ -76,8 +84,8 @@ Create `~/.coderio/config.yaml`:
 mkdir -p ~/.coderio
 cat > ~/.coderio/config.yaml << 'EOF'
 model:
-  provider: anthropic          # anthropic | openai | google
-  model: claude-3-5-sonnet-20241022
+  provider: openai          # anthropic | openai | google
+  model: gemini-3-pro-preview
   baseUrl: https://api.anthropic.com
   apiKey: your-api-key-here
 
@@ -102,14 +110,6 @@ coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m full
 coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m with-report
 ```
 
-CodeRio will (in full mode):
-
-1. ✅ Fetch Figma design and generate protocol
-2. ✅ Create React + TypeScript + Tailwind CSS code
-3. ✅ Launch dev server and capture screenshots (full/with-report mode only)
-4. ✅ Validate visual accuracy and refine misalignments (full mode only)
-5. ✅ Generate interactive validation report (full/with-report mode only)
-
 ### 5. Run Your Project
 
 ```bash
@@ -129,7 +129,7 @@ pnpm dev
 
 ```bash
 # Open validation report in browser
-open coderio/<design-name_node-id>/validation/index.html
+open coderio/<design-name_node-id>/process/validation/index.html
 ```
 
 ## 📖 All Commands
@@ -215,25 +215,6 @@ Beyond visual fidelity, the generated code is built for long-term maintenance:
 - **Modern Tech Stack**: Defaults to React + TypeScript + Tailwind CSS for type safety and scalability.
 - **Clean File Structure**: Automatically organizes `components/`, `assets/`, `utils/` directories following industry best practices.
 
-## 🛠️ How It Works
-
-CodeRio uses a sophisticated multi-agent pipeline:
-
-```
-Figma Design → Protocol → Code → Launch → Validate → Refine → Report
-     ↓           ↓         ↓       ↓        ↓          ↓        ↓
-  Fetch API  Structure  Initial  Launch   Judge    Refiner  Visualize
-             Style      Agent    Agent    Agent    Agent
-             Hierarchy
-```
-
-1. **Protocol Generation**: Extracts structure, styles, and assets from Figma
-2. **Code Generation**: Creates React components with Tailwind CSS
-3. **Launch**: Installs dependencies and starts dev server
-4. **Validation**: Captures screenshots and compares with design
-5. **Refinement**: Automatically fixes misalignments
-6. **Reporting**: Generates interactive visual report
-
 ## 🗺️ Roadmap
 
 - [ ] Support for incremental development
@@ -252,27 +233,6 @@ cd coderio
 pnpm install
 pnpm build
 ```
-
-### Development & Testing
-
-```bash
-# Run tests
-pnpm test
-
-# Watch mode for development
-pnpm test:watch
-
-# Generate coverage report
-pnpm test:coverage
-
-# Type checking
-pnpm typecheck
-
-# Linting
-pnpm lint
-```
-
-For testing guidelines, see [tests/README.md](tests/README.md)
 
 ### Contributors
 

@@ -50,12 +50,13 @@
 ## 接口
 
 **输入**:
+
 ```typescript
 {
     protocol: Protocol,
     figmaInfo: { thumbnail: string },
     workspace: { app: string, process: string },
-    config?: { validationMode?: 'full' | 'quick' }
+    config?: { validationMode?: 'codeOnly' | 'reportOnly' | 'full' }
 }
 ```
 
@@ -68,20 +69,23 @@
 ### 每次迭代：
 
 **1. 启动开发服务器**
+
 ```typescript
 // 第一次迭代：完整设置
 await launch(workspace.app, {
-    skipDependencyInstall: false,  // 安装依赖
+    skipDependencyInstall: false, // 安装依赖
 });
 // 构建项目、修复错误、启动服务器
 ```
 
 **2. 验证位置**
+
 - 截取渲染 UI 和 Figma 设计的屏幕截图
 - 从两者提取元素位置
 - 计算位置误差（MAE、SAE）
 
 **3. 检查通过/失败**
+
 ```typescript
 if (currentMae <= config.targetMae) {
     // 通过：退出循环
@@ -91,6 +95,7 @@ if (currentMae <= config.targetMae) {
 ```
 
 **4. 诊断错误**（针对每个错位组件）
+
 ```typescript
 // Judger Agent 分析位置错误的原因
 const diagnosis = await judger.run(judgerInstruction, [screenshot]);
@@ -103,6 +108,7 @@ const diagnosis = await judger.run(judgerInstruction, [screenshot]);
 ```
 
 **5. 应用修复**（针对每个错位组件）
+
 ```typescript
 // Refiner Agent 生成代码修复
 const refinerResult = await refiner.run(refinerInstruction);
@@ -110,13 +116,14 @@ const refinerResult = await refiner.run(refinerInstruction);
 ```
 
 **6. 重新启动**
+
 ```typescript
 // 停止旧服务器
 await launchTool.stopDevServer(serverKey);
 
 // 使用修复重新启动
 await launch(workspace.app, {
-    skipDependencyInstall: true,  // 跳过依赖（已安装）
+    skipDependencyInstall: true, // 跳过依赖（已安装）
 });
 // 构建、修复新错误、重启服务器
 ```
@@ -126,6 +133,7 @@ await launch(workspace.app, {
 ### 循环完成后：
 
 **8. 生成报告**
+
 - 标注错位元素的截图
 - 像素差异热力图
 - 包含指标的交互式 HTML 报告
@@ -133,12 +141,14 @@ await launch(workspace.app, {
 
 ## 验证模式
 
+- **CodeOnly**：跳过验证，直接提交生成代码
 - **Full**（默认）：包含优化循环，完整报告
-- **Quick**：仅位置检查，最小报告
+- **ReportOnly**：仅位置检查，最小报告
 
 ## 指标
 
 **MAE（平均绝对误差）**：主要指标
+
 ```typescript
 MAE = Σ|rendered_pos - figma_pos| / n
 ```
@@ -157,9 +167,9 @@ export const runValidation = async (state: GraphState) => {
         figmaThumbnailUrl: state.figmaInfo.thumbnail,
         outputDir: path.join(state.workspace.process, 'validation'),
         workspace: state.workspace,
-        config: { mode: state.config?.validationMode ?? 'full' }
+        config: { mode: state.config?.validationMode ?? 'full' },
     });
-    
+
     if (!result.validationPassed) {
         throw new Error(`MAE ${result.finalMae}px 超过阈值`);
     }
@@ -171,18 +181,16 @@ export const runValidation = async (state: GraphState) => {
 ```
 validation/
 ├── index.html       # 交互式报告
-├── figma.png        # Figma 设计
-├── rendered.png     # 生成的 UI
-├── diff.png         # 像素差异
-├── heatmap.png      # 错误热图
-└── metadata.json    # 指标
+├── processed.json   # 处理过程JSON
+├── comparison_screenshots  # 迭代过程对比图
 ```
 
-查看：`open validation/index.html`
+查看：`open process/validation/index.html`
 
 ## 优化循环
 
 最多 3 次迭代：
+
 1. 识别错位元素
 2. LLM 生成修复
 3. 应用代码更改
