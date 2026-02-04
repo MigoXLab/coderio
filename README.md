@@ -44,16 +44,16 @@ https://github.com/user-attachments/assets/a0bc1b1c-6aaa-4fbb-a2d8-18aeba70759b
 
 ### Case: CLI with --mode full
 
-This example demonstrates a landing page converted from Figma. It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts, multiple images and component structures.
+This example demonstrates a landing page converted from Figma ([Design Link]([https://www.figma.com/developers/api#access-tokens](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=1-1482&t=FB3Hohq2nsH7ZFts-4))). It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts, multiple images and component structures.
 
 ![20260204173429_rec_](https://github.com/user-attachments/assets/b0b7446c-cf3f-4109-a689-14f4da12543e)
 <a href="https://static.openxlab.org.cn/coderio/report.html" target="_blank">📊 View Interactive Validation Report</a>
 
 ### Case: Development with Cursor Skill
 
-CodeRio can be seamlessly integrated into Cursor as a Skill. Simply input a prompt like **"Create a React project and restore this design with high fidelity,"** along with your output directory, Figma URL, and Token. The Agent will guide you step-by-step through the page generation process. For Landing Pages, it achieves **high-fidelity restoration**, accurately reproducing images and styles. It also automatically encapsulates reusable components (such as cards) and strictly adheres to **frontend development best practices**.
+CodeRio can be seamlessly integrated into Cursor as a Skill. Simply input a prompt like **"Create a React project and restore this design with high fidelity,"** along with your output directory, Figma URL([Design Link](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=30-8264&t=FB3Hohq2nsH7ZFts-4)), and Token. The Agent will guide you step-by-step through the page generation process. For Landing Pages, it achieves **high-fidelity restoration**, accurately reproducing images and styles. It also automatically encapsulates reusable components (such as cards) and strictly adheres to **frontend development best practices**.
 
-[🎥 观看演示视频](https://static.openxlab.org.cn/coderio/coderio-skill-demo.mp4)
+https://github.com/user-attachments/assets/a66dc680-f68d-4121-b416-aa6b778bd895
 
 ## 🚀 Quick Start
 
