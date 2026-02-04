@@ -32,7 +32,7 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 
 CodeRio is an intelligent **Figma-to-Code** automation tool that transforms designs into production-ready React code. Unlike traditional converters, CodeRio employs a multi-agent system that validates visual accuracy and iteratively refines misalignments, pursuing high-fidelity UI restoration and **production-ready code structure tailored for developers**.
 
-![How CodeRio works](./docs/framework.gif)
+https://github.com/user-attachments/assets/a0bc1b1c-6aaa-4fbb-a2d8-18aeba70759b
 
 **Perfect for:**
 
@@ -52,7 +52,7 @@ This example demonstrates a landing page converted from Figma. It includes a hea
 
 CodeRio can be seamlessly integrated into Cursor as a Skill. Simply input a prompt like **"Create a React project and restore this design with high fidelity,"** along with your output directory, Figma URL, and Token. The Agent will guide you step-by-step through the page generation process. For Landing Pages, it achieves **high-fidelity restoration**, accurately reproducing images and styles. It also automatically encapsulates reusable components (such as cards) and strictly adheres to **frontend development best practices**.
 
-<a href="https://static.openxlab.org.cn/coderio/coderio-skill-demo.mp4" target="_blank">🎥 Watch Demo Video</a>
+[🎥 观看演示视频](https://static.openxlab.org.cn/coderio/coderio-skill-demo.mp4)
 
 ## 🚀 Quick Start
 
