@@ -28,7 +28,9 @@
 
 ## CodeRio 是什么？
 
-CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计稿转换为生产级 React 代码。与传统转换工具不同，CodeRio 采用多智能体系统，能够验证视觉准确度并迭代优化偏差，追求高保真的UI还原。
+CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计稿转换为生产级 React 代码。与传统转换工具不同，CodeRio 采用多智能体系统，能够验证视觉准确度并迭代优化偏差，追求高保真的UI还原和贴合工程师开发规范的代码结构。
+
+![CodeRio 工作原理](@docs/framework.gif)
 
 **适用场景：**
 
@@ -42,7 +44,7 @@ CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计�
 
 ### 1. 前置要求
 
-- Node.js >= 18.0.0 (< 23.0.0)
+- Node.js >= 18.0.0 (< 25.0.0)
 - [Figma 个人访问令牌](https://www.figma.com/developers/api#access-tokens)
 - LLM API 密钥（[Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/)）
 
@@ -62,7 +64,9 @@ pnpm add -g coderio
 > pnpm approve-builds
 > ```
 >
-> 这将允许原生依赖（better-sqlite3、sharp）正确编译。
+> 这将允许原生依赖（better-sqlite3）正确编译。
+>
+> **注意**：`playwright` 和 `sharp` 仅在验证功能中需要。当您运行需要它们的命令（如 `d2c --mode full`）时，它们将被自动安装。
 
 ### 3. 配置
 
@@ -88,17 +92,15 @@ EOF
 ### 4. 使用
 
 ```bash
-# 将 Figma 设计转换为验证过的代码
+# 将 Figma 设计转换为代码（默认模式：仅代码）
 coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
+
+# 完整模式：生成代码 + 视觉验证 + 自动优化
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m full
+
+# 报告模式：生成代码 + 单次验证报告（无自动优化）
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m with-report
 ```
-
-CodeRio 将会：
-
-1. ✅ 获取 Figma 设计并生成协议
-2. ✅ 创建 React + TypeScript + Tailwind CSS 代码
-3. ✅ 启动开发服务器并捕获截图
-4. ✅ 验证视觉准确度并优化偏差
-5. ✅ 生成交互式验证报告
 
 ### 5. 运行项目
 
@@ -196,24 +198,14 @@ interface Protocol {
 - **任意位置恢复**：精确恢复到中断位置
 - **崩溃恢复**：处理网络故障、API 超时、进程中断
 
-## 🛠️ 工作原理
+### 4. 生成的代码结构贴合前端开发规范
 
-CodeRio 使用复杂的多智能体流水线：
+不仅仅是视觉还原，生成的代码更是为了长期维护而生：
 
-```
-Figma 设计 → 协议 → 代码 → 启动 → 验证 → 优化 → 报告
-     ↓       ↓      ↓      ↓      ↓      ↓      ↓
-  获取API  结构   初始   启动   判断   优化   可视化
-          样式   智能体  智能体  智能体  智能体
-          层级
-```
-
-1. **协议生成**：从 Figma 提取结构、样式和资源
-2. **代码生成**：创建带 Tailwind CSS 的 React 组件
-3. **启动**：安装依赖并启动开发服务器
-4. **验证**：捕获截图并与设计对比
-5. **优化**：自动修复偏差
-6. **报告**：生成交互式视觉报告
+- **组件化开发**：自动拆分 Header、Footer、Hero 等语义化组件，拒绝面条式代码。
+- **科学的样式定义**：优先使用 Flexbox/Grid 布局，避免过度依赖绝对定位，确保不同屏幕尺寸下的响应性。
+- **现代技术栈**：默认使用 React + TypeScript + Tailwind CSS，类型安全且易于扩展。
+- **清晰的文件结构**：自动组织 `components/`、`assets/`、`utils/` 等目录，符合行业最佳实践。
 
 ## 🗺️ 路线图
 
