@@ -28,7 +28,9 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 
 ## What is CodeRio?
 
-CodeRio is an intelligent **Figma-to-Code** automation tool that transforms designs into production-ready React code. Unlike traditional converters, CodeRio employs a multi-agent system that validates visual accuracy and iteratively refines misalignments, pursuing high-fidelity UI restoration.
+CodeRio is an intelligent **Figma-to-Code** automation tool that transforms designs into production-ready React code. Unlike traditional converters, CodeRio employs a multi-agent system that validates visual accuracy and iteratively refines misalignments, pursuing high-fidelity UI restoration and **production-ready code structure tailored for developers**.
+
+![How CodeRio works](@docs/framework.gif)
 
 **Perfect for:**
 
@@ -62,7 +64,9 @@ pnpm add -g coderio
 > pnpm approve-builds
 > ```
 >
-> This allows native dependencies (better-sqlite3, sharp) to compile properly.
+> This allows native dependencies (better-sqlite3) to compile properly.
+>
+> **Note**: `playwright` and `sharp` are required only for validation features. They will be automatically installed when you first run a command that needs them (like `d2c --mode full`).
 
 ### 3. Configuration
 
@@ -88,17 +92,23 @@ EOF
 ### 4. Usage
 
 ```bash
-# Convert Figma design to validated code
+# Convert Figma design to code (default mode: code only)
 coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
+
+# Full mode: Generate code + visual validation + auto-refinement
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m full
+
+# Report mode: Generate code + single validation report (no auto-refinement)
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m with-report
 ```
 
-CodeRio will:
+CodeRio will (in full mode):
 
 1. ✅ Fetch Figma design and generate protocol
 2. ✅ Create React + TypeScript + Tailwind CSS code
-3. ✅ Launch dev server and capture screenshots
-4. ✅ Validate visual accuracy and refine misalignments
-5. ✅ Generate interactive validation report
+3. ✅ Launch dev server and capture screenshots (full/with-report mode only)
+4. ✅ Validate visual accuracy and refine misalignments (full mode only)
+5. ✅ Generate interactive validation report (full/with-report mode only)
 
 ### 5. Run Your Project
 
@@ -195,6 +205,15 @@ Built-in interruption recovery system:
 - **Auto-Checkpointing**: Saves state after each major operation
 - **Resume from Anywhere**: Pick up exactly where you left off
 - **Crash Recovery**: Handles network failures, API timeouts, process interruptions
+
+### 4. Production-Ready Code Structure
+
+Beyond visual fidelity, the generated code is built for long-term maintenance:
+
+- **Component-Based Architecture**: Automatically decomposes semantic components (Header, Footer, Hero, etc.), avoiding spaghetti code.
+- **Scientific Styling**: Prefers Flexbox/Grid layouts over rigid absolute positioning, ensuring responsiveness across different screen sizes.
+- **Modern Tech Stack**: Defaults to React + TypeScript + Tailwind CSS for type safety and scalability.
+- **Clean File Structure**: Automatically organizes `components/`, `assets/`, `utils/` directories following industry best practices.
 
 ## 🛠️ How It Works
 
