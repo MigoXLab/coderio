@@ -40,16 +40,10 @@ cat << 'EOF' > scripts/package.json
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    // "coderio": "latest" // Uncomment for production release
+    "coderio": "latest"
   }
 }
 EOF
-
-# 2. Install coderio (Local Debugging Mode)
-# Compiles and links local coderio source. Change to 'pnpm install' for release.
-CODERIO_LOCAL="/Users/gemma/Desktop/opensource/coderio"
-(cd "$CODERIO_LOCAL" && pnpm build)
-cd scripts && pnpm link "$CODERIO_LOCAL" && cd ..
 
 # 2. Install coderio in scripts directory (adjust version if needed)
 cd scripts && pnpm install && cd ..

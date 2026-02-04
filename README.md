@@ -42,7 +42,7 @@ CodeRio is an intelligent **Figma-to-Code** automation tool that transforms desi
 
 ## ✨ Examples
 
-### Case: Landing Page
+### Case: Landing Page (CLI with --mode full) 
 
 This example demonstrates a landing page converted from Figma. It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts and component structures.
 
@@ -50,13 +50,16 @@ This example demonstrates a landing page converted from Figma. It includes a hea
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
+### Option 1: CLI (Recommended 👍🏻)
+Best for one-click generation.
+
+#### 1. Prerequisites
 
 - Node.js >= 18.0.0 (< 25.0.0)
 - [Figma Personal Access Token](https://www.figma.com/developers/api#access-tokens)
 - LLM API Key ([Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/))
 
-### 2. Installation
+#### 2. Installation
 
 ```bash
 # Install globally (recommended)
@@ -76,7 +79,7 @@ pnpm add -g coderio
 >
 > **Note**: `playwright` and `sharp` are required only for validation features. They will be automatically installed when you first run a command that needs them (like `d2c --mode full`).
 
-### 3. Configuration
+#### 3. Configuration
 
 Create `~/.coderio/config.yaml`:
 
@@ -97,7 +100,7 @@ debug:
 EOF
 ```
 
-### 4. Usage
+#### 4. Usage
 
 ```bash
 # Convert Figma design to code (default mode: code only)
@@ -105,12 +108,9 @@ coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
 
 # Full mode: Generate code + visual validation + auto-refinement
 coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m full
-
-# Report mode: Generate code + single validation report (no auto-refinement)
-coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m with-report
 ```
 
-### 5. Run Your Project
+#### 5. Run Your Project
 
 ```bash
 # Navigate to generated project
@@ -125,14 +125,14 @@ pnpm dev
 # 🎉 Open http://localhost:5173
 ```
 
-### 6. View Validation Report
+#### 6. View Validation Report
 
 ```bash
 # Open validation report in browser
 open coderio/<design-name_node-id>/process/validation/index.html
 ```
 
-## 📖 All Commands
+#### 📖 All Commands
 
 | Command           | Alias | Description                                         |
 | ----------------- | ----- | --------------------------------------------------- |
@@ -142,20 +142,24 @@ open coderio/<design-name_node-id>/process/validation/index.html
 | `validate`        | `val` | Run validation on generated code                    |
 | `images`          | -     | Download and process Figma assets                   |
 
-### Step-by-Step Workflow
+### Option 2: Skill (Portable Embedded Workflow)
+Best for control and precision using AI Agents.
 
-For more control, run each step individually:
-
+**Prerequisites**:
+Copy the Skill file to your Cursor configuration directory:
 ```bash
-# Step 1: Extract design protocol
-coderio d2p -s 'https://www.figma.com/design/.../...'
-
-# Step 2: Generate code from protocol
-coderio p2c -p './coderio/<design-name_node-id>/process/protocol.json'
-
-# Step 3: Run validation (coming soon)
-# coderio val -p './coderio/<design-name_node-id>/my-app'
+mkdir -p ~/.cursor/skills/design-to-code
+cp docs/skills/SKILL.md ~/.cursor/skills/design-to-code/SKILL.md
 ```
+
+**Using in Cursor**:
+1. Open Cursor Chat (`Cmd` + `L`).
+2. Type: **"Use design-to-code skill to convert this design: [Your Figma URL]"**
+3. The Agent will guide you step-by-step through protocol extraction and code generation.
+
+**Using in Claude Code**:
+1. Start Claude Code.
+2. Type: **"Read docs/skills/SKILL.md and perform design conversion: [Your Figma URL]"**
 
 ## 💎 Key Features
 
