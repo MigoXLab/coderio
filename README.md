@@ -46,6 +46,7 @@ https://github.com/user-attachments/assets/a0bc1b1c-6aaa-4fbb-a2d8-18aeba70759b
 
 This example demonstrates a landing page converted from Figma. It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts, multiple images and component structures.
 
+![20260204173429_rec_](https://github.com/user-attachments/assets/b0b7446c-cf3f-4109-a689-14f4da12543e)
 <a href="https://static.openxlab.org.cn/coderio/report.html" target="_blank">📊 View Interactive Validation Report</a>
 
 ### Case: Development with Cursor Skill
