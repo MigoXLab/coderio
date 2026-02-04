@@ -43,7 +43,7 @@ https://github.com/user-attachments/assets/a0bc1b1c-6aaa-4fbb-a2d8-18aeba70759b
 
 ### 案例：使用 CLI，--mode full
 
-本示例展示了一个从 Figma ([设计稿链接](https://www.figma.com/developers/api#access-tokens](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=1-1482&t=FB3Hohq2nsH7ZFts-4)))转换而来的落地页。它包含页眉、主要内容区域和页脚，展示了 CodeRio 处理复杂布局和组件结构的能力。
+安装 CodeRio 后可以直接在 CLI 中执行命令使用。CodeRio 对复杂样式的落地页具有出色的还原能力，能够处理复杂的布局、识别并下载多样化的图片资源，以及自动封装组件结构。选择 “FULL” 模式，在生成结束后会自动生成还原度可视化评估报告，以标注和拓印两种模式展示设计稿与网页的偏差，为工程师的进一步开发提供有效指导。本示例展示了一个从 Figma ([设计稿链接](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=1-1482&t=FB3Hohq2nsH7ZFts-4)) 转换而来的落地页。
 
 https://github.com/user-attachments/assets/bd0c3f18-e98a-4050-bf22-46b198fadac2
 
