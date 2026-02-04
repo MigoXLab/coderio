@@ -31,7 +31,7 @@
 
 CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计稿转换为生产级 React 代码。与传统转换工具不同，CodeRio 采用多智能体系统，能够验证视觉准确度并迭代优化偏差，追求高保真的UI还原和贴合工程师开发规范的代码结构。
 
-![CodeRio 工作原理](./docs/framework.gif)
+https://github.com/user-attachments/assets/a0bc1b1c-6aaa-4fbb-a2d8-18aeba70759b
 
 **适用场景：**
 
@@ -43,17 +43,17 @@ CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计�
 
 ### 案例：使用 CLI，--mode full
 
-本示例展示了一个从 Figma 转换而来的落地页。它包含页眉、主要内容区域和页脚，展示了 CodeRio 处理复杂布局和组件结构的能力。
+本示例展示了一个从 Figma ([设计稿链接](https://www.figma.com/developers/api#access-tokens](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=1-1482&t=FB3Hohq2nsH7ZFts-4)))转换而来的落地页。它包含页眉、主要内容区域和页脚，展示了 CodeRio 处理复杂布局和组件结构的能力。
 
-<a href="https://static.openxlab.org.cn/coderio/report.html" target="_blank">📊 查看交互式验证报告</a>
+https://github.com/user-attachments/assets/bd0c3f18-e98a-4050-bf22-46b198fadac2
+
+<a href="https://static.openxlab.org.cn/coderio/report.html" target="_blank">📊 View Interactive Validation Report</a>
 
 ### 案例：在 Cursor 中使用 Skill 开发
 
-CodeRio 支持作为 Skill 集成到 Cursor 中使用。您只需在对话框中输入 **“请帮我创建一个 React 工程，高保真还原设计稿”**，并提供输出目录、设计稿链接及 Figma Token，Agent 即可引导您逐步完成网页生成。
+CodeRio 支持作为 Skill 集成到 Cursor 中使用。您只需在对话框中输入 **“请帮我创建一个 React 工程，高保真还原设计稿”**，并提供输出目录、设计稿链接([设计稿链接](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=30-8264&t=FB3Hohq2nsH7ZFts-4))及 Figma Token，Agent 即可引导您逐步完成网页生成。对于落地页（Landing Page）类页面，CodeRio 能达到 **高保真还原** 标准，精确还原图片与样式，并自动对卡片等组件进行 **复用封装**，生成的代码完全符合 **前端开发规范**。
 
-对于落地页（Landing Page）类页面，CodeRio 能达到 **高保真还原** 标准，精确还原图片与样式，并自动对卡片等组件进行 **复用封装**，生成的代码完全符合 **前端开发规范**。
-
-<a href="https://static.openxlab.org.cn/coderio/coderio-skill-demo.mp4" target="_blank">🎥 观看演示视频</a>
+https://github.com/user-attachments/assets/a66dc680-f68d-4121-b416-aa6b778bd895
 
 ## 🚀 快速开始
 
