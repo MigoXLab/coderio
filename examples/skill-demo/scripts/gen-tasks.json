@@ -1,0 +1,74 @@
+[
+  {
+    "index": 0,
+    "name": "Header",
+    "path": "@/components/header",
+    "isLeaf": true
+  },
+  {
+    "index": 1,
+    "name": "HeroSection",
+    "path": "@/components/hero-section",
+    "isLeaf": true
+  },
+  {
+    "index": 2,
+    "name": "TrustSection",
+    "path": "@/components/trust-section",
+    "isLeaf": true
+  },
+  {
+    "index": 3,
+    "name": "PhilosophySection",
+    "path": "@/components/philosophy-section",
+    "isLeaf": true
+  },
+  {
+    "index": 4,
+    "name": "FeatureCard",
+    "path": "@/components/feature-card",
+    "isLeaf": true
+  },
+  {
+    "index": 5,
+    "name": "FeaturesGrid",
+    "path": "@/components/features-grid",
+    "isLeaf": false
+  },
+  {
+    "index": 6,
+    "name": "ResourcesSection",
+    "path": "@/components/resources-section",
+    "isLeaf": true
+  },
+  {
+    "index": 7,
+    "name": "SpyingCTA",
+    "path": "@/components/spying-cta",
+    "isLeaf": true
+  },
+  {
+    "index": 8,
+    "name": "InsightCard",
+    "path": "@/components/insight-card",
+    "isLeaf": true
+  },
+  {
+    "index": 9,
+    "name": "LatestInsights",
+    "path": "@/components/latest-insights",
+    "isLeaf": false
+  },
+  {
+    "index": 10,
+    "name": "Footer",
+    "path": "@/components/footer",
+    "isLeaf": true
+  },
+  {
+    "index": 11,
+    "name": "CertoLandingPage",
+    "path": "@/components",
+    "isLeaf": false
+  }
+]

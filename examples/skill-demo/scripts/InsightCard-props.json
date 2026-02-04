@@ -1,0 +1,52 @@
+{
+  "props": [
+    {
+      "name": "imageSrc",
+      "type": "string",
+      "example": "@/assets/InsightCard-image-1.png"
+    },
+    {
+      "name": "tag",
+      "type": "string",
+      "example": "Guides"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "example": "The 6 Best Apps to Track Your Children (And Why)"
+    },
+    {
+      "name": "date",
+      "type": "string",
+      "example": "August 20, 2024"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "example": "These are the top apps for tracking your children..."
+    }
+  ],
+  "state": [
+    {
+      "imageSrc": "@/assets/InsightCard-image-1.png",
+      "tag": "Guides",
+      "title": "The 6 Best Apps to Track Your Children (And Why)",
+      "date": "August 20, 2024",
+      "description": "These are the top apps for tracking your children. We also discuss why you should, or shouldn't track your kids."
+    },
+    {
+      "imageSrc": "@/assets/InsightCard-image-2.png",
+      "tag": "Expertise",
+      "title": "How to Hack a Phone: It’s Easier Than You Think",
+      "date": "August 20, 2024",
+      "description": "Phone hacking is a real threat and it can happen to anyone. Here's how it works and how to protect yourself."
+    },
+    {
+      "imageSrc": "@/assets/InsightCard-image-3.png",
+      "tag": "Guides",
+      "title": "5 Ways to Find Hidden Spy Apps on Your Phone",
+      "date": "August 20, 2024",
+      "description": "Think someone is spying on you? Here are 5 simple ways to find hidden spy apps on your iPhone or Android."
+    }
+  ]
+}
