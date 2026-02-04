@@ -1,0 +1,297 @@
+{
+  "id": "CertoLandingPage",
+  "data": {
+    "name": "CertoLandingPage",
+    "purpose": "Main landing page wrapper",
+    "elementIds": ["728:17674", "728:18045"],
+    "layout": {
+      "boundingBox": { "top": 18765, "left": 23100, "width": 1440, "height": 6102 },
+      "relativeBoundingBox": { "top": 0, "left": 0, "width": 1440, "height": 6102 },
+      "spacing": { "next": 0 },
+      "layoutDirection": "VERTICAL"
+    }
+  },
+  "children": [
+    {
+      "id": "Header",
+      "data": {
+        "name": "Header",
+        "purpose": "Navigation bar with logo and menu",
+        "elementIds": ["728:18045", "728:18046", "728:18047", "728:18057", "728:18058", "728:18062", "728:18068", "728:17674"],
+        "layout": {
+          "boundingBox": { "top": 18765, "left": 23100, "width": 1440, "height": 102 },
+          "relativeBoundingBox": { "top": 0, "left": 0, "width": 1440, "height": 102 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "HORIZONTAL"
+        }
+      },
+      "children": []
+    },
+    {
+      "id": "HeroSection",
+      "data": {
+        "name": "HeroSection",
+        "purpose": "Hero area with main value proposition and illustration",
+        "elementIds": ["728:17675", "728:17676", "728:17679", "728:17682", "728:17683", "728:17698"],
+        "layout": {
+          "boundingBox": { "top": 18867, "left": 23100, "width": 1440, "height": 708 },
+          "relativeBoundingBox": { "top": 102, "left": 0, "width": 1440, "height": 708 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "HORIZONTAL"
+        }
+      },
+      "children": []
+    },
+    {
+      "id": "TrustSection",
+      "data": {
+        "name": "TrustSection",
+        "purpose": "Social proof with reviews and logos",
+        "elementIds": ["728:17701", "728:17702", "728:17704", "728:17775"],
+        "layout": {
+          "boundingBox": { "top": 19575, "left": 23100, "width": 1440, "height": 803 },
+          "relativeBoundingBox": { "top": 810, "left": 0, "width": 1440, "height": 803 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "VERTICAL"
+        }
+      },
+      "children": []
+    },
+    {
+      "id": "PhilosophySection",
+      "data": {
+        "name": "PhilosophySection",
+        "purpose": "Company philosophy statement with image",
+        "elementIds": ["728:17846", "728:17847", "728:17848", "728:17860"],
+        "layout": {
+          "boundingBox": { "top": 20378, "left": 23100, "width": 1440, "height": 664 },
+          "relativeBoundingBox": { "top": 1613, "left": 0, "width": 1440, "height": 664 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "HORIZONTAL"
+        }
+      },
+      "children": []
+    },
+    {
+      "id": "FeaturesGrid",
+      "data": {
+        "name": "FeaturesGrid",
+        "purpose": "Grid of key features and benefits",
+        "elementIds": ["728:17863", "728:17864", "728:17865", "728:17867", "728:17868"],
+        "layout": {
+          "boundingBox": { "top": 21042, "left": 23100, "width": 1440, "height": 1202 },
+          "relativeBoundingBox": { "top": 2277, "left": 0, "width": 1440, "height": 1202 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "VERTICAL"
+        }
+      },
+      "children": [
+        {
+          "id": "FeatureCard1",
+          "data": {
+            "name": "FeatureCard1",
+            "componentName": "FeatureCard",
+            "purpose": "Feature item: Spyware detection",
+            "elementIds": ["728:17869", "728:17870", "728:17872", "728:17873"],
+            "layout": {
+              "boundingBox": { "top": 21360, "left": 23472, "width": 200, "height": 265 },
+              "relativeBoundingBox": { "top": 318, "left": 372, "width": 200, "height": 265 },
+              "spacing": { "next": 48 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        },
+        {
+          "id": "FeatureCard2",
+          "data": {
+            "name": "FeatureCard2",
+            "componentName": "FeatureCard",
+            "purpose": "Feature item: Keylogger detection",
+            "elementIds": ["728:17874", "728:17875", "728:17877", "728:17878"],
+            "layout": {
+              "boundingBox": { "top": 21360, "left": 23720, "width": 200, "height": 265 },
+              "relativeBoundingBox": { "top": 318, "left": 620, "width": 200, "height": 265 },
+              "spacing": { "next": 48 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        },
+        {
+          "id": "FeatureCard3",
+          "data": {
+            "name": "FeatureCard3",
+            "componentName": "FeatureCard",
+            "purpose": "Feature item: Find tracking apps",
+            "elementIds": ["728:17879", "728:17880", "728:17882", "728:17883"],
+            "layout": {
+              "boundingBox": { "top": 21360, "left": 23968, "width": 200, "height": 265 },
+              "relativeBoundingBox": { "top": 318, "left": 868, "width": 200, "height": 265 },
+              "spacing": { "next": 0 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        },
+        {
+          "id": "FeatureCard4",
+          "data": {
+            "name": "FeatureCard4",
+            "componentName": "FeatureCard",
+            "purpose": "Feature item: OS integrity check",
+            "elementIds": ["728:17884", "728:17885", "728:17887", "728:17888"],
+            "layout": {
+              "boundingBox": { "top": 21697, "left": 23472, "width": 200, "height": 265 },
+              "relativeBoundingBox": { "top": 655, "left": 372, "width": 200, "height": 265 },
+              "spacing": { "next": 48 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        },
+        {
+          "id": "FeatureCard5",
+          "data": {
+            "name": "FeatureCard5",
+            "componentName": "FeatureCard",
+            "purpose": "Feature item: Threat removal",
+            "elementIds": ["728:17889", "728:17890", "728:17892", "728:17893"],
+            "layout": {
+              "boundingBox": { "top": 21697, "left": 23720, "width": 200, "height": 265 },
+              "relativeBoundingBox": { "top": 655, "left": 620, "width": 200, "height": 265 },
+              "spacing": { "next": 48 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        },
+        {
+          "id": "FeatureCard6",
+          "data": {
+            "name": "FeatureCard6",
+            "componentName": "FeatureCard",
+            "purpose": "Feature item: Easy to use",
+            "elementIds": ["728:17894", "728:17895", "728:17897", "728:17898"],
+            "layout": {
+              "boundingBox": { "top": 21697, "left": 23968, "width": 200, "height": 265 },
+              "relativeBoundingBox": { "top": 655, "left": 868, "width": 200, "height": 265 },
+              "spacing": { "next": 0 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "ResourcesSection",
+      "data": {
+        "name": "ResourcesSection",
+        "purpose": "Helpful resources and story links",
+        "elementIds": ["728:17908", "728:17909", "728:17910", "728:17922"],
+        "layout": {
+          "boundingBox": { "top": 22244, "left": 23100, "width": 1440, "height": 464 },
+          "relativeBoundingBox": { "top": 3479, "left": 0, "width": 1440, "height": 464 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "HORIZONTAL"
+        }
+      },
+      "children": []
+    },
+    {
+      "id": "SpyingCTA",
+      "data": {
+        "name": "SpyingCTA",
+        "purpose": "Call to action banner",
+        "elementIds": ["728:17931", "728:17932", "728:17933", "728:17936"],
+        "layout": {
+          "boundingBox": { "top": 22708, "left": 23100, "width": 1440, "height": 408 },
+          "relativeBoundingBox": { "top": 3943, "left": 0, "width": 1440, "height": 408 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "VERTICAL"
+        }
+      },
+      "children": []
+    },
+    {
+      "id": "LatestInsights",
+      "data": {
+        "name": "LatestInsights",
+        "purpose": "Recent blog posts and articles",
+        "elementIds": ["728:17945", "728:17946", "728:17947", "728:17956", "728:17957"],
+        "layout": {
+          "boundingBox": { "top": 23116, "left": 23100, "width": 1440, "height": 976 },
+          "relativeBoundingBox": { "top": 4351, "left": 0, "width": 1440, "height": 976 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "HORIZONTAL"
+        }
+      },
+      "children": [
+        {
+          "id": "InsightCard1",
+          "data": {
+            "name": "InsightCard1",
+            "componentName": "InsightCard",
+            "purpose": "Blog post card",
+            "elementIds": ["728:17958"],
+            "layout": {
+              "boundingBox": { "top": 23347, "left": 23292, "width": 320, "height": 534 },
+              "relativeBoundingBox": { "top": 231, "left": 192, "width": 320, "height": 534 },
+              "spacing": { "next": 48 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        },
+        {
+          "id": "InsightCard2",
+          "data": {
+            "name": "InsightCard2",
+            "componentName": "InsightCard",
+            "purpose": "Blog post card",
+            "elementIds": ["728:17972"],
+            "layout": {
+              "boundingBox": { "top": 23347, "left": 23660, "width": 320, "height": 534 },
+              "relativeBoundingBox": { "top": 231, "left": 560, "width": 320, "height": 534 },
+              "spacing": { "next": 48 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        },
+        {
+          "id": "InsightCard3",
+          "data": {
+            "name": "InsightCard3",
+            "componentName": "InsightCard",
+            "purpose": "Blog post card",
+            "elementIds": ["728:17965"],
+            "layout": {
+              "boundingBox": { "top": 23347, "left": 24028, "width": 320, "height": 534 },
+              "relativeBoundingBox": { "top": 231, "left": 928, "width": 320, "height": 534 },
+              "spacing": { "next": 0 },
+              "layoutDirection": "VERTICAL"
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "Footer",
+      "data": {
+        "name": "Footer",
+        "purpose": "Site footer with links and copyright",
+        "elementIds": ["728:17979", "728:17980", "728:17981", "728:17996", "728:17999", "728:18028", "728:18043", "728:18044"],
+        "layout": {
+          "boundingBox": { "top": 24091, "left": 23100, "width": 1440, "height": 776 },
+          "relativeBoundingBox": { "top": 5326, "left": 0, "width": 1440, "height": 776 },
+          "spacing": { "next": 0 },
+          "layoutDirection": "VERTICAL"
+        }
+      },
+      "children": []
+    }
+  ]
+}

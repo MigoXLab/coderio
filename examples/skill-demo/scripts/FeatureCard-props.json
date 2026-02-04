@@ -1,0 +1,51 @@
+{
+  "props": [
+    {
+      "name": "iconSrc",
+      "type": "string",
+      "example": "@/assets/FeatureCard-icon-1.svg"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "example": "Spyware detection"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "example": "Our advanced spyware detection engine can identify if a device contains spyware or bugging software."
+    }
+  ],
+  "state": [
+    {
+      "iconSrc": "@/assets/FeatureCard-icon-1.svg",
+      "title": "Spyware detection",
+      "description": "Our advanced spyware detection engine can identify if a device contains spyware or bugging software."
+    },
+    {
+      "iconSrc": "@/assets/FeatureCard-icon-2.svg",
+      "title": "Keylogger detection",
+      "description": "Find malicious keyboards installed on your device that could allow someone to record things you type (e.g. passwords)."
+    },
+    {
+      "iconSrc": "@/assets/FeatureCard-icon-3.svg",
+      "title": "Find tracking apps",
+      "description": "Check which apps have access to your location, microphone or camera. Get alerted if a known tracking app is installed."
+    },
+    {
+      "iconSrc": "@/assets/FeatureCard-icon-4.svg",
+      "title": "OS integrity check",
+      "description": "Analyze your operating system for signs of tampering that could compromise security, such as Jailbreaking."
+    },
+    {
+      "iconSrc": "@/assets/FeatureCard-icon-5.svg",
+      "title": "Threat removal",
+      "description": "Our intelligent scan will either safely remove threats for you or provide easy-to-follow instructions."
+    },
+    {
+      "iconSrc": "@/assets/FeatureCard-icon-6.svg",
+      "title": "Easy to use",
+      "description": "We create easy to use apps that can check your device for vulnerabilities in a matter of minutes."
+    }
+  ]
+}

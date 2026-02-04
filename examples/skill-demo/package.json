@@ -1,0 +1,26 @@
+{
+  "name": "coderio-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm exec vite",
+    "build": "pnpm exec tsc && pnpm exec vite build",
+    "preview": "pnpm exec vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "less": "^4.2.0",
+    "@types/node": "^20.12.7"
+  }
+}

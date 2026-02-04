@@ -1,0 +1,135 @@
+.featuresGridSection {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(180deg, #F3F8FF 0%, #E7EFFA 100%);
+  padding: 84px 300px;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 1440px) {
+    padding: 84px 5%;
+  }
+
+  @media (max-width: 768px) {
+    padding: 40px 20px;
+  }
+}
+
+.card {
+  width: 100%;
+  max-width: 840px;
+  background: #FFF;
+  border-radius: 48px;
+  box-shadow: 12px 12px 10px 0px rgba(0, 0, 0, 0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 30px 20px;
+    border-radius: 32px;
+  }
+}
+
+.header {
+  margin-bottom: 50px;
+  text-align: center;
+  max-width: 740px;
+}
+
+.title {
+  color: #02033B;
+  text-align: center;
+  font-family: Inter, sans-serif;
+  font-size: 36px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 45px; /* 125% */
+  letter-spacing: -0.72px;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    line-height: 36px;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 50px; /* Based on visual spacing, tweaked for 3 columns in 840px */
+  row-gap: 50px;
+  width: 100%;
+  margin-bottom: 60px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.buttonPrimary {
+  display: flex;
+  padding: 16px 52px 15.5px 20px;
+  align-items: flex-start;
+  border-radius: 42px;
+  background: #FFC247;
+  text-decoration: none;
+  overflow: hidden;
+  position: relative;
+  
+  span {
+    color: #02033B;
+    text-align: center;
+    font-family: Inter, sans-serif;
+    font-size: 19px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 22.5px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  img {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+.buttonSecondary {
+  display: flex;
+  padding: 16px 23.5px 15.5px 22px;
+  align-items: flex-start;
+  border-radius: 42px;
+  background: rgba(255, 255, 255, 0.00);
+  box-shadow: inset 0px 0px 0px 2px #02033B;
+  text-decoration: none;
+  overflow: hidden;
+
+  span {
+    color: #02033B;
+    text-align: center;
+    font-family: Inter, sans-serif;
+    font-size: 19px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 22.5px;
+  }
+}

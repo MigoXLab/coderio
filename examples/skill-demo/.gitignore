@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.env
+.DS_Store
+*.log
+.vscode/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
