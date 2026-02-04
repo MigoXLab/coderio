@@ -46,7 +46,8 @@ https://github.com/user-attachments/assets/a0bc1b1c-6aaa-4fbb-a2d8-18aeba70759b
 
 This example demonstrates a landing page converted from Figma ([Design Link]([https://www.figma.com/developers/api#access-tokens](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=1-1482&t=FB3Hohq2nsH7ZFts-4))). It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts, multiple images and component structures.
 
-![20260204173429_rec_](https://github.com/user-attachments/assets/b0b7446c-cf3f-4109-a689-14f4da12543e)
+https://github.com/user-attachments/assets/bd0c3f18-e98a-4050-bf22-46b198fadac2
+
 <a href="https://static.openxlab.org.cn/coderio/report.html" target="_blank">📊 View Interactive Validation Report</a>
 
 ### Case: Development with Cursor Skill
