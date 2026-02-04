@@ -148,11 +148,11 @@ export const Button: React.FC<ButtonProps> = ({ children, onClick }) => (
 
 ```typescript
 {
-    "Button": {
-        "code": "...",
-        "dependencies": ["Icon"],
-        "timestamp": 1234567890
-    }
+  "generatedComponents": [
+    "Header",
+    "Footer"
+   ],
+  "appInjected": true
 }
 ```
 

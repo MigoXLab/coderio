@@ -6,7 +6,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio) [![Contributors](https://img.shields.io/github/contributors/MigoXLab/coderio)](https://github.com/MigoXLab/coderio/graphs/contributors)
 
-💬 联系方式：[微信群](https://aicarrier.feishu.cn/docx/NRNXdIirXoSQEHxhaqjchUfenzd) ｜ <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">邮箱</a>
+💬 联系方式：[微信群](https://aicarrier.feishu.cn/docx/KTZCddG2VoarFExTqBEcS55QnRd) ｜ <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">邮箱</a>
 
 [English](README.md) | [简体中文](README_zh-CN.md)
 
@@ -45,7 +45,7 @@ CodeRio 是一款智能的**Figma 转代码**自动化工具，能够将设计�
 
 本示例展示了一个从 Figma 转换而来的落地页。它包含页眉、主要内容区域和页脚，展示了 CodeRio 处理复杂布局和组件结构的能力。
 
-[查看验证报告](examples/case1/report.html)
+[查看验证报告](https://htmlpreview.github.io/?https://github.com/MigoXLab/coderio/blob/main/examples/case1/report.html)
 
 ## 🚀 快速开始
 

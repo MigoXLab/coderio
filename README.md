@@ -6,7 +6,7 @@ AI-Powered Design-to-Code Tool with High-Fidelity UI Restoration
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0%20%3C23.0.0-brightgreen)](https://nodejs.org/) [![npm version](https://img.shields.io/npm/v/coderio.svg)](https://www.npmjs.com/package/coderio) [![Contributors](https://img.shields.io/github/contributors/MigoXLab/coderio)](https://github.com/MigoXLab/coderio/graphs/contributors)
 
-💬 Contact: [WeChat Group](https://aicarrier.feishu.cn/docx/NRNXdIirXoSQEHxhaqjchUfenzd) | <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">Email</a>
+💬 Contact: [WeChat Group](https://aicarrier.feishu.cn/docx/KTZCddG2VoarFExTqBEcS55QnRd) | <a href="mailto:coderio&#64;pjlab&#46;org&#46;cn">Email</a>
 
 [English](README.md) | [简体中文](README_zh-CN.md)
 
@@ -46,7 +46,7 @@ CodeRio is an intelligent **Figma-to-Code** automation tool that transforms desi
 
 This example demonstrates a landing page converted from Figma. It includes a header, main content area, and footer, showcasing CodeRio's ability to handle complex layouts and component structures.
 
-[View Validation Report](examples/case1/report.html)
+[View Validation Report](https://htmlpreview.github.io/?https://github.com/MigoXLab/coderio/blob/main/examples/case1/report.html)
 
 ## 🚀 Quick Start
 
