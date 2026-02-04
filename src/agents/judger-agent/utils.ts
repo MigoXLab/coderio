@@ -32,7 +32,7 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
     if (!jsonMatch) {
         logger.printInfoLog('Judger agent response missing JSON block, skipping refinement for this iteration');
         return Promise.resolve({
-            errorType: 'pixel_misalignment',
+            errorType: 'empty_response',
             rootCause: 'Agent analysis unavailable, do not apply any edits',
             visualEvidence: 'N/A',
             codeEvidence: 'N/A',
@@ -46,7 +46,7 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
     if (!jsonStr || jsonStr.trim().length === 0) {
         logger.printInfoLog('Judger agent response has empty JSON, skipping refinement for this iteration');
         return Promise.resolve({
-            errorType: 'pixel_misalignment',
+            errorType: 'empty_response',
             rootCause: 'Agent analysis unavailable, do not apply any edits',
             visualEvidence: 'N/A',
             codeEvidence: 'N/A',
@@ -60,7 +60,7 @@ export function parseJudgerResult(response: string): Promise<JudgerDiagnosis> {
     } catch (error) {
         logger.printInfoLog(`Judger agent response JSON parse failed: ${error instanceof Error ? error.message : String(error)}`);
         return Promise.resolve({
-            errorType: 'pixel_misalignment',
+            errorType: 'empty_response',
             rootCause: 'Agent analysis unavailable',
             visualEvidence: 'N/A',
             codeEvidence: 'N/A',

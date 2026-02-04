@@ -80,50 +80,52 @@ export async function generatePixelDiffHeatmap(renderSnap: string, targetSnap: s
 async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer: Buffer, width: number, height: number): Promise<Buffer> {
     const outputData = Buffer.alloc(width * height * 3);
 
-    const gray1 = new Uint8Array(width * height);
-    const gray2 = new Uint8Array(width * height);
+    // Calculate color differences for each pixel
+    const differences = new Float32Array(width * height);
+    let maxDiff = 0;
 
     for (let i = 0; i < width * height; i++) {
         const r1 = data1[i * 4] ?? 0;
         const g1 = data1[i * 4 + 1] ?? 0;
         const b1 = data1[i * 4 + 2] ?? 0;
-        gray1[i] = Math.round(0.299 * r1 + 0.587 * g1 + 0.114 * b1);
 
         const r2 = data2[i * 4] ?? 0;
         const g2 = data2[i * 4 + 1] ?? 0;
         const b2 = data2[i * 4 + 2] ?? 0;
-        gray2[i] = Math.round(0.299 * r2 + 0.587 * g2 + 0.114 * b2);
+
+        // Calculate perceptual color difference
+        const diff = Math.sqrt(Math.pow(r1 - r2, 2) * 0.299 + Math.pow(g1 - g2, 2) * 0.587 + Math.pow(b1 - b2, 2) * 0.114);
+
+        differences[i] = diff;
+        maxDiff = Math.max(maxDiff, diff);
     }
 
     let pixelsWithDifferences = 0;
-    const minBrightness = 60;
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             const idx = y * width + x;
             const outIdx = idx * 3;
-            const pixel1 = gray1[idx] ?? 0;
-            const pixel2 = gray2[idx] ?? 0;
 
             const isDifferent = (diffBuffer[idx * 4] ?? 0) > 0;
+
             if (isDifferent) {
                 pixelsWithDifferences++;
-                if (pixel1 > pixel2) {
-                    const redValue = Math.max(minBrightness, pixel1);
-                    outputData[outIdx] = Math.min(redValue, 255);
-                    outputData[outIdx + 1] = 0;
-                    outputData[outIdx + 2] = 0;
-                } else {
-                    const greenValue = Math.max(minBrightness, pixel2);
-                    outputData[outIdx] = 0;
-                    outputData[outIdx + 1] = Math.min(greenValue, 255);
-                    outputData[outIdx + 2] = 0;
-                }
+
+                // Normalize difference to 0-1 range
+                const normalizedDiff = maxDiff > 0 ? (differences[idx] ?? 0) / maxDiff : 0;
+
+                // Map to blue-yellow-red gradient
+                // Blue (0,0,255) -> Cyan (0,255,255) -> Yellow (255,255,0) -> Red (255,0,0)
+                const [r, g, b] = getDiffColor(normalizedDiff);
+                outputData[outIdx] = r;
+                outputData[outIdx + 1] = g;
+                outputData[outIdx + 2] = b;
             } else {
-                const avg = Math.round((pixel1 + pixel2) / 2);
-                outputData[outIdx] = avg;
-                outputData[outIdx + 1] = avg;
-                outputData[outIdx + 2] = avg;
+                // For matching pixels, show in deep blue to indicate good match
+                outputData[outIdx] = 0;
+                outputData[outIdx + 1] = 0;
+                outputData[outIdx + 2] = 200; // Deep blue
             }
         }
     }
@@ -135,6 +137,32 @@ async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer:
     return sharp(outputData, { raw: { width, height, channels: 3 } })
         .png()
         .toBuffer();
+}
+
+/**
+ * Maps normalized difference (0-1) to color gradient:
+ * 0.0 = Deep Blue (perfect match)
+ * 0.3 = Cyan (slight difference)
+ * 0.6 = Yellow (moderate difference)
+ * 1.0 = Red (maximum difference)
+ */
+function getDiffColor(normalizedDiff: number): [number, number, number] {
+    // Clamp to 0-1 range
+    normalizedDiff = Math.max(0, Math.min(1, normalizedDiff));
+
+    if (normalizedDiff < 0.33) {
+        // Blue to Cyan transition
+        const t = normalizedDiff / 0.33;
+        return [0, Math.round(255 * t), 255];
+    } else if (normalizedDiff < 0.67) {
+        // Cyan to Yellow transition
+        const t = (normalizedDiff - 0.33) / 0.34;
+        return [Math.round(255 * t), 255, Math.round(255 * (1 - t))];
+    } else {
+        // Yellow to Red transition
+        const t = (normalizedDiff - 0.67) / 0.33;
+        return [255, Math.round(255 * (1 - t)), 0];
+    }
 }
 
 async function loadImageData(dataUri: string): Promise<{ width: number; height: number; data: Buffer }> {
