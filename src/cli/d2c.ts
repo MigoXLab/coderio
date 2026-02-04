@@ -1,14 +1,14 @@
 import { Command } from 'commander';
 import { logger } from '../utils/logger';
 import { design2code } from '../graph';
-import type { ValidationConfig } from '../types/graph-types';
+import { ValidationMode } from '../types/graph-types';
 
 /**
  * Validate and map CLI mode parameter to internal validationMode.
  * @param mode - The mode string from CLI
- * @returns The mapped ValidationConfig mode, or null if invalid
+ * @returns The mapped ValidationMode, or null if invalid
  */
-function getValidationMode(mode: string): ValidationConfig['validationMode'] | null {
+function getValidationMode(mode: string): ValidationMode | null {
     const validModes = ['code', 'with-report', 'full'] as const;
     type ValidMode = (typeof validModes)[number];
     const isValidMode = (m: string): m is ValidMode => {
@@ -20,10 +20,10 @@ function getValidationMode(mode: string): ValidationConfig['validationMode'] | n
     }
 
     // Map CLI mode to internal validationMode
-    const modeMap: Record<ValidMode, ValidationConfig['validationMode']> = {
-        code: 'codeOnly',
-        'with-report': 'reportOnly',
-        full: 'full',
+    const modeMap: Record<ValidMode, ValidationMode> = {
+        code: ValidationMode.CodeOnly,
+        'with-report': ValidationMode.ReportOnly,
+        full: ValidationMode.Full,
     };
 
     return modeMap[mode];
@@ -39,11 +39,11 @@ export const registerD2CCommand = (program: Command) => {
         .option(
             '-m, --mode [type]',
             'Execution mode: code (generate component code only), with-report (single validation and generate report), full (iterative validation)',
-            'full'
+            'code'
         )
         .action(async (opts: { source: string; mode?: string }) => {
             try {
-                const { source, mode = 'full' } = opts;
+                const { source, mode = 'code' } = opts;
 
                 const validationMode = getValidationMode(mode);
                 if (!validationMode) {

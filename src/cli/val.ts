@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { Command } from 'commander';
 
 import type { Protocol } from '../types/protocol-types';
-import type { ValidationConfig } from '../types/graph-types';
+import { ValidationConfig, ValidationMode } from '../types/graph-types';
 import { logger } from '../utils/logger';
 import { runValidation } from '../nodes/validation';
 import { workspaceManager } from '../utils/workspace';
@@ -68,7 +68,7 @@ export function registerValidateCommand(program: Command): void {
 
                 // Build ValidationConfig from CLI options
                 const config: ValidationConfig = {
-                    validationMode: opts.reportonly ? 'reportOnly' : 'full',
+                    validationMode: opts.reportonly ? ValidationMode.ReportOnly : ValidationMode.Full,
                 };
 
                 logger.printInfoLog(`Running validation (${config.validationMode}) using workspace: ${workspace.root}`);
