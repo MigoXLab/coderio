@@ -73,31 +73,26 @@ export async function generatePixelDiffHeatmap(renderSnap: string, targetSnap: s
     const diffPercentage = ((numDiffPixels / totalPixels) * 100).toFixed(2);
     logger.printTestLog(`[Pixelmatch] Different pixels: ${numDiffPixels} / ${totalPixels} (${diffPercentage}%)`);
 
-    const heatmapBuffer = await generateRedGreenOverlay(data1, data2, diffBuffer, width1, height1);
+    const heatmapBuffer = await generateBlueRedHeatmap(data1, data2, diffBuffer, width1, height1);
     return await bufferToWebPDataUri(heatmapBuffer);
 }
 
-async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer: Buffer, width: number, height: number): Promise<Buffer> {
+async function generateBlueRedHeatmap(data1: Buffer, data2: Buffer, diffBuffer: Buffer, width: number, height: number): Promise<Buffer> {
     const outputData = Buffer.alloc(width * height * 3);
 
-    // Calculate color differences for each pixel
-    const differences = new Float32Array(width * height);
-    let maxDiff = 0;
+    const gray1 = new Uint8Array(width * height);
+    const gray2 = new Uint8Array(width * height);
 
     for (let i = 0; i < width * height; i++) {
         const r1 = data1[i * 4] ?? 0;
         const g1 = data1[i * 4 + 1] ?? 0;
         const b1 = data1[i * 4 + 2] ?? 0;
+        gray1[i] = Math.round(0.299 * r1 + 0.587 * g1 + 0.114 * b1);
 
         const r2 = data2[i * 4] ?? 0;
         const g2 = data2[i * 4 + 1] ?? 0;
         const b2 = data2[i * 4 + 2] ?? 0;
-
-        // Calculate perceptual color difference
-        const diff = Math.sqrt(Math.pow(r1 - r2, 2) * 0.299 + Math.pow(g1 - g2, 2) * 0.587 + Math.pow(b1 - b2, 2) * 0.114);
-
-        differences[i] = diff;
-        maxDiff = Math.max(maxDiff, diff);
+        gray2[i] = Math.round(0.299 * r2 + 0.587 * g2 + 0.114 * b2);
     }
 
     let pixelsWithDifferences = 0;
@@ -106,26 +101,27 @@ async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer:
         for (let x = 0; x < width; x++) {
             const idx = y * width + x;
             const outIdx = idx * 3;
+            const pixel1 = gray1[idx] ?? 0;
+            const pixel2 = gray2[idx] ?? 0;
 
             const isDifferent = (diffBuffer[idx * 4] ?? 0) > 0;
-
             if (isDifferent) {
                 pixelsWithDifferences++;
+                // Calculate difference magnitude (0-255 range)
+                const diff = Math.abs(pixel1 - pixel2);
+                // Normalize to 0-1 range
+                const normalizedDiff = diff / 255;
 
-                // Normalize difference to 0-1 range
-                const normalizedDiff = maxDiff > 0 ? (differences[idx] ?? 0) / maxDiff : 0;
-
-                // Map to blue-yellow-red gradient
-                // Blue (0,0,255) -> Cyan (0,255,255) -> Yellow (255,255,0) -> Red (255,0,0)
-                const [r, g, b] = getDiffColor(normalizedDiff);
-                outputData[outIdx] = r;
-                outputData[outIdx + 1] = g;
-                outputData[outIdx + 2] = b;
+                // Blue to Red gradient
+                // Blue (0, 0, 255) for small differences -> Red (255, 0, 0) for large differences
+                outputData[outIdx] = Math.round(255 * normalizedDiff); // Red increases with difference
+                outputData[outIdx + 1] = 0; // No green
+                outputData[outIdx + 2] = Math.round(255 * (1 - normalizedDiff)); // Blue decreases with difference
             } else {
-                // For matching pixels, show in deep blue to indicate good match
+                // Exact match: pure blue
                 outputData[outIdx] = 0;
                 outputData[outIdx + 1] = 0;
-                outputData[outIdx + 2] = 200; // Deep blue
+                outputData[outIdx + 2] = 255;
             }
         }
     }
@@ -137,32 +133,6 @@ async function generateRedGreenOverlay(data1: Buffer, data2: Buffer, diffBuffer:
     return sharp(outputData, { raw: { width, height, channels: 3 } })
         .png()
         .toBuffer();
-}
-
-/**
- * Maps normalized difference (0-1) to color gradient:
- * 0.0 = Deep Blue (perfect match)
- * 0.3 = Cyan (slight difference)
- * 0.6 = Yellow (moderate difference)
- * 1.0 = Red (maximum difference)
- */
-function getDiffColor(normalizedDiff: number): [number, number, number] {
-    // Clamp to 0-1 range
-    normalizedDiff = Math.max(0, Math.min(1, normalizedDiff));
-
-    if (normalizedDiff < 0.33) {
-        // Blue to Cyan transition
-        const t = normalizedDiff / 0.33;
-        return [0, Math.round(255 * t), 255];
-    } else if (normalizedDiff < 0.67) {
-        // Cyan to Yellow transition
-        const t = (normalizedDiff - 0.33) / 0.34;
-        return [Math.round(255 * t), 255, Math.round(255 * (1 - t))];
-    } else {
-        // Yellow to Red transition
-        const t = (normalizedDiff - 0.67) / 0.33;
-        return [255, Math.round(255 * (1 - t)), 0];
-    }
 }
 
 async function loadImageData(dataUri: string): Promise<{ width: number; height: number; data: Buffer }> {
