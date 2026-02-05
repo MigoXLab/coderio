@@ -20,7 +20,7 @@ function saveDebugLog(
         '------------response------------',
         JSON.stringify(responseInfo, null, 2),
     ].join('\n');
-    writeFile(workspaceManager.path?.debug ?? '', `fetch_${new Date().toISOString()}.md`, debugContent);
+    writeFile(workspaceManager.path?.debug ?? '', `fetch_${new Date().toISOString().replace(/:/g, '-')}.md`, debugContent);
 }
 
 /**

@@ -54,18 +54,19 @@ https://github.com/user-attachments/assets/bd0c3f18-e98a-4050-bf22-46b198fadac2
 
 CodeRio can be seamlessly integrated into Cursor as a Skill. Simply input a prompt like **"Create a React project and restore this design with high fidelity,"** along with your output directory, Figma URL([Design Link](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=30-8264&t=FB3Hohq2nsH7ZFts-4)), and Token. The Agent will guide you step-by-step through the page generation process. For Landing Pages, it achieves **high-fidelity restoration**, accurately reproducing images and styles. It also automatically encapsulates reusable components (such as cards) and strictly adheres to **frontend development best practices**.
 
-
 https://github.com/user-attachments/assets/43817e97-ffd2-40e3-9d33-78ee55b2ec2d
 
 ## 🚀 Quick Start
 
 ### Option 1: CLI (Recommended 👍🏻)
+
 Best for one-click generation.
 
 #### 1. Prerequisites
 
 - Node.js >= 18.0.0 (< 25.0.0)
 - [Figma Personal Access Token](https://www.figma.com/developers/api#access-tokens)
+- **Figma Link**: Select a Frame or Component in Figma, right-click, and choose **Copy link to selection** ([Reference](docs/figma-link.jpg)).
 - LLM API Key ([Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/))
 
 #### 2. Installation
@@ -78,35 +79,33 @@ npm install -g coderio
 pnpm add -g coderio
 ```
 
-> **Note for pnpm v9+ users**: If you see a warning about "Ignored build scripts", run:
+> **Note for pnpm v9+ users**: If you see a warning about "Ignored build scripts", run: `pnpm approve-builds` to allow native dependencies (better-sqlite3) to compile properly.
+>
+> **Note**: Validation features (e.g., `d2c --mode full`) require optional dependencies `playwright` and `sharp`. They are not bundled with coderio by default to keep installation lightweight. Please install them globally beforehand for smoother execution:
 >
 > ```bash
-> pnpm approve-builds
+> npm install -g playwright sharp
+> npx playwright install chromium
 > ```
->
-> This allows native dependencies (better-sqlite3) to compile properly.
->
-> **Note**: `playwright` and `sharp` are required only for validation features. They will be automatically installed when you first run a command that needs them (like `d2c --mode full`).
 
 #### 3. Configuration
 
-Create `~/.coderio/config.yaml`:
+> **Important**: Requires a **multimodal (vision)** model (Recommended: `gemini-3-pro-preview`).
 
-```bash
-mkdir -p ~/.coderio
-cat > ~/.coderio/config.yaml << 'EOF'
+Create config file at `~/.coderio/config.yaml` (Windows: `%USERPROFILE%\.coderio\config.yaml`):
+
+```yaml
 model:
-  provider: openai          # anthropic | openai | google
-  model: gemini-3-pro-preview
-  baseUrl: https://api.anthropic.com
-  apiKey: your-api-key-here
+    provider: openai # anthropic | openai | google
+    model: gemini-3-pro-preview
+    baseUrl: https://api.anthropic.com
+    apiKey: your-api-key-here
 
 figma:
-  token: your-figma-token-here
+    token: your-figma-token-here
 
 debug:
-  enabled: false
-EOF
+    enabled: false # set 'true', if you want to save model and request information
 ```
 
 #### 4. Usage
@@ -136,10 +135,7 @@ pnpm dev
 
 #### 6. View Validation Report
 
-```bash
-# Open validation report in browser
-open coderio/<design-name_node-id>/process/validation/index.html
-```
+report path: coderio/<design-name_node-id>/process/validation/index.html
 
 #### 📖 All Commands
 
@@ -152,21 +148,22 @@ open coderio/<design-name_node-id>/process/validation/index.html
 | `images`          | -     | Download and process Figma assets                   |
 
 ### Option 2: Skill (Portable Embedded Workflow)
+
 Best for control and precision using AI Agents.
 
 **Prerequisites**:
 Copy the Skill file to your Cursor configuration directory:
-```bash
-mkdir -p ~/.cursor/skills/design-to-code
-cp docs/skills/SKILL.md ~/.cursor/skills/design-to-code/SKILL.md
-```
+
+Copy `skills\design-to-code` folder to `~\.cursor\skills` (Windows: `%USERPROFILE%\.cursor\skills`)
 
 **Using in Cursor**:
-1. Open Cursor Chat (`Cmd` + `L`).
+
+1. Open Cursor Chat.
 2. Type: **"Use design-to-code skill to convert this design: [Your Figma URL]"**
 3. The Agent will guide you step-by-step through protocol extraction and code generation.
 
 **Using in Claude Code**:
+
 1. Start Claude Code.
 2. Type: **"Read docs/skills/SKILL.md and perform design conversion: [Your Figma URL]"**
 

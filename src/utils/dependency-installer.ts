@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
@@ -21,6 +21,55 @@ export function isPackageInstalled(packageName: string): boolean {
     }
 }
 
+function formatValidationDependencyHelp(missing: string[]): string {
+    const isWin = process.platform === 'win32';
+    const globalInstall = [
+        'npm install -g playwright sharp',
+        isWin ? 'npx playwright install chromium' : 'npx playwright install chromium',
+    ].join('\n');
+
+    const localInstall = [
+        'npm install -D playwright sharp',
+        isWin ? 'npx playwright install chromium' : 'npx playwright install chromium',
+    ].join('\n');
+
+    const pnpmGlobal = ['pnpm add -g playwright sharp', 'pnpm exec playwright install chromium'].join('\n');
+    const pnpmLocal = ['pnpm add -D playwright sharp', 'pnpm exec playwright install chromium'].join('\n');
+
+    return [
+        `Missing optional validation dependencies: ${missing.join(', ')}`,
+        '',
+        'Validation requires Playwright (browsers) and Sharp (image processing).',
+        'These dependencies are NOT bundled with coderio by default to keep installation lightweight.',
+        '',
+        'Recommended (global install):',
+        globalInstall,
+        '',
+        'Or install in your current project:',
+        localInstall,
+        '',
+        'If you use pnpm:',
+        '',
+        'Global:',
+        pnpmGlobal,
+        '',
+        'Local (project):',
+        pnpmLocal,
+    ].join('\n');
+}
+
+export function assertValidationDependenciesInstalled(): void {
+    const missing: string[] = [];
+    if (!isPackageInstalled('sharp')) missing.push('sharp');
+    if (!isPackageInstalled('playwright')) missing.push('playwright');
+
+    if (missing.length === 0) {
+        return;
+    }
+
+    throw new Error(formatValidationDependencyHelp(missing));
+}
+
 export function ensurePackageInstalled(packageName: string, packageNameInRegistry?: string) {
     const pkgName = packageNameInRegistry || packageName;
 
@@ -34,13 +83,24 @@ export function ensurePackageInstalled(packageName: string, packageNameInRegistr
     // For dependencies that should be devDependencies in the user's project if they are using coderio as a tool
     // But since this runs at runtime, we just install them.
     const installArgs = pm === 'npm' ? 'install' : 'add';
-    const installCmd = `${pm} ${installArgs} ${pkgName}`;
+    const pmCmd = process.platform === 'win32' ? `${pm}.cmd` : pm;
+    const installCmdDisplay = `${pmCmd} ${installArgs} ${pkgName}`;
 
     logger.printInfoLog(`Installing ${pkgName} using ${pm}...`);
-    logger.printInfoLog(`Command: ${installCmd}`);
+    logger.printInfoLog(`Command: ${installCmdDisplay}`);
 
     try {
-        execSync(installCmd, { stdio: 'inherit', cwd: process.cwd() });
+        const result = spawnSync(pmCmd, [installArgs, pkgName], {
+            stdio: 'inherit',
+            cwd: process.cwd(),
+            shell: process.platform === 'win32',
+        });
+        if (result.error) {
+            throw result.error;
+        }
+        if (result.status !== 0) {
+            throw new Error(`Command exited with code ${result.status}`);
+        }
         logger.printSuccessLog(`Successfully installed ${pkgName}.`);
     } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
@@ -48,30 +108,12 @@ export function ensurePackageInstalled(packageName: string, packageNameInRegistr
     }
 }
 
-export async function ensureValidationDependencies(): Promise<void> {
-    // Check sharp
-    ensurePackageInstalled('sharp');
+export function ensureValidationDependencies(): void {
+    // Default behavior: only assert presence (do not modify user environment).
+    // Auto-installing heavy native deps at runtime can fail and harms UX.
+    // If you still want auto-install, call ensurePackageInstalled(...) explicitly from your own wrapper.
+    assertValidationDependenciesInstalled();
 
-    // Check playwright
-    ensurePackageInstalled('playwright');
-
-    // Check playwright browsers (chromium)
-    // We can try to require playwright and check if executable exists, or just run install deps
-    // The safest way for playwright is to run 'npx playwright install chromium' if we just installed it
-    // or if launch fails. But checking beforehand is better.
-    try {
-        const { chromium } = await import('playwright');
-        if (!chromium.executablePath()) {
-            throw new Error('Chromium not found');
-        }
-    } catch {
-        logger.printInfoLog('Playwright browsers may be missing. Installing chromium...');
-        try {
-            execSync('npx playwright install chromium', { stdio: 'inherit' });
-        } catch {
-            logger.printWarnLog(
-                'Failed to install playwright browsers automatically. You might need to run "npx playwright install" manually.'
-            );
-        }
-    }
+    // NOTE: We intentionally do not preinstall Playwright browsers here.
+    // The Playwright launcher has an auto-install fallback for missing Chromium binaries.
 }

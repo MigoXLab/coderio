@@ -65,11 +65,14 @@ class FigmaTool {
 
         const document = await fetchFigmaNode(fileId, nodeId, token);
         if (!document || !document?.children?.length) {
-            return undefined;
+            throw new Error('Failed to fetch Figma document');
         }
 
         const images = await fetchFigmaImages(fileId, nodeId, token);
         const thumbnail = images?.[nodeId] || '';
+        if (!thumbnail) {
+            throw new Error('Failed to fetch Figma document thumbnail');
+        }
         document.thumbnailUrl = thumbnail;
 
         const cleanedDocument = cleanFigma(document);

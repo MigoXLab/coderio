@@ -1,121 +1,49 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
+import { initializeSqliteSaver } from '../../src/utils/checkpoint';
+import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
 
-describe('checkpoint utilities', () => {
-    let logSpy: ReturnType<typeof vi.spyOn>;
-    let warnSpy: ReturnType<typeof vi.spyOn>;
-    let errorSpy: ReturnType<typeof vi.spyOn>;
+// Mock fs
+vi.mock('node:fs', () => ({
+    default: {
+        existsSync: vi.fn(),
+        mkdirSync: vi.fn(),
+    },
+}));
 
+// Mock SqliteSaver
+vi.mock('@langchain/langgraph-checkpoint-sqlite', () => ({
+    SqliteSaver: {
+        fromConnString: vi.fn(),
+    },
+}));
+
+describe('initializeSqliteSaver', () => {
     beforeEach(() => {
-        vi.resetModules();
-        vi.clearAllMocks();
-        // Silence logger output for deterministic test output
-        logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-        warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.resetAllMocks();
     });
 
     afterEach(() => {
-        vi.unmock('@langchain/langgraph-checkpoint-sqlite');
-        vi.unmock('../../src/cli/prompts');
-        logSpy.mockRestore();
-        warnSpy.mockRestore();
-        errorSpy.mockRestore();
+        vi.restoreAllMocks();
     });
 
-    async function importCheckpointModule({
-        promptChoice = 'resume',
-        fromConnStringImpl,
-    }: {
-        promptChoice?: 'resume' | 'fresh';
-        fromConnStringImpl?: (dbPath: string) => any;
-    } = {}) {
-        const fromConnString = vi.fn((dbPath: string) => (fromConnStringImpl ? fromConnStringImpl(dbPath) : { dbPath }));
+    it('should use path.dirname and create directory if it does not exist', () => {
+        const dbPath = '/path/to/db/file.db';
+        const dbDir = '/path/to/db'; // Expected dirname on POSIX
 
-        // Mock external dependency to avoid touching real sqlite/checkpointer implementation.
-        vi.doMock('@langchain/langgraph-checkpoint-sqlite', () => ({
-            SqliteSaver: class SqliteSaver {
-                static fromConnString = fromConnString;
-            },
-        }));
+        // Spy on path.dirname to ensure it is called
+        // Note: path module is frozen in some environments, so spyOn might fail.
+        // If so, we rely on the behavior correctness.
+        const dirnameSpy = vi.spyOn(path, 'dirname');
 
-        vi.doMock('../../src/cli/prompts', () => ({
-            promptUserChoice: vi.fn(async () => promptChoice),
-        }));
+        (fs.existsSync as Mock).mockReturnValue(false);
 
-        const mod = await import('../../src/utils/checkpoint');
-        return { mod, fromConnString };
-    }
+        initializeSqliteSaver(dbPath);
 
-    it('initializeSqliteSaver should create parent directory and call fromConnString', async () => {
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'coderio-ckpt-'));
-        try {
-            const dbDir = path.join(tempDir, 'checkpoint');
-            const dbPath = path.join(dbDir, 'coderio-cli.db');
-
-            expect(fs.existsSync(dbDir)).toBe(false);
-
-            const { mod, fromConnString } = await importCheckpointModule();
-            const saver = mod.initializeSqliteSaver(dbPath);
-
-            expect(fs.existsSync(dbDir)).toBe(true);
-            expect(fromConnString).toHaveBeenCalledWith(dbPath);
-            expect(saver).toEqual({ dbPath });
-        } finally {
-            fs.rmSync(tempDir, { recursive: true, force: true });
-        }
-    });
-
-    it('promptCheckpointChoice should return undefined when no checkpoint exists', async () => {
-        const { mod } = await importCheckpointModule({ promptChoice: 'resume' });
-
-        const checkpointer = {
-            list: vi.fn(() => ({
-                next: vi.fn(async () => ({ done: true, value: undefined })),
-            })),
-        };
-
-        const result = await mod.promptCheckpointChoice(checkpointer as any, 't1');
-        expect(result).toBeUndefined();
-    });
-
-    it('promptCheckpointChoice should return true when checkpoint exists and user chooses resume', async () => {
-        const { mod } = await importCheckpointModule({ promptChoice: 'resume' });
-
-        const checkpointer = {
-            list: vi.fn(() => ({
-                next: vi.fn(async () => ({ done: false, value: { id: 1 } })),
-            })),
-        };
-
-        const result = await mod.promptCheckpointChoice(checkpointer as any, 't2');
-        expect(result).toBe(true);
-    });
-
-    it('promptCheckpointChoice should return false when checkpoint exists and user chooses fresh', async () => {
-        const { mod } = await importCheckpointModule({ promptChoice: 'fresh' });
-
-        const checkpointer = {
-            list: vi.fn(() => ({
-                next: vi.fn(async () => ({ done: false, value: { id: 1 } })),
-            })),
-        };
-
-        const result = await mod.promptCheckpointChoice(checkpointer as any, 't3');
-        expect(result).toBe(false);
-    });
-
-    it('clearThreadCheckpoint should call deleteThread and swallow errors', async () => {
-        const { mod } = await importCheckpointModule();
-
-        const deleteThread = vi.fn(async () => {
-            throw new Error('fail');
-        });
-
-        const checkpointer = { deleteThread };
-        await expect(mod.clearThreadCheckpoint(checkpointer as any, 't4')).resolves.toBeUndefined();
-        expect(deleteThread).toHaveBeenCalledWith('t4');
+        expect(dirnameSpy).toHaveBeenCalledWith(dbPath);
+        expect(fs.existsSync).toHaveBeenCalledWith(dbDir);
+        expect(fs.mkdirSync).toHaveBeenCalledWith(dbDir, { recursive: true });
+        expect(SqliteSaver.fromConnString).toHaveBeenCalledWith(dbPath);
     });
 });

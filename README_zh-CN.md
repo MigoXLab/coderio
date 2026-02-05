@@ -53,18 +53,19 @@ https://github.com/user-attachments/assets/bd0c3f18-e98a-4050-bf22-46b198fadac2
 
 CodeRio 支持作为 Skill 集成到 Cursor 中使用。您只需在对话框中输入 **“请帮我创建一个 React 工程，高保真还原设计稿”**，并提供输出目录、设计稿链接([设计稿链接](https://www.figma.com/design/c0UBII8lURfxZIY8W6tSDR/Top-16-Websites-of-2024---Awwwards--Community-?node-id=30-8264&t=FB3Hohq2nsH7ZFts-4))及 Figma Token，Agent 即可引导您逐步完成网页生成。对于落地页（Landing Page）类页面，CodeRio 能达到 **高保真还原** 标准，精确还原图片与样式，并自动对卡片等组件进行 **复用封装**，生成的代码完全符合 **前端开发规范**。
 
-
 https://github.com/user-attachments/assets/43817e97-ffd2-40e3-9d33-78ee55b2ec2d
 
 ## 🚀 快速开始
 
 ### 方式 1：命令行 CLI（推荐 👍🏻）
+
 适用于一键快速生成。
 
 #### 1. 前置要求
 
 - Node.js >= 18.0.0 (< 25.0.0)
 - [Figma 个人访问令牌](https://www.figma.com/developers/api#access-tokens)
+- **Figma 链接**：在 Figma 中选中 Frame 或 Component，右键选择 **Copy link to selection** ([参考图片](docs/figma-link.jpg))。
 - LLM API 密钥（[Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/)）
 
 #### 2. 安装
@@ -76,36 +77,38 @@ npm install -g coderio
 # 或使用 pnpm
 pnpm add -g coderio
 ```
-> **pnpm v9+ 用户注意**：如果看到 "Ignored build scripts" 警告，请运行：
-> ```bash
-> pnpm approve-builds
-> ```
-> 这将允许原生依赖（better-sqlite3）正确编译。
+
+> **pnpm v9+ 用户注意**：如果看到 "Ignored build scripts" 警告，请运行：`pnpm approve-builds`，允许原生依赖（better-sqlite3）正确编译。
 >
-> **注意**：`playwright` 和 `sharp` 仅在验证功能中需要。当您运行需要它们的命令（如 `d2c --mode full`）时，它们将被自动安装。
+> **注意**：验证功能（如 `d2c --mode full`）依赖可选依赖 `playwright` 和 `sharp`。为了保持安装轻量，coderio 默认不内置它们。建议您提前全局安装，以确保运行更加顺畅：
+>
+> ```bash
+> npm install -g playwright sharp
+> npx playwright install chromium
+> ```
 
 #### 3. 配置
 
-创建 `~/.coderio/config.yaml`：
+> **重要提示**：本工具需要模型具备 **多模态（视觉）能力**（推荐 `gemini-3-pro-preview`）。
 
-```bash
-mkdir -p ~/.coderio
-cat > ~/.coderio/config.yaml << 'EOF'
+创建配置文件 `~/.coderio/config.yaml`（Windows：`%USERPROFILE%\.coderio\config.yaml`）：
+
+```yaml
 model:
-  provider: openai          # anthropic | openai | google
-  model: gemini-3-pro-preview
-  baseUrl: https://api.anthropic.com
-  apiKey: your-api-key-here
+    provider: openai # anthropic | openai | google
+    model: gemini-3-pro-preview
+    baseUrl: https://api.anthropic.com
+    apiKey: your-api-key-here
 
 figma:
-  token: your-figma-token-here
+    token: your-figma-token-here
 
 debug:
-  enabled: false
-EOF
+    enabled: false # 如果需要保留请求和模型回复，可以设置为 true
 ```
 
 #### 4. 使用
+
 ```bash
 # 将 Figma 设计转换为代码（默认模式：仅代码）
 coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
@@ -113,7 +116,6 @@ coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
 # 完整模式：生成代码 + 视觉验证 + 自动优化
 coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m full
 ```
-
 
 #### 5. 运行项目
 
@@ -132,10 +134,7 @@ pnpm dev
 
 #### 6. 查看验证报告
 
-```bash
-# 在浏览器中打开验证报告
-open coderio/<设计文件名-页面节点编号>/process/validation/index.html
-```
+验证报告目录：`coderio/<设计文件名-页面节点编号>/process/validation/index.html`
 
 #### 📖 全部命令
 
@@ -147,26 +146,23 @@ open coderio/<设计文件名-页面节点编号>/process/validation/index.html
 | `validate`        | `val` | 对生成的代码运行验证                 |
 | `images`          | -     | 下载和处理 Figma 资源                |
 
-
 ### 方式 2：Skill（便携式嵌入工作流）
+
 适用于需要 AI 辅助和更精准控制的场景。
 
 **前置准备**：
-将 Skill 文件拷贝到 Cursor 配置目录：
-```bash
-mkdir -p ~/.cursor/skills/design-to-code
-cp docs/skills/SKILL.md ~/.cursor/skills/design-to-code/SKILL.md
-```
+将 `skills\design-to-code` 文件夹拷贝到 `~\.cursor\skills`(windows 为`%USERPROFILE%\.cursor\skills`) 目录下，
 
 **Cursor 中使用**：
-1. 打开 Cursor Chat (`Cmd` + `L`)。
+
+1. 打开 Cursor Chat
 2. 输入：**"使用 design-to-code skill 帮我转换这个设计：[你的 Figma 链接]"**
 3. 智能体将引导你分步完成协议提取和代码生成。
 
 **Claude Code 中使用**：
+
 1. 启动 Claude Code。
 2. 输入：**"阅读 docs/skills/SKILL.md 并执行设计转换任务：[你的 Figma 链接]"**
-
 
 ## 💎 核心特性
 

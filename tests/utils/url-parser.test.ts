@@ -10,7 +10,7 @@ describe('parseFigmaUrl', () => {
             fileId: 'aONcu8L82l1PdcT304Q8Za',
             name: 'intern',
             nodeId: '0:495',
-            projectName: 'intern_0:495',
+            projectName: 'intern_0_495',
         });
     });
 
@@ -90,7 +90,7 @@ describe('parseFigmaUrl', () => {
         const url = 'https://www.figma.com/design/abc123/TestProject?node-id=1-2';
         const result = parseFigmaUrl(url);
 
-        expect(result.projectName).toBe('testproject_1:2');
+        expect(result.projectName).toBe('testproject_1_2');
     });
 
     it('should handle URLs with additional query parameters', () => {

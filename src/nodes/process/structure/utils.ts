@@ -1,5 +1,6 @@
 import type { FigmaFrameInfo, Protocol, FrameData } from '../../../types';
 import type { SimplifiedFigmaNode, ExtendedFrameStructNode, ParsedDataListResponse } from './types';
+import path from 'node:path';
 import { toKebabCase } from '../../../utils/naming';
 import { extractJSON } from '../../../utils/parser';
 import { callModel } from '../../../utils/call-model';
@@ -237,12 +238,9 @@ export function postProcessStructure(structure?: Protocol | Protocol[] | null, f
         return;
     }
 
-    // Utility to join path segments and normalize slashes
+    // Utility to join alias path segments (always POSIX '/')
     const joinSegments = (...segments: (string | undefined)[]): string =>
-        segments
-            .filter((segment): segment is string => Boolean(segment && segment.length))
-            .join('/')
-            .replace(/\/{2,}/g, '/');
+        path.posix.join(...segments.filter((segment): segment is string => Boolean(segment && segment.length)));
 
     const nodes = Array.isArray(structure) ? structure : [structure];
     let rootPath = '@/components';

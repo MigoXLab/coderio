@@ -115,7 +115,7 @@ export async function callModel(options: CallModelOptions): Promise<string> {
                 '------------response------------',
                 JSON.stringify(message.text, null, 2),
             ].join('\n');
-            writeFile(workspaceManager.path?.debug ?? '', `model_${new Date().toISOString()}.md`, debugContent);
+            writeFile(workspaceManager.path?.debug ?? '', `model_${new Date().toISOString().replace(/:/g, '-')}.md`, debugContent);
         }
 
         return message.text;

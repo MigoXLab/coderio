@@ -1,3 +1,4 @@
+import path from 'node:path';
 import fs from 'node:fs';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
 import { logger } from './logger';
@@ -58,7 +59,7 @@ export async function clearThreadCheckpoint(checkpointer: SqliteSaver, threadId:
  */
 export function initializeSqliteSaver(dbPath: string): SqliteSaver {
     // Ensure the directory exists
-    const dbDir = dbPath.substring(0, dbPath.lastIndexOf('/'));
+    const dbDir = path.dirname(dbPath);
     if (!fs.existsSync(dbDir)) {
         fs.mkdirSync(dbDir, { recursive: true });
     }

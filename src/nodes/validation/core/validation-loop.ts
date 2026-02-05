@@ -197,7 +197,7 @@ function saveIterationAndProcessedJson(
 
 export async function validationLoop(params: ValidationLoopParams): Promise<ValidationLoopResult> {
     // Ensure dependencies are installed before starting validation loop
-    await ensureValidationDependencies();
+    ensureValidationDependencies();
 
     const { protocol, figmaThumbnailUrl, outputDir, workspace } = params;
 
