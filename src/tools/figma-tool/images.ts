@@ -325,7 +325,15 @@ export const createDownloadTask = async (image: ImageNode, imageDir?: string): P
 
     try {
         const localPath = await downloadImage(image.url, filename, imageDir);
-        const aliasPath = `@/${localPath.split('src/')?.[1] || ''}`;
+        const normalizedImageDir = imageDir ? path.normalize(imageDir) : '';
+        const dirParts = normalizedImageDir.split(path.sep).filter(Boolean);
+        const srcIndex = dirParts.lastIndexOf('src');
+        const srcDir =
+            srcIndex >= 0 ? (normalizedImageDir.startsWith(path.sep) ? path.sep : '') + path.join(...dirParts.slice(0, srcIndex + 1)) : '';
+
+        const relativeFromSrc = srcDir ? path.relative(srcDir, localPath) : '';
+        const normalizedRelative = relativeFromSrc.split(path.sep).join('/');
+        const aliasPath = `@/${normalizedRelative}`;
 
         return {
             id: image.id,

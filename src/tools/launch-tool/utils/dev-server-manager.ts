@@ -15,6 +15,20 @@ export interface DevServerHandle {
     outputTail: () => string;
 }
 
+function terminateChildProcess(child: ChildProcess): void {
+    // Windows does not support POSIX signals like SIGTERM reliably.
+    // Calling kill() without a signal uses the platform default behavior.
+    try {
+        if (process.platform === 'win32') {
+            child.kill();
+        } else {
+            child.kill('SIGTERM');
+        }
+    } catch {
+        // ignore
+    }
+}
+
 function normalizeExecutable(executable: string): string {
     if (process.platform !== 'win32') {
         return executable;
@@ -174,21 +188,13 @@ export class DevServerManager {
 
         // If our process exits, try to stop the child to avoid orphans.
         process.once('exit', () => {
-            try {
-                child.kill('SIGTERM');
-            } catch {
-                // ignore
-            }
+            terminateChildProcess(child);
         });
 
         const ready = await waitForServerReady(url, options.timeoutMs);
         if (!ready) {
             const tail = out.trim();
-            try {
-                child.kill('SIGTERM');
-            } catch {
-                // ignore
-            }
+            terminateChildProcess(child);
             throw new Error(`Dev server did not become ready at ${url} within ${options.timeoutMs}ms.\n${tail}`);
         }
 
@@ -211,7 +217,7 @@ export class DevServerManager {
         await new Promise<void>(resolve => {
             try {
                 child.once('close', () => resolve());
-                child.kill('SIGTERM');
+                terminateChildProcess(child);
             } catch {
                 resolve();
             }

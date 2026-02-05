@@ -7,9 +7,8 @@ import { runValidation } from './nodes/validation';
 import { parseFigmaUrl } from './utils/url-parser';
 import { workspaceManager } from './utils/workspace';
 import { generateCode } from './nodes/code';
-import { initializeSqliteSaver, promptCheckpointChoice } from './utils/checkpoint';
+import { initializeSqliteSaver, promptCheckpointChoice, clearThreadCheckpoint } from './utils/checkpoint';
 import { logger } from './utils/logger';
-import { callModel } from './utils/call-model';
 
 export async function design2code(url: string, mode?: ValidationMode): Promise<void> {
     const urlInfo = parseFigmaUrl(url);
@@ -17,25 +16,22 @@ export async function design2code(url: string, mode?: ValidationMode): Promise<v
     const workspace = workspaceManager.initWorkspace(threadId);
 
     // Initialize SqliteSaver with the database path
-    let checkpointer = initializeSqliteSaver(workspace.db);
+    const checkpointer = initializeSqliteSaver(workspace.db);
     const resume = await promptCheckpointChoice(checkpointer, threadId);
 
     logger.printInfoLog(`Starting design-to-code process for: ${urlInfo.projectName}`);
 
     // If not resuming, delete workspace and reinitialize checkpointer
     if (resume !== true) {
-        workspaceManager.deleteWorkspace(workspace);
+        // Exclude checkpoint directory to avoid EBUSY error on Windows (SQLite lock)
+        workspaceManager.deleteWorkspace(workspace, ['checkpoint']);
         logger.printInfoLog('Starting fresh...');
-        // Reinitialize checkpointer after deleting workspace
-        checkpointer = initializeSqliteSaver(workspace.db);
+
+        // Clear existing checkpoints for this thread instead of deleting the file
+        await clearThreadCheckpoint(checkpointer, threadId);
     } else {
         logger.printInfoLog('Resuming from cache...');
     }
-
-    await callModel({
-        question: '请介绍你自己，你是什么模型',
-        streaming: false,
-    });
 
     // Compile graph with checkpointer (after potential reinitialization)
     const graph = new StateGraph(GraphStateAnnotation)

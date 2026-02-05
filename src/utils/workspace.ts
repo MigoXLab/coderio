@@ -49,8 +49,10 @@ class Workspace {
 
     /**
      * Delete all files and directories inside the workspace
+     * @param workspace - The workspace structure
+     * @param exclude - Optional list of file/directory names to exclude from deletion
      */
-    deleteWorkspace(workspace: WorkspaceStructure): void {
+    deleteWorkspace(workspace: WorkspaceStructure, exclude: string[] = []): void {
         try {
             if (fs.existsSync(workspace.root)) {
                 // Read all entries in the workspace root
@@ -58,6 +60,9 @@ class Workspace {
 
                 // Delete each entry
                 for (const entry of entries) {
+                    if (exclude.includes(entry)) {
+                        continue;
+                    }
                     const fullPath = path.join(workspace.root, entry);
                     fs.rmSync(fullPath, { recursive: true, force: true });
                 }
@@ -88,10 +93,13 @@ class Workspace {
      *
      */
     resolveComponentPath(aliasPath: string): string {
+        // Normalize path separators for robustness across platforms.
+        const normalizedAlias = aliasPath.replace(/\\/g, '/');
+
         // Step 1: Strip @/ prefix if present
-        let relativePath = aliasPath.startsWith('@/')
-            ? aliasPath.substring(2) // '@/components/Button' → 'components/Button'
-            : aliasPath;
+        let relativePath = normalizedAlias.startsWith('@/')
+            ? normalizedAlias.substring(2) // '@/components/Button' → 'components/Button'
+            : normalizedAlias;
 
         // Step 2: Strip 'src/' prefix if present (resolveAppSrc adds it)
         // '@/src/components/Button' → 'components/Button'
