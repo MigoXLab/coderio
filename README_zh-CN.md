@@ -146,7 +146,94 @@ pnpm dev
 | `validate`        | `val` | 对生成的代码运行验证                 |
 | `images`          | -     | 下载和处理 Figma 资源                |
 
-### 方式 2：Skill（便携式嵌入工作流）
+### 方式 2：Docker
+
+基于 Docker 提供了完整运行时环境，适用于未安装 Node.js 的场景。
+
+#### 1. 前置要求
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Figma 个人访问令牌](https://www.figma.com/developers/api#access-tokens)
+- LLM API 密钥（[Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/)）
+
+> **Windows 用户指南：** 以下命令使用了 bash 语法（heredoc、`${PWD}`、`--network=host` 等），无法在 CMD 或 PowerShell 中直接运行。请通过 **WSL2** 执行：
+>
+> 1. 安装 [WSL2](https://learn.microsoft.com/zh-cn/windows/wsl/install) 和 Linux 发行版（如 Ubuntu）
+> 2. 安装 [Docker Desktop](https://docs.docker.com/desktop/install/windows-install/)，并在 Settings → Resources → WSL Integration 中开启 **WSL2 集成**
+> 3. 打开 WSL2 终端（在 CMD/PowerShell 中运行 `wsl`，或从开始菜单打开 Ubuntu）
+> 4. 在 WSL2 终端中执行以下所有命令
+
+#### 2. 安装
+
+```bash
+docker pull crpi-p4hwwrt00km3axuk.cn-shanghai.personal.cr.aliyuncs.com/coderio/coderio
+```
+
+#### 3. 配置
+
+创建工作目录和 `config.yaml` 配置文件：
+
+```bash
+mkdir -p ./coderio-app && cd ./coderio-app
+cat > config.yaml << 'EOF'
+model:
+  provider: openai          # anthropic | openai | google
+  model: gemini-3-pro-preview
+  baseUrl: https://api.anthropic.com
+  apiKey: your-api-key-here
+
+figma:
+  token: your-figma-token-here
+
+debug:
+  enabled: false
+EOF
+```
+
+#### 4. 使用
+
+```bash
+docker run -ti --rm \
+  --network=host \
+  -v ${PWD}:/app \
+  -v ./config.yaml:/root/.coderio/config.yaml \
+  crpi-p4hwwrt00km3axuk.cn-shanghai.personal.cr.aliyuncs.com/coderio/coderio bash
+```
+
+进入容器后，使用 CodeRio 命令：
+
+```bash
+# 将 Figma 设计转换为代码（默认模式：仅代码）
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
+
+# 完整模式：生成代码 + 视觉验证 + 自动优化
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m full
+```
+
+#### 5. 运行项目
+
+```bash
+# 进入生成的项目目录
+cd coderio/<设计文件名-页面节点编号>/my-app
+
+# 安装依赖
+pnpm install
+
+# 启动开发服务器
+pnpm dev
+
+# 🎉 打开 http://localhost:5173
+```
+
+#### 6. 查看验证报告
+
+生成的文件会挂载到宿主机。在浏览器中打开验证报告：
+
+```
+./coderio/<设计文件名-页面节点编号>/process/validation/index.html
+```
+
+### 方式 3：Skill（便携式嵌入工作流）
 
 适用于需要 AI 辅助和更精准控制的场景。
 

@@ -147,7 +147,94 @@ report path: coderio/<design-name_node-id>/process/validation/index.html
 | `validate`        | `val` | Run validation on generated code                    |
 | `images`          | -     | Download and process Figma assets                   |
 
-### Option 2: Skill (Portable Embedded Workflow)
+### Option 2: Docker
+
+Best for portable environments without Node.js installation.
+
+#### 1. Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Figma Personal Access Token](https://www.figma.com/developers/api#access-tokens)
+- LLM API Key ([Anthropic](https://console.anthropic.com/) | [OpenAI](https://platform.openai.com/) | [Google](https://aistudio.google.com/))
+
+> **For Windows Users:** The commands below use bash syntax (heredoc, `${PWD}`, `--network=host`, etc.) which are not compatible with CMD or PowerShell. Please use **WSL2** to run them:
+>
+> 1. Install [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and a Linux distribution (e.g. Ubuntu)
+> 2. Install [Docker Desktop](https://docs.docker.com/desktop/install/windows-install/) and enable **WSL2 integration** in Settings → Resources → WSL Integration
+> 3. Open a WSL2 terminal (run `wsl` in CMD/PowerShell, or open Ubuntu from the Start menu)
+> 4. Run all the following commands inside the WSL2 terminal
+
+#### 2. Installation
+
+```bash
+docker pull crpi-p4hwwrt00km3axuk.cn-shanghai.personal.cr.aliyuncs.com/coderio/coderio
+```
+
+#### 3. Configuration
+
+Create a working directory and `config.yaml`:
+
+```bash
+mkdir -p ./coderio-app && cd ./coderio-app
+cat > config.yaml << 'EOF'
+model:
+  provider: openai          # anthropic | openai | google
+  model: gemini-3-pro-preview
+  baseUrl: https://api.anthropic.com
+  apiKey: your-api-key-here
+
+figma:
+  token: your-figma-token-here
+
+debug:
+  enabled: false
+EOF
+```
+
+#### 4. Usage
+
+```bash
+docker run -ti --rm \
+  --network=host \
+  -v ${PWD}:/app \
+  -v ./config.yaml:/root/.coderio/config.yaml \
+  crpi-p4hwwrt00km3axuk.cn-shanghai.personal.cr.aliyuncs.com/coderio/coderio bash
+```
+
+Once inside the container, use CodeRio commands:
+
+```bash
+# Convert Figma design to code (default mode: code only)
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...'
+
+# Full mode: Generate code + visual validation + auto-refinement
+coderio d2c -s 'https://www.figma.com/design/your-file-id/...' -m full
+```
+
+#### 5. Run Your Project
+
+```bash
+# Navigate to generated project
+cd coderio/<design-name_node-id>/my-app
+
+# Install dependencies
+pnpm install
+
+# Start dev server
+pnpm dev
+
+# 🎉 Open http://localhost:5173
+```
+
+#### 6. View Validation Report
+
+Generated files are mounted to your host machine. Open the validation report in your browser:
+
+```
+./coderio/<design-name_node-id>/process/validation/index.html
+```
+
+### Option 3: Skill (Portable Embedded Workflow)
 
 Best for control and precision using AI Agents.
 
