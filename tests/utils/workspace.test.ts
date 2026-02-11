@@ -77,4 +77,47 @@ describe('workspaceManager', () => {
         expect(fs.existsSync(root)).toBe(true);
         expect(fs.readdirSync(root)).toHaveLength(0);
     });
+
+    it('deleteWorkspace should preserve specified files while deleting others', () => {
+        const root = path.join(tempRoot, 'workspace-preserve');
+        fs.mkdirSync(root, { recursive: true });
+        fs.writeFileSync(path.join(root, 'a.txt'), 'a');
+        fs.writeFileSync(path.join(root, 'delete-me.txt'), 'delete');
+        fs.mkdirSync(path.join(root, 'checkpoint'), { recursive: true });
+        fs.writeFileSync(path.join(root, 'checkpoint', 'coderio-cli.db'), 'db');
+        fs.writeFileSync(path.join(root, 'checkpoint', 'checkpoint.json'), 'json');
+        fs.mkdirSync(path.join(root, 'process'), { recursive: true });
+        fs.writeFileSync(path.join(root, 'process', 'data.txt'), 'data');
+
+        const ws: WorkspaceStructure = {
+            root,
+            app: '',
+            process: '',
+            debug: '',
+            reports: '',
+            db: '',
+            checkpoint: '',
+        };
+
+        // Preserve only the database file
+        workspaceManager.deleteWorkspace(ws, ['checkpoint/coderio-cli.db']);
+
+        // Root should still exist
+        expect(fs.existsSync(root)).toBe(true);
+
+        // checkpoint directory should still exist (contains preserved file)
+        expect(fs.existsSync(path.join(root, 'checkpoint'))).toBe(true);
+
+        // Database file should be preserved
+        expect(fs.existsSync(path.join(root, 'checkpoint', 'coderio-cli.db'))).toBe(true);
+        expect(fs.readFileSync(path.join(root, 'checkpoint', 'coderio-cli.db'), 'utf8')).toBe('db');
+
+        // checkpoint.json should be deleted
+        expect(fs.existsSync(path.join(root, 'checkpoint', 'checkpoint.json'))).toBe(false);
+
+        // Other files and directories should be deleted
+        expect(fs.existsSync(path.join(root, 'a.txt'))).toBe(false);
+        expect(fs.existsSync(path.join(root, 'delete-me.txt'))).toBe(false);
+        expect(fs.existsSync(path.join(root, 'process'))).toBe(false);
+    });
 });

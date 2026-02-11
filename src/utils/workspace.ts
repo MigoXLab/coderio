@@ -50,23 +50,45 @@ class Workspace {
     /**
      * Delete all files and directories inside the workspace
      * @param workspace - The workspace structure
-     * @param exclude - Optional list of file/directory names to exclude from deletion
+     * @param preserve - Optional list of relative paths (from workspace root) to preserve from deletion
      */
-    deleteWorkspace(workspace: WorkspaceStructure, exclude: string[] = []): void {
+    deleteWorkspace(workspace: WorkspaceStructure, preserve: string[] = []): void {
         try {
-            if (fs.existsSync(workspace.root)) {
-                // Read all entries in the workspace root
-                const entries = fs.readdirSync(workspace.root);
+            if (!fs.existsSync(workspace.root)) return;
 
-                // Delete each entry
-                for (const entry of entries) {
-                    if (exclude.includes(entry)) {
-                        continue;
-                    }
-                    const fullPath = path.join(workspace.root, entry);
-                    fs.rmSync(fullPath, { recursive: true, force: true });
+            // Build set of normalized relative paths to preserve
+            const preserveFiles = new Set(preserve.map(p => path.normalize(p)));
+
+            // Collect ancestor directories of preserved files
+            const preserveDirs = new Set<string>();
+            for (const p of preserveFiles) {
+                let dir = path.dirname(p);
+                while (dir !== '.') {
+                    preserveDirs.add(dir);
+                    dir = path.dirname(dir);
                 }
             }
+
+            const deleteRecursive = (dirPath: string, relativeTo: string = '') => {
+                const entries = fs.readdirSync(dirPath);
+                for (const entry of entries) {
+                    const fullPath = path.join(dirPath, entry);
+                    const relPath = relativeTo ? path.join(relativeTo, entry) : entry;
+
+                    if (preserveFiles.has(relPath)) {
+                        continue; // This file is preserved
+                    }
+
+                    if (preserveDirs.has(relPath)) {
+                        // Directory contains preserved files, recurse into it
+                        deleteRecursive(fullPath, relPath);
+                    } else {
+                        fs.rmSync(fullPath, { recursive: true, force: true });
+                    }
+                }
+            };
+
+            deleteRecursive(workspace.root);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             logger.printWarnLog(`Failed to delete workspace: ${errorMessage}`);
