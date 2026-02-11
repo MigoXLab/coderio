@@ -36,8 +36,8 @@ importers:
         specifier: ^12.1.0
         version: 12.1.0
       evoltagent:
-        specifier: 1.1.4
-        version: 1.1.4(@cfworker/json-schema@4.1.1)(hono@4.11.7)(zod@4.3.6)
+        specifier: 1.1.5
+        version: 1.1.5(@cfworker/json-schema@4.1.1)(hono@4.11.7)(zod@4.3.6)
       js-yaml:
         specifier: ^4.1.1
         version: 4.1.1
@@ -1399,8 +1399,8 @@ packages:
     resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
     engines: {node: '>=18.0.0'}
 
-  evoltagent@1.1.4:
-    resolution: {integrity: sha512-K8EdW/N0gB3w/mgTUTbkftMGgBYG3TmTgjdi2skNhpnAvWGeRrjCHmNEJXqGKNjeA27muD9zmh9X+TFWckpEiA==}
+  evoltagent@1.1.5:
+    resolution: {integrity: sha512-I+QsF5CU0LE9BmdnEBPLm/faPwGzzH1x4Q0hlYbu/Ook1qMvmOkKGnXV5GQ3hLpjdrITE9bZR/dY4EHEywNsEg==}
 
   expand-template@2.0.3:
     resolution: {integrity: sha512-XYfuKMvj4O35f/pOXLObndIRvyQ+/+6AhODh+OKWj9S9498pHHn/IMszH+gt0fBCRWMNfk1ZSp5x3AifmnI2vg==}
@@ -3709,7 +3709,7 @@ snapshots:
     dependencies:
       eventsource-parser: 3.0.6
 
-  evoltagent@1.1.4(@cfworker/json-schema@4.1.1)(hono@4.11.7)(zod@4.3.6):
+  evoltagent@1.1.5(@cfworker/json-schema@4.1.1)(hono@4.11.7)(zod@4.3.6):
     dependencies:
       '@anthropic-ai/sdk': 0.71.2(zod@4.3.6)
       '@google/generative-ai': 0.24.1
