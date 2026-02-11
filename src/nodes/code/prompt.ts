@@ -47,21 +47,45 @@ const FILE_NAMING_CONVENTION = `
 
 const OUTPUT_FORMAT = `
   <output_format>
-    If only one file (TSX) is needed:
+    **CRITICAL - Output Format Requirements:**
+    
+    **CASE 1: Single File (TSX only)**
+    - Return code wrapped in triple backticks with language identifier
+    - NO file name header needed
+    - Example:
     \`\`\`tsx
-    // code...
+    export default function Component() {
+      return <div>...</div>;
+    }
     \`\`\`
 
-    If multiple files are needed (e.g., TSX + Styles):
+    **CASE 2: Multiple Files (TSX + Styles)**
+    - **REQUIRED**: Each file MUST start with EXACTLY \`## \` (two hash symbols + one space) followed by filename
+    - **REQUIRED**: Filename must be complete with extension (e.g., \`index.tsx\`, \`index.module.css\`)
+    - **FORBIDDEN**: Do NOT use single \`#\`, do NOT omit filename, do NOT use other markers
+    - Follow this exact structure:
+    
     ## index.tsx
     \`\`\`tsx
-    // code...
+    export default function Component() {
+      return <div>...</div>;
+    }
     \`\`\`
 
     ## index.module.[css|less|scss]
     \`\`\`[css|less|scss]
-    // styles...
+    .container {
+      /* styles */
+    }
     \`\`\`
+    
+    **VALIDATION CHECKLIST (for multiple files):**
+    ✓ Each file section starts with \`## \` (two hashes + space)
+    ✓ Filename includes full extension
+    ✓ Code wrapped in triple backticks with language
+    ✗ DO NOT use \`# filename\` (single hash)
+    ✗ DO NOT omit file headers
+    ✗ DO NOT use other separators
   </output_format>`;
 
 // ============================================
