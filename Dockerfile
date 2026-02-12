@@ -1,5 +1,7 @@
 FROM node:22
 
+ARG VERSION
+
 WORKDIR /app
 
 RUN apt-get update \
@@ -39,7 +41,7 @@ RUN npx playwright install --with-deps chromium \
 RUN npm install -g pnpm
 
 # Install coderio
-RUN npm install -g coderio
+RUN npm install -g coderio@${VERSION#v}
 
 
 # Clean up temporary files
