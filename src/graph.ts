@@ -24,7 +24,11 @@ export async function design2code(url: string, mode?: ValidationMode): Promise<v
     // If not resuming, delete workspace and reinitialize checkpointer
     if (resume !== true) {
         // Preserve only the database file to avoid EBUSY error on Windows (SQLite lock)
-        workspaceManager.deleteWorkspace(workspace, ['checkpoint/coderio-cli.db']);
+        workspaceManager.deleteWorkspace(workspace, [
+            'checkpoint/coderio-cli.db',
+            'checkpoint/coderio-cli.db-shm',
+            'checkpoint/coderio-cli.db-wal',
+        ]);
         logger.printInfoLog('Starting fresh...');
 
         // Clear existing checkpoints for this thread instead of deleting the file
